@@ -35,6 +35,8 @@
   --sheet-bg:rgba(32,32,32,0.99);
   --prog-now-color:#fff;
   --prog-dot-bg:#fff;
+  --prog-now-badge-fg:#fff;
+  --prog-now-badge-bg:rgba(255,255,255,0.15);
   --top3-color:#fff;
   --trend-up:#7fff7f; --trend-down:#ff7f7f;
   --stream-btn-hover:#fff;
@@ -70,6 +72,8 @@
     --sheet-bg:rgba(242,242,247,0.99);
     --prog-now-color:#000;
     --prog-dot-bg:#000;
+    --prog-now-badge-fg:#000;
+    --prog-now-badge-bg:rgba(0,0,0,0.1);
     --top3-color:#000;
     --trend-up:#1a7a1a; --trend-down:#c00;
     --stream-btn-hover:#000;
@@ -106,6 +110,8 @@
   --sheet-bg:rgba(242,242,247,0.99);
   --prog-now-color:#000;
   --prog-dot-bg:#000;
+  --prog-now-badge-fg:#000;
+  --prog-now-badge-bg:rgba(0,0,0,0.1);
   --top3-color:#000;
   --trend-up:#1a7a1a; --trend-down:#c00;
   --stream-btn-hover:#000;
@@ -141,12 +147,9 @@
   --sheet-bg:rgba(32,32,32,0.99);
   --prog-now-color:#fff;
   --prog-dot-bg:#fff;
+  --prog-now-badge-fg:#fff;
+  --prog-now-badge-bg:rgba(255,255,255,0.15);
   --top3-color:#fff;
-  --trend-up:#7fff7f; --trend-down:#ff7f7f;
-  --stream-btn-hover:#fff;
-  --sm-top3:#fff;
-}
-* { box-sizing:border-box; margin:0; padding:0; }
 body {
   background:var(--body-bg); color:var(--text);
   font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -417,7 +420,9 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .prog-time { font-size:13px; font-weight:700; color:var(--text3); width:40px; flex-shrink:0; padding-top:2px; font-variant-numeric:tabular-nums; }
 .prog-time.now { color:var(--prog-now-color); }
 .prog-body { flex:1; }
-.prog-now-badge { display:inline-flex; align-items:center; gap:5px; font-size:9px; font-weight:800; color:#fff; letter-spacing:1.5px; margin-bottom:5px; background:rgba(255,255,255,0.15); border-radius:20px; padding:3px 8px; }
+.prog-now-badge { display:inline-flex; align-items:center; gap:5px; font-size:9px; font-weight:800; color:var(--prog-now-badge-fg); letter-spacing:1.5px; margin-bottom:5px; background:var(--prog-now-badge-bg); border-radius:20px; padding:3px 8px; }
+.prog-cal-btn { flex-shrink:0; background:none; border:1px solid var(--border2); border-radius:8px; padding:6px; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; margin-left:8px; transition:color .15s, border-color .15s; }
+.prog-cal-btn:active { color:var(--text); border-color:var(--text); }
 .prog-dot { width:5px; height:5px; background:var(--prog-dot-bg); border-radius:50%; animation:blink 1.2s ease-in-out infinite; flex-shrink:0; }
 .prog-title { font-size:14px; font-weight:700; line-height:1.3; }
 .prog-title.now { color:var(--prog-now-color); }
@@ -458,8 +463,9 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .sm-body { flex:1; min-width:0; }
 .sm-artist { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:2px; }
 .sm-song { font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.sm-stats { flex-shrink:0; padding-left:8px; }
+.sm-stats { flex-shrink:0; padding-left:8px; text-align:right; }
 .sm-ned { font-size:10px; color:var(--text3); font-weight:600; }
+.sm-naj { font-size:10px; color:var(--text3); font-weight:600; margin-top:2px; }
 
 /* ── EMISIJE ── */
 .shows-screen { padding:0; }
@@ -468,9 +474,9 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .cat-scroll::-webkit-scrollbar { height:0; }
 .cat-pill { flex-shrink:0; padding:7px 16px; border-radius:20px; border:1px solid var(--border2); background:var(--surface); font-size:12px; font-weight:700; cursor:pointer; color:var(--text2); font-family:'Space Grotesk',sans-serif; transition:all .15s; }
 .cat-pill.active { background:var(--active-pill-bg); color:var(--active-pill-fg); border-color:var(--active-pill-bg); }
-.shows-grid { flex:1; overflow-y:auto; padding:12px 12px 20px; display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:160px; gap:0; align-content:start; border-radius:0; }
+.shows-grid { flex:1; overflow-y:auto; padding:12px 12px 20px; display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:160px; gap:6px; align-content:start; border-radius:0; }
 .shows-grid::-webkit-scrollbar { width:0; }
-.show-card { overflow:hidden; cursor:pointer; position:relative; height:160px; background:#1a1a1a; border-radius:0; transition:opacity .15s; }
+.show-card { overflow:hidden; cursor:pointer; position:relative; height:160px; background:#1a1a1a; border-radius:12px; transition:opacity .15s; }
 .show-card:active { opacity:.7; }
 .show-card-bg { width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(100%) contrast(1.05); }
 .show-card-chess {
@@ -605,11 +611,13 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 }
 .mini-play-btn:active { transform:scale(0.9); }
 .mini-fav-btn {
-  background:none; border:none; cursor:pointer; color:rgba(255,255,255,0.4);
+  background:none; border:none; cursor:pointer; color:var(--text);
   padding:6px; display:flex; align-items:center; justify-content:center;
-  transition:color .15s;
+  transition:color .15s, opacity .2s, transform .2s, max-width .2s;
+  opacity:0; max-width:0; overflow:hidden; pointer-events:none;
 }
-.mini-fav-btn.active { color:#fff; }
+.mini-fav-btn.visible { opacity:1; max-width:44px; pointer-events:all; }
+.mini-fav-btn.active { color:var(--text); }
 
 /* ── Bottom sheets ── */
 .sheet-backdrop {
@@ -706,7 +714,6 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .device-check { color:#fff; flex-shrink:0; }
 .airplay-note { font-size:11px; color:var(--text3); line-height:1.6; text-align:center; padding:0 8px; }
 </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="mode-toggle">
@@ -1019,7 +1026,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   <div class="screen raspored-screen" id="screen-raspored">
     <div class="raspored-header">
       <div class="rh-top">
-        <div class="screen-title">Raspored</div>
+        <div class="screen-title">RASPORED</div>
         <button class="refresh-btn" id="raspored-refresh-btn" onclick="refreshRaspored()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.36"/></svg>
           Osveži
@@ -1057,8 +1064,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   <!-- EMISIJE -->
   <div class="screen shows-screen" id="screen-shows">
     <div class="shows-header">
-      <div class="screen-title">radio<span style="font-weight:400">APARAT</span></div>
-      <div class="screen-sub">Sve emisije</div>
+      <div class="screen-title">EMISIJE</div>
     </div>
     <div class="cat-scroll">
       <button class="cat-pill active" onclick="filterShows('sve',this)">Sve</button>
@@ -1088,9 +1094,11 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 
   <!-- FAVORITI -->
   <div class="screen fav-screen" id="screen-favs">
-    <div class="screen-title">radio<span style="font-weight:400">APARAT</span></div>
-    <div class="screen-title-sm">Favoriti</div>
-    <div class="screen-sub-text" id="fav-count">0 sačuvanih pesama</div>
+    <div class="screen-title">FAVORITI</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="screen-sub-text" id="fav-count">0 sačuvanih pesama</div>
+      <button id="fav-export-btn" onclick="exportFavs()" style="display:none;background:none;border:1px solid var(--border2);border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;">Izvezi ↓</button>
+    </div>
     <div id="fav-list"></div>
     <div id="fav-empty" class="empty-state">
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -1126,7 +1134,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
     <div class="onama-scroll">
 
       <div class="onama-logo-wrap">
-        <div class="onama-logo-text">radio<span style="font-weight:400">APARAT</span></div>
+        <div class="onama-logo-text">O NAMA</div>
       </div>
 
       <p class="onama-bio">Internet radio-stanica nastala novembra 2016. u prostoru galerije Kolektiv u Karađorđevoj ulici u beogradskoj Savamali. Od januara 2020. emituje program iz Drinčićeve ulice na Dorćolu.</p>
@@ -1136,6 +1144,16 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
       <div class="onama-contact-row" onclick="openMapsSheet()" style="cursor:pointer;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Drinčićeva 20, Beograd
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <a href="maps://maps.apple.com/?q=Drin%C4%8Di%C4%87eva+20+Beograd" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;padding:4px 8px;border:1px solid var(--border2);border-radius:8px;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Apple
+          </a>
+          <a href="https://maps.google.com/?q=Drin%C4%8Di%C4%87eva+20+Beograd" target="_blank" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;padding:4px 8px;border:1px solid var(--border2);border-radius:8px;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Google
+          </a>
+        </span>
       </div>
       <a class="onama-contact-row" href="/cdn-cgi/l/email-protection#93e1f2f7fafcf2e3f2e1f2e7a3a2a2d3f4fef2faffbdf0fcfe">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
@@ -1257,7 +1275,6 @@ audio.volume = 0.7;
 var ANTHROPIC_API_KEY = '';
 // GitHub raw URL za schedule.json — PROMENI u svoj username/repo
 var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/schedule.json';
-var SHOWS_XLSX_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/radioAPARAT_linkovi.xlsx';
 
 var playing      = false;
 var favorites    = [];
@@ -1676,11 +1693,39 @@ function renderFavs() {
   var n = favorites.length;
   document.getElementById('fav-count').textContent = n===0?'0 sačuvanih pesama':n===1?'1 sačuvana pesma':n+' sačuvanih pesama';
   document.getElementById('fav-empty').style.display = n?'none':'block';
+  var exportBtn = document.getElementById('fav-export-btn');
+  if(exportBtn) exportBtn.style.display = n ? 'block' : 'none';
   document.getElementById('fav-list').innerHTML = favorites.map(function(f,i){
-    return '<div class="fav-item"><div class="fav-thumb-sm">'+PIN_SVG+'</div>' +
-      '<div class="fav-info"><div class="fav-title">'+esc(f.title)+'</div><div class="fav-artist">'+esc(f.artist)+'</div></div>' +
-      '<button class="fav-del" onclick="delFav('+i+')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+    var rawQ = encodeURIComponent(f.artist ? f.artist+' '+f.title : f.title);
+    return '<div class="fav-item" style="flex-direction:column;align-items:stretch;gap:10px;">'+
+      '<div style="display:flex;align-items:center;gap:14px;">'+
+        '<div class="fav-thumb-sm">'+PIN_SVG+'</div>'+
+        '<div class="fav-info"><div class="fav-title">'+esc(f.title)+'</div><div class="fav-artist">'+esc(f.artist)+'</div></div>'+
+        '<button class="fav-del" onclick="delFav('+i+')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+        '<a href="https://open.spotify.com/search/'+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">Spotify</a>'+
+        '<a href="https://music.apple.com/search?term='+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">Apple Music</a>'+
+        '<a href="https://music.youtube.com/search?q='+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">YouTube</a>'+
+        '<a href="https://www.deezer.com/search/'+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">Deezer</a>'+
+      '</div>'+
+    '</div>';
   }).join('');
+}
+
+function exportFavs() {
+  if(!favorites.length) return;
+  var lines = ['radioAPARAT — Moje omiljene pesme', ''];
+  favorites.forEach(function(f,i){
+    lines.push((i+1)+'. '+(f.artist?f.artist+' — ':'')+f.title);
+  });
+  lines.push('', 'radioaparat.rs');
+  var blob = new Blob([lines.join('\n')], {type:'text/plain;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'radioAPARAT-favoriti.txt';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 function delFav(i) { favorites.splice(i,1); renderFavs(); checkFav(); }
 
@@ -2018,13 +2063,18 @@ function renderRasporedDay(idx){
     }
     var nc=isNow?' now':'', ni=isNow?' prog-now-item':'';
     var badge=isNow?'<div class="prog-now-badge"><div class="prog-dot"></div>SADA</div>':'';
+    var safeTitle = esc(item.title).replace(/'/g,"&#39;");
+    var safeDate  = esc(day.date).replace(/'/g,"&#39;");
+    var safeTime  = esc(item.time||'').replace(/'/g,"&#39;");
     return '<div class="prog-item prog-clickable'+ni+'" data-show-title="'+esc(item.title)+'" onclick="openDetailFromRaspored(this)">' +
       '<div class="prog-time'+nc+'">'+esc(item.time||'')+'</div>' +
       '<div class="prog-body">'+badge+
         '<div class="prog-title'+nc+'">'+esc(item.title)+'</div>'+
         (item.host?'<div class="prog-desc">'+esc(item.host)+'</div>':'')+
       '</div>'+
-      '<div class="prog-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></div>'+
+      '<button class="prog-cal-btn" title="Dodaj podsetnik" onclick="event.stopPropagation();addCalendarEvent(\''+safeTitle+'\',\''+safeDate+'\',\''+safeTime+'\')">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+
+      '</button>'+
     '</div>';
   }).join('');
   document.getElementById('raspored-list').innerHTML=html||'<div class="ep-loading">Nema emisija.</div>';
@@ -2145,6 +2195,7 @@ var TREND_ICONS={
 };
 
 function smRowHTML(t){
+  var najStr = t.naj ? '<div class="sm-naj">NAJ: '+esc(t.naj)+'</div>' : '';
   return '<div class="sm-row" data-q="'+esc(t.artist+' '+t.song)+'" onclick="smRowClick(this)">'+
     '<div class="sm-pos'+(t.posNum<=3?' top3':'')+'">'+esc(t.pos)+'</div>'+
     '<div class="sm-trend '+t.trend+'">'+(TREND_ICONS[t.trend]||'')+'</div>'+
@@ -2152,7 +2203,7 @@ function smRowHTML(t){
       (t.artist?'<div class="sm-artist">'+esc(t.artist)+'</div>':'')+
       '<div class="sm-song">'+esc(t.song)+'</div>'+
     '</div>'+
-    '<div class="sm-stats"><div class="sm-ned">'+esc(t.ned||'')+'ned</div></div>'+
+    '<div class="sm-stats"><div class="sm-ned">'+esc(t.ned||'')+'ned</div>'+najStr+'</div>'+
   '</div>';
 }
 
@@ -2212,100 +2263,24 @@ function closeMapsSheet() {
 }
 
 /* ═══ EMISIJE ═══ */
-// Fallback podaci — prikazuju se odmah, a Excel ih zamenjuje kad se učita
 var SHOWS=[
-  {id:'after-hours',name:'after hours',cat:'muzika',schedule:'Subotom 21–23h',desc:'Dvočasovni miks set legendarnog beogradskog DJ Aćima. Aktuelni trendovi u house, progressive i organic house pravcima.',links:{}},
-  {id:'arcadia',name:'arcadia',cat:'muzika',schedule:'Četvrtkom od 16 do 18h',desc:'Jedno moguće putovanje do muzičke utopije. Pripremaju i vode: Gordan Paunović i Slobodan Brkić',links:{instagram:'https://soundcloud.com/gordan-paunovic-173280004',facebook:'https://www.facebook.com/ArcadiaRadioShow/'}},
-  {id:'arheofonija',name:'arheofonija',cat:'muzika',schedule:'',desc:'',links:{}},
-  {id:'disko-buvljak',name:'disko buvljak',cat:'muzika',schedule:'Svake druge subote od 18 do 19h',desc:'Kopanje po zabačenim pijacama Srbije, sveta i interneta.',links:{}},
-  {id:'podzemlje',name:'podzemlje',cat:'muzika',schedule:'Ponedeljkom od 22 do 23h',desc:'Emisija Podzemlje se bavi tvrdokornim hip hop zvukom.',links:{}},
-  {id:'mono',name:'mono',cat:'muzika',schedule:'Svake druge srede od 22h',desc:'Dva sata post-rocka i graničnih žanrova.',links:{}},
-  {id:'reggae-fever',name:'reggae fever',cat:'muzika',schedule:'',desc:'',links:{}},
-  {id:'mansarda',name:'mansarda',cat:'muzika',schedule:'Svake druge subote od 11 do 12h',desc:'Prisećamo se pop-kulture iz 50-ih, 60-ih, 70-ih godina dvadesetog veka.',links:{mixcloud:'https://www.mixcloud.com/Dani_radija/',instagram:'https://www.instagram.com/mansarda_radio/',facebook:'https://www.facebook.com/Daniradija/',patreon:'https://www.patreon.com/Mansarda259/'}},
-  {id:'super-meni',name:'super meni',cat:'muzika',schedule:'Subotom od 12 do 14h',desc:'Zvanična top-lista Radio Aparata. Uređuje i vodi: Svetlana Đolović.',links:{mixcloud:'https://www.mixcloud.com/SUPER_MENI/',facebook:'https://www.facebook.com/supermeniRAj/'}},
-  {id:'dirizabl',name:'dirižabl',cat:'muzika',schedule:'Svake druge nedelje od 17 do 18h',desc:'Dvonedeljna muzička emisija o putovanju lakih i teških nota u vazdušnoj lađi. Priprema i vodi: Ana Dajić.',links:{instagram:'https://www.instagram.com/dirizabl/',facebook:'https://www.facebook.com/people/Dirižabl/100040186128166/'}},
-  {id:'ekspedicija',name:'ekspedicija',cat:'muzika',schedule:'Ponedeljkom od 14 do 15h',desc:'Muzički program koji obrađuje različite koncepte iz različitih smerova.',links:{soundcloud:'https://soundcloud.com/knwr/sets/ekspedicija-radio-aparat'}},
-  {id:'gistro-fm',name:'gistro fm',cat:'muzika',schedule:'Nedeljom od 15 do 17h',desc:'Novi i stari albumi najrazličitijih žanrova. Priprema i vodi: Vladimir Skočajić.',links:{facebook:'https://www.facebook.com/GistroFM/'}},
-  {id:'lancani-sudar',name:'lančani sudar',cat:'muzika',schedule:'Svakog četvrtka od 20 do 22h',desc:'Pesme i priče o pesmama. Uređuje i vodi: Bojan Marjanović.',links:{mixcloud:'https://www.mixcloud.com/LancaniSudar/'}},
-  {id:'nedaleko-odavde',name:'nedaleko odavde',cat:'muzika',schedule:'Svakog ponedeljka osim prvog u mesecu od 20 do 22h',desc:'Uređuje i vodi: Slobodan Vujanović.',links:{}},
-  {id:'piratski-satelit',name:'piratski satelit',cat:'muzika',schedule:'Svakog petka od 19 do 21h',desc:'Najlepše pesme iz vasione. Uređuje i vodi: Marko Blažić.',links:{mixcloud:'https://www.mixcloud.com/MarkoBlazic/',instagram:'https://www.instagram.com/piratski_satelit',facebook:'https://www.facebook.com/PiratskiSatelit'}},
-  {id:'pop-depresija',name:'pop depresija',cat:'muzika',schedule:'Sredom od 14 do 16h',desc:'Eklektični miks gitarske muzike i elektronike. Priprema i vodi: Ivan Lončarević.',links:{}},
-  {id:'preslicavanje',name:'prešlicavanje',cat:'muzika',schedule:'Svake druge nedelje od 20 do 22h',desc:'Eklektična muzička putovanja, dva puta mesečno.',links:{}},
-  {id:'reality-check',name:'reality check',cat:'muzika',schedule:'Svakog petka od 15 do 16h',desc:'Infotainment program koji promovise hrvatske muzičare. Uređuje i vodi: Dubravko Jagatić.',links:{facebook:'https://www.facebook.com/profile.php?id=61550922030370',youtube:'https://www.youtube.com/@RealityCheck-xv8wg'}},
-  {id:'beopolis-iz-radio-aparata',name:'beopolis iz radio aparata',cat:'kultura',schedule:'Utorkom od 18 do 20h',desc:'Knjižara Beopolis obrađuje teme iz kulture, književnosti, obrazovanja, politike i sporta.',links:{}},
-  {id:'grad-u-prolazu',name:'grad u prolazu',cat:'kultura',schedule:'Svakog drugog petka od 14 do 15h',desc:'Otvaranje pitanja, definisanje problema, sučeljavanje različitih mišljenja.',links:{}},
-  {id:'kamilica',name:'kamilica',cat:'kultura',schedule:'Svake srede od 18h',desc:'Analiza savremenih pejzaža pop kulture. Priprema i vodi: Milica Joksimović.',links:{mixcloud:'https://www.mixcloud.com/kamilicakamilica/',instagram:'https://www.instagram.com/kamilicakamilica/',facebook:'https://www.facebook.com/people/Kamilica/100083194787785/'}},
-  {id:'kultur-kajgana',name:'kultur!kajgana',cat:'kultura',schedule:'Svakog poslednjeg utorka u mesecu od 20 do 22h',desc:'Književnici, muzika, pozorište, džez, film i strip. Uz dašak histerije.',links:{}},
-  {id:'sceniranje',name:'sceniranje',cat:'kultura',schedule:'Svakog drugog četvrtka od 18 do 20h',desc:'Emisija posvećena nezavisnoj kulturnoj sceni.',links:{mixcloud:'https://www.mixcloud.com/Sceniranje/',instagram:'https://www.instagram.com/sceniranje',facebook:'https://www.facebook.com/sceniranje/'}},
-  {id:'antroposcestvije',name:'antropošestvije',cat:'drustvo',schedule:'Svakog poslednjeg ponedeljka u mesecu od 17 do 18h',desc:'Virtuelno putovanje kroz različite kulture i običaje.',links:{}},
-  {id:'eureka',name:'eureka',cat:'drustvo',schedule:'',desc:'Za sve one koji traže odgovore na pitanja o svetu oko sebe.',links:{facebook:'https://www.facebook.com/EmisijaEureka/'}},
-  {id:'lice-ulice-fm',name:'lice ulice fm',cat:'drustvo',schedule:'Svakog poslednjeg petka u mesecu od 17 do 18:30h',desc:'Važne teme, drugačija perspektiva, borba za pravednije društvo.',links:{mixcloud:'https://www.mixcloud.com/liceulice_fm/',youtube:'https://www.youtube.com/liceulice'}},
-  {id:'radio-galaksija',name:'radio galaksija',cat:'drustvo',schedule:'Utorkom od 22 do 24h',desc:'Popularno naučni program koji promoviše nauku i naučni metod.',links:{}},
-  {id:'sizoanaliza',name:'šizoanaliza',cat:'drustvo',schedule:'Svakog drugog utorka od 20 do 22h',desc:'Internet kulture, teorije zavere, mimovi, filmovi — sve može da bude šizoanalizirano.',links:{instagram:'https://www.instagram.com/sizoanaliza.fm'}},
-  {id:'u-raljama-osecanja',name:'u raljama osećanja',cat:'drustvo',schedule:'',desc:'Prostor za pitanja o strahovima, patnjama, žudnjama i dilemama.',links:{mixcloud:'https://www.mixcloud.com/U_raljama_osećanja/',instagram:'https://www.instagram.com/u_raljama_osecanja/',facebook:'https://www.facebook.com/people/U-raljama-osećanja/100057095064115/'}},
-  {id:'fama-o-nebiciklistima-3',name:'fama o nebiciklistima 3',cat:'zabava',schedule:'Svake prve nedelje u mesecu od 12 do 15h',desc:'Presek aktuelne filmske i televizijske produkcije.',links:{}},
-  {id:'nevergrin',name:'nevergrin',cat:'zabava',schedule:'Poslednja nedelja u mesecu od 12 do 14h',desc:'Rock\'n\'roll, soul i country kao podloga za inspirativne priče.',links:{}},
-  {id:'pop-kujna',name:'pop kujna',cat:'zabava',schedule:'Svake druge nedelje od 17 do 18h',desc:'Muzički meni za sladokusce, gastronomske trivije.',links:{facebook:'https://www.facebook.com/popkujna/'}},
-  {id:'povratak-lopova',name:'povratak lopova',cat:'zabava',schedule:'Svake druge nedelje od 12 do 14h',desc:'Priča o domaćim filmovima koje ste gledali milion puta.',links:{}},
-  {id:'vece-sa-teglinim-popodnevom',name:'veče sa teglinim popodnevom',cat:'zabava',schedule:'Sredom od 20 do 22h',desc:'Najbolji late night show sa ove strane Drinčićeve ulice.',links:{}},
-  {id:'viz-fm',name:'viz fm',cat:'zabava',schedule:'Svakog ponedeljka od 18 do 21h',desc:'Uređuju i vode: Aleksa Nedić i Pavle Petrović iz benda Vizelj.',links:{}},
-  {id:'yugo-wav',name:'yugo.wav',cat:'zabava',schedule:'Svakog drugog utorka od 19 do 20h',desc:'Pripremaju i vode: Rade Končar, Stefan Vujanić i Marko Karadžić.',links:{}}
+  {id:'after-hours',name:'After Hours',cat:'muzika',schedule:'Subotom 21–23h',desc:'Dvočasovni miks set legendarnog beogradskog DJ Aćima. Aktuelni trendovi u house, progressive i organic house pravcima.',img:null,color:'#0d0d1a',grad:'linear-gradient(135deg,#1a1a3e 0%,#0d0d1a 100%)'},
+  {id:'arcadia',name:'Arcadia',cat:'muzika',schedule:'Četvrtkom uveče',desc:'Emisija posvećena eksperimentalnoj elektronskoj muzici, ambijentu i zvučnim pejzažima.',img:null,color:'#0a1a0a',grad:'linear-gradient(135deg,#0a2a1a 0%,#051005 100%)'},
+  {id:'arheofonija',name:'Arheofonija',cat:'muzika',schedule:'Nedeljom',desc:'Putovanje kroz zvučnu arhivu — stara i zaboravljena muzika iz svih krajeva sveta.',img:null,color:'#1a0f00',grad:'linear-gradient(135deg,#2a1a00 0%,#0f0800 100%)'},
+  {id:'disko-buvljak',name:'Disko buvljak',cat:'muzika',schedule:'Petkom',desc:'Najzanimljiviji nalaz sa globalnih muzičkih buvljaka — retke ploče, neočekivane pesme.',img:null,color:'#1a001a',grad:'linear-gradient(135deg,#2d0030 0%,#0d000f 100%)'},
+  {id:'groove-variations',name:'Groove Variations',cat:'muzika',schedule:'Sredom',desc:'Varijacije na temu groovea — od funka i soula do savremenih ritmičkih eksperimenata.',img:null,color:'#001a0a',grad:'linear-gradient(135deg,#003320 0%,#000d08 100%)'},
+  {id:'podzemlje',name:'Podzemlje',cat:'muzika',schedule:'Utorkom',desc:'Emisija posvećena undergroundu — punk, metal, industrial.',img:null,color:'#111',grad:'linear-gradient(135deg,#222 0%,#080808 100%)'},
+  {id:'mono',name:'Mono',cat:'muzika',schedule:'Ponedeljkom',desc:'Jedna tema, jedna priča, jedna muzička nit.',img:null,color:'#0a0a1a',grad:'linear-gradient(135deg,#16162e 0%,#050510 100%)'},
+  {id:'reggae-fever',name:'Reggae Fever',cat:'muzika',schedule:'Subotom posle podne',desc:'Sve što dišu reggae, dub i roots muzika.',img:null,color:'#001500',grad:'linear-gradient(135deg,#002800 0%,#001000 100%)'},
+  {id:'mansarda',name:'Mansarda',cat:'muzika',schedule:'Nedeljom uveče',desc:'Intimna atmosfera, pažljivo odabrana muzika.',img:null,color:'#1a0800',grad:'linear-gradient(135deg,#2e1200 0%,#0f0500 100%)'},
+  {id:'desk-kultura',name:'Desk Kultura',cat:'kultura',schedule:'Sredom',desc:'Kritički osvrt na aktuelna dešavanja u kulturi — knjige, film, pozorište.',img:null,color:'#0d0a1a',grad:'linear-gradient(135deg,#1e1830 0%,#08060f 100%)'},
+  {id:'sceniranje',name:'Sceniranje',cat:'kultura',schedule:'Četvrtkom',desc:'Pozorišna scena pod lupom.',img:null,color:'#1a0505',grad:'linear-gradient(135deg,#2e0a0a 0%,#0f0303 100%)'},
+  {id:'grad-u-prolazu',name:'Grad u prolazu',cat:'kultura',schedule:'Petkom',desc:'Beograd i njegovi stanovnici.',img:null,color:'#001520',grad:'linear-gradient(135deg,#002535 0%,#000c15 100%)'},
+  {id:'zenergija',name:'Ženergija',cat:'drustvo',schedule:'Sredom',desc:'Emisija koja daje glas ženskim pričama.',img:null,color:'#1a0015',grad:'linear-gradient(135deg,#300028 0%,#0f0010 100%)'},
+  {id:'eureka',name:'Eureka',cat:'drustvo',schedule:'Utorkom',desc:'Nauka, tehnologija i inovacije objašnjeni na razumljiv način.',img:null,color:'#001a1a',grad:'linear-gradient(135deg,#003030 0%,#000f0f 100%)'},
+  {id:'nevergrin',name:'Nevergrin',cat:'zabava',schedule:'Petkom uveče',desc:'Evergreen koji nikada neće ostariti.',img:null,color:'#1a1500',grad:'linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)'},
+  {id:'pop-kujna',name:'Pop kujna',cat:'zabava',schedule:'Subotom',desc:'Pop kultura servirana kao obrok.',img:null,color:'#1a0500',grad:'linear-gradient(135deg,#2e0e00 0%,#0f0300 100%)'}
 ];
-
-// Gradijenti po kategoriji
-var _CAT_GRADS = {
-  muzika:  ['linear-gradient(135deg,#1a1a3e 0%,#0d0d1a 100%)','linear-gradient(135deg,#0a2a1a 0%,#051005 100%)','linear-gradient(135deg,#2a1a00 0%,#0f0800 100%)','linear-gradient(135deg,#2d0030 0%,#0d000f 100%)','linear-gradient(135deg,#003320 0%,#000d08 100%)','linear-gradient(135deg,#16162e 0%,#050510 100%)'],
-  kultura: ['linear-gradient(135deg,#1e1830 0%,#08060f 100%)','linear-gradient(135deg,#2e0a0a 0%,#0f0303 100%)','linear-gradient(135deg,#002535 0%,#000c15 100%)'],
-  drustvo: ['linear-gradient(135deg,#300028 0%,#0f0010 100%)','linear-gradient(135deg,#003030 0%,#000f0f 100%)','linear-gradient(135deg,#1a1500 0%,#0f0e00 100%)'],
-  zabava:  ['linear-gradient(135deg,#2e0e00 0%,#0f0300 100%)','linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)','linear-gradient(135deg,#1e1830 0%,#08060f 100%)']
-};
-function _showGrad(cat, idx) {
-  var g = _CAT_GRADS[cat] || _CAT_GRADS.muzika;
-  return g[idx % g.length];
-}
-// Dodeli gradijente fallback podacima
-SHOWS.forEach(function(s, i){ s.grad = _showGrad(s.cat, i); });
-
-// Učitaj Excel sa GitHuba i override-uj SHOWS
-function loadShowsFromExcel() {
-  fetch(SHOWS_XLSX_URL)
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.arrayBuffer(); })
-    .then(function(buf){
-      var wb = XLSX.read(buf, {type:'array'});
-      var ws = wb.Sheets['EMISIJE'];
-      if(!ws) throw new Error('Sheet EMISIJE nije pronađen');
-      var rows = XLSX.utils.sheet_to_json(ws, {header:1});
-      var parsed = [];
-      for(var i=1;i<rows.length;i++){
-        var r=rows[i];
-        if(!r[0]) continue;
-        parsed.push({
-          id:       String(r[0]||'').trim(),
-          name:     String(r[1]||'').trim(),
-          cat:      String(r[2]||'muzika').trim(),
-          schedule: String(r[3]||'').trim(),
-          desc:     String(r[4]||'').trim(),
-          img:      r[5]?String(r[5]).trim():null,
-          links:{
-            web:        r[6] ?String(r[6]).trim():null,
-            mixcloud:   r[7] ?String(r[7]).trim():null,
-            soundcloud: r[8] ?String(r[8]).trim():null,
-            instagram:  r[9] ?String(r[9]).trim():null,
-            facebook:   r[10]?String(r[10]).trim():null,
-            youtube:    r[11]?String(r[11]).trim():null,
-            patreon:    r[12]?String(r[12]).trim():null
-          },
-          grad: _showGrad(String(r[2]||'muzika').trim(), i)
-        });
-      }
-      if(parsed.length > 0){
-        SHOWS = parsed;
-        showImgFetched = false;
-        renderShows();
-      }
-    })
-    .catch(function(e){ console.warn('Excel nije učitan, koristim fallback podatke:', e); });
-}
 
 function filterShows(cat,el){
   document.querySelectorAll('.cat-pill').forEach(function(p){p.classList.remove('active');});
@@ -2359,7 +2334,8 @@ function fetchShowImages(cb){
 }
 
 function _renderShowsGrid(){
-  var filtered=activeShowCat==='sve'?SHOWS:SHOWS.filter(function(s){return s.cat===activeShowCat;});
+  var filtered=activeShowCat==='sve'?SHOWS.slice():SHOWS.filter(function(s){return s.cat===activeShowCat;});
+  filtered.sort(function(a,b){return a.name.localeCompare(b.name,'sr');});
   document.getElementById('shows-grid').innerHTML=filtered.map(function(s,i){
     // Chess pattern: column in row determines color
     // row = Math.floor(i/2), col = i%2
@@ -2403,28 +2379,17 @@ function openDetail(id){
         '</div>'+
       '</div>';
   }
-  var LINK_META = {
-    web:        {label:'Web',        icon:'🌐'},
-    mixcloud:   {label:'Mixcloud',   icon:'☁️'},
-    soundcloud: {label:'SoundCloud', icon:'🔊'},
-    instagram:  {label:'Instagram',  icon:'📷'},
-    facebook:   {label:'Facebook',   icon:'👥'},
-    youtube:    {label:'YouTube',    icon:'▶️'},
-    patreon:    {label:'Patreon',    icon:'🎁'}
-  };
+  var LINK_LABELS = {web:'Web',mixcloud:'Mixcloud',soundcloud:'SoundCloud',instagram:'Instagram',facebook:'Facebook',youtube:'YouTube',patreon:'Patreon'};
   var linksHTML = '';
   if (s.links) {
-    Object.keys(LINK_META).forEach(function(key){
-      if(s.links[key]){
-        var m=LINK_META[key];
-        linksHTML+='<a class="detail-link" href="'+s.links[key]+'" target="_blank">'+m.icon+' '+m.label+'</a>';
-      }
+    Object.keys(LINK_LABELS).forEach(function(key){
+      if(s.links[key]) linksHTML+='<a class="detail-link" href="'+s.links[key]+'" target="_blank">'+LINK_LABELS[key]+'</a>';
     });
   }
   if(!linksHTML){
-    linksHTML='<a class="detail-link" href="https://www.mixcloud.com/RADIO_APARAT/" target="_blank">☁️ Mixcloud</a>'+
-              '<a class="detail-link" href="https://www.instagram.com/radioaparat/" target="_blank">📷 Instagram</a>'+
-              '<a class="detail-link" href="https://www.facebook.com/radioAPARAT" target="_blank">👥 Facebook</a>';
+    linksHTML='<a class="detail-link" href="https://www.mixcloud.com/RADIO_APARAT/" target="_blank">Mixcloud</a>'+
+              '<a class="detail-link" href="https://www.instagram.com/radioaparat/" target="_blank">Instagram</a>'+
+              '<a class="detail-link" href="https://www.facebook.com/radioAPARAT" target="_blank">Facebook</a>';
   }
   document.getElementById('detail-links').innerHTML=linksHTML;
   document.getElementById('show-detail').classList.add('open');
@@ -2764,10 +2729,11 @@ function updateMiniPlayer() {
     ? '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>'
     : '<polygon points="6,3 20,12 6,21"/>';
 
-  // Sync fav
+  // Sync fav — visible only when stream is playing
   var favExists = favorites.some(function(f){ return f.title === current.title; });
   var mfb = document.getElementById('mini-fav-btn');
   mfb.classList.toggle('active', favExists);
+  mfb.classList.toggle('visible', playing);
   mfb.querySelector('svg').setAttribute('fill', favExists ? 'currentColor' : 'none');
 
   // Sync ring progress
@@ -2881,8 +2847,34 @@ function setMode(mode) {
 }
 
 /* ═══ BOOT ═══ */
+/* ═══ CALENDAR REMINDER ═══ */
+function addCalendarEvent(title, dateStr, timeStr) {
+  // dateStr format: "05.03.2026." → parse to YYYYMMDD
+  var parts = dateStr.replace(/\./g,' ').trim().split(/\s+/);
+  // parts: [day, month, year]
+  var d = parseInt(parts[0],10), mo = parseInt(parts[1],10), yr = parseInt(parts[2],10);
+  var timeParts = (timeStr||'00:00').split(':');
+  var h = parseInt(timeParts[0],10), m = parseInt(timeParts[1],10)||0;
+  function pad(n){return n<10?'0'+n:String(n);}
+  var dtStart = yr+''+pad(mo)+''+pad(d)+'T'+pad(h)+''+pad(m)+'00';
+  var hEnd = h+1; var dtEnd = yr+''+pad(mo)+''+pad(d)+'T'+pad(hEnd<24?hEnd:23)+''+pad(m)+'00';
+  var ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//radioAPARAT//App//SR',
+    'BEGIN:VEVENT',
+    'DTSTART:'+dtStart,
+    'DTEND:'+dtEnd,
+    'SUMMARY:'+title+' — radioAPARAT',
+    'DESCRIPTION:radioAPARAT — radioaparat.rs',
+    'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  var blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'radioAPARAT-podsetnik.ics';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('📅 Podsetnik preuzet');
+}
+
 renderFavs();
-renderShows();
 loadShowsFromExcel();
 </script>
 </body>

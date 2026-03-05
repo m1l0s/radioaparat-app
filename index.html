@@ -1257,7 +1257,6 @@ audio.volume = 0.7;
 var ANTHROPIC_API_KEY = '';
 // GitHub raw URL za schedule.json — PROMENI u svoj username/repo
 var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/schedule.json';
-// GitHub raw URL za Excel fajl sa podacima o emisijama
 var SHOWS_XLSX_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/radioAPARAT_linkovi.xlsx';
 
 var playing      = false;
@@ -1332,7 +1331,7 @@ function switchTab(n, el) {
   el.classList.add('active');
   if (n === 'raspored') initProgram();
   if (n === 'supermeni') initSuperMeni();
-  if (n === 'shows' && SHOWS.length > 0 && !showImgFetched) { renderShows(); }
+  if (n === 'shows' && !showImgFetched) { renderShows(); }
 }
 
 function toggleMore() {
@@ -1365,7 +1364,7 @@ function openMore(tabName) {
   document.getElementById('nav-more').classList.add('active');
   document.getElementById('screen-' + tabName).classList.add('active');
   if (tabName === 'replay' && !replayLoaded) { replayLoaded = true; loadReplay(); }
-  if (tabName === 'shows' && SHOWS.length > 0 && !showImgFetched) { renderShows(); }
+  if (tabName === 'shows' && !showImgFetched) { renderShows(); }
 }
 
 /* ═══ PLAYER ═══ */
@@ -2213,81 +2212,99 @@ function closeMapsSheet() {
 }
 
 /* ═══ EMISIJE ═══ */
-var SHOWS = []; // Puni se iz Excel fajla na GitHubu
+// Fallback podaci — prikazuju se odmah, a Excel ih zamenjuje kad se učita
+var SHOWS=[
+  {id:'after-hours',name:'after hours',cat:'muzika',schedule:'Subotom 21–23h',desc:'Dvočasovni miks set legendarnog beogradskog DJ Aćima. Aktuelni trendovi u house, progressive i organic house pravcima.',links:{}},
+  {id:'arcadia',name:'arcadia',cat:'muzika',schedule:'Četvrtkom od 16 do 18h',desc:'Jedno moguće putovanje do muzičke utopije. Pripremaju i vode: Gordan Paunović i Slobodan Brkić',links:{instagram:'https://soundcloud.com/gordan-paunovic-173280004',facebook:'https://www.facebook.com/ArcadiaRadioShow/'}},
+  {id:'arheofonija',name:'arheofonija',cat:'muzika',schedule:'',desc:'',links:{}},
+  {id:'disko-buvljak',name:'disko buvljak',cat:'muzika',schedule:'Svake druge subote od 18 do 19h',desc:'Kopanje po zabačenim pijacama Srbije, sveta i interneta.',links:{}},
+  {id:'podzemlje',name:'podzemlje',cat:'muzika',schedule:'Ponedeljkom od 22 do 23h',desc:'Emisija Podzemlje se bavi tvrdokornim hip hop zvukom.',links:{}},
+  {id:'mono',name:'mono',cat:'muzika',schedule:'Svake druge srede od 22h',desc:'Dva sata post-rocka i graničnih žanrova.',links:{}},
+  {id:'reggae-fever',name:'reggae fever',cat:'muzika',schedule:'',desc:'',links:{}},
+  {id:'mansarda',name:'mansarda',cat:'muzika',schedule:'Svake druge subote od 11 do 12h',desc:'Prisećamo se pop-kulture iz 50-ih, 60-ih, 70-ih godina dvadesetog veka.',links:{mixcloud:'https://www.mixcloud.com/Dani_radija/',instagram:'https://www.instagram.com/mansarda_radio/',facebook:'https://www.facebook.com/Daniradija/',patreon:'https://www.patreon.com/Mansarda259/'}},
+  {id:'super-meni',name:'super meni',cat:'muzika',schedule:'Subotom od 12 do 14h',desc:'Zvanična top-lista Radio Aparata. Uređuje i vodi: Svetlana Đolović.',links:{mixcloud:'https://www.mixcloud.com/SUPER_MENI/',facebook:'https://www.facebook.com/supermeniRAj/'}},
+  {id:'dirizabl',name:'dirižabl',cat:'muzika',schedule:'Svake druge nedelje od 17 do 18h',desc:'Dvonedeljna muzička emisija o putovanju lakih i teških nota u vazdušnoj lađi. Priprema i vodi: Ana Dajić.',links:{instagram:'https://www.instagram.com/dirizabl/',facebook:'https://www.facebook.com/people/Dirižabl/100040186128166/'}},
+  {id:'ekspedicija',name:'ekspedicija',cat:'muzika',schedule:'Ponedeljkom od 14 do 15h',desc:'Muzički program koji obrađuje različite koncepte iz različitih smerova.',links:{soundcloud:'https://soundcloud.com/knwr/sets/ekspedicija-radio-aparat'}},
+  {id:'gistro-fm',name:'gistro fm',cat:'muzika',schedule:'Nedeljom od 15 do 17h',desc:'Novi i stari albumi najrazličitijih žanrova. Priprema i vodi: Vladimir Skočajić.',links:{facebook:'https://www.facebook.com/GistroFM/'}},
+  {id:'lancani-sudar',name:'lančani sudar',cat:'muzika',schedule:'Svakog četvrtka od 20 do 22h',desc:'Pesme i priče o pesmama. Uređuje i vodi: Bojan Marjanović.',links:{mixcloud:'https://www.mixcloud.com/LancaniSudar/'}},
+  {id:'nedaleko-odavde',name:'nedaleko odavde',cat:'muzika',schedule:'Svakog ponedeljka osim prvog u mesecu od 20 do 22h',desc:'Uređuje i vodi: Slobodan Vujanović.',links:{}},
+  {id:'piratski-satelit',name:'piratski satelit',cat:'muzika',schedule:'Svakog petka od 19 do 21h',desc:'Najlepše pesme iz vasione. Uređuje i vodi: Marko Blažić.',links:{mixcloud:'https://www.mixcloud.com/MarkoBlazic/',instagram:'https://www.instagram.com/piratski_satelit',facebook:'https://www.facebook.com/PiratskiSatelit'}},
+  {id:'pop-depresija',name:'pop depresija',cat:'muzika',schedule:'Sredom od 14 do 16h',desc:'Eklektični miks gitarske muzike i elektronike. Priprema i vodi: Ivan Lončarević.',links:{}},
+  {id:'preslicavanje',name:'prešlicavanje',cat:'muzika',schedule:'Svake druge nedelje od 20 do 22h',desc:'Eklektična muzička putovanja, dva puta mesečno.',links:{}},
+  {id:'reality-check',name:'reality check',cat:'muzika',schedule:'Svakog petka od 15 do 16h',desc:'Infotainment program koji promovise hrvatske muzičare. Uređuje i vodi: Dubravko Jagatić.',links:{facebook:'https://www.facebook.com/profile.php?id=61550922030370',youtube:'https://www.youtube.com/@RealityCheck-xv8wg'}},
+  {id:'beopolis-iz-radio-aparata',name:'beopolis iz radio aparata',cat:'kultura',schedule:'Utorkom od 18 do 20h',desc:'Knjižara Beopolis obrađuje teme iz kulture, književnosti, obrazovanja, politike i sporta.',links:{}},
+  {id:'grad-u-prolazu',name:'grad u prolazu',cat:'kultura',schedule:'Svakog drugog petka od 14 do 15h',desc:'Otvaranje pitanja, definisanje problema, sučeljavanje različitih mišljenja.',links:{}},
+  {id:'kamilica',name:'kamilica',cat:'kultura',schedule:'Svake srede od 18h',desc:'Analiza savremenih pejzaža pop kulture. Priprema i vodi: Milica Joksimović.',links:{mixcloud:'https://www.mixcloud.com/kamilicakamilica/',instagram:'https://www.instagram.com/kamilicakamilica/',facebook:'https://www.facebook.com/people/Kamilica/100083194787785/'}},
+  {id:'kultur-kajgana',name:'kultur!kajgana',cat:'kultura',schedule:'Svakog poslednjeg utorka u mesecu od 20 do 22h',desc:'Književnici, muzika, pozorište, džez, film i strip. Uz dašak histerije.',links:{}},
+  {id:'sceniranje',name:'sceniranje',cat:'kultura',schedule:'Svakog drugog četvrtka od 18 do 20h',desc:'Emisija posvećena nezavisnoj kulturnoj sceni.',links:{mixcloud:'https://www.mixcloud.com/Sceniranje/',instagram:'https://www.instagram.com/sceniranje',facebook:'https://www.facebook.com/sceniranje/'}},
+  {id:'antroposcestvije',name:'antropošestvije',cat:'drustvo',schedule:'Svakog poslednjeg ponedeljka u mesecu od 17 do 18h',desc:'Virtuelno putovanje kroz različite kulture i običaje.',links:{}},
+  {id:'eureka',name:'eureka',cat:'drustvo',schedule:'',desc:'Za sve one koji traže odgovore na pitanja o svetu oko sebe.',links:{facebook:'https://www.facebook.com/EmisijaEureka/'}},
+  {id:'lice-ulice-fm',name:'lice ulice fm',cat:'drustvo',schedule:'Svakog poslednjeg petka u mesecu od 17 do 18:30h',desc:'Važne teme, drugačija perspektiva, borba za pravednije društvo.',links:{mixcloud:'https://www.mixcloud.com/liceulice_fm/',youtube:'https://www.youtube.com/liceulice'}},
+  {id:'radio-galaksija',name:'radio galaksija',cat:'drustvo',schedule:'Utorkom od 22 do 24h',desc:'Popularno naučni program koji promoviše nauku i naučni metod.',links:{}},
+  {id:'sizoanaliza',name:'šizoanaliza',cat:'drustvo',schedule:'Svakog drugog utorka od 20 do 22h',desc:'Internet kulture, teorije zavere, mimovi, filmovi — sve može da bude šizoanalizirano.',links:{instagram:'https://www.instagram.com/sizoanaliza.fm'}},
+  {id:'u-raljama-osecanja',name:'u raljama osećanja',cat:'drustvo',schedule:'',desc:'Prostor za pitanja o strahovima, patnjama, žudnjama i dilemama.',links:{mixcloud:'https://www.mixcloud.com/U_raljama_osećanja/',instagram:'https://www.instagram.com/u_raljama_osecanja/',facebook:'https://www.facebook.com/people/U-raljama-osećanja/100057095064115/'}},
+  {id:'fama-o-nebiciklistima-3',name:'fama o nebiciklistima 3',cat:'zabava',schedule:'Svake prve nedelje u mesecu od 12 do 15h',desc:'Presek aktuelne filmske i televizijske produkcije.',links:{}},
+  {id:'nevergrin',name:'nevergrin',cat:'zabava',schedule:'Poslednja nedelja u mesecu od 12 do 14h',desc:'Rock\'n\'roll, soul i country kao podloga za inspirativne priče.',links:{}},
+  {id:'pop-kujna',name:'pop kujna',cat:'zabava',schedule:'Svake druge nedelje od 17 do 18h',desc:'Muzički meni za sladokusce, gastronomske trivije.',links:{facebook:'https://www.facebook.com/popkujna/'}},
+  {id:'povratak-lopova',name:'povratak lopova',cat:'zabava',schedule:'Svake druge nedelje od 12 do 14h',desc:'Priča o domaćim filmovima koje ste gledali milion puta.',links:{}},
+  {id:'vece-sa-teglinim-popodnevom',name:'veče sa teglinim popodnevom',cat:'zabava',schedule:'Sredom od 20 do 22h',desc:'Najbolji late night show sa ove strane Drinčićeve ulice.',links:{}},
+  {id:'viz-fm',name:'viz fm',cat:'zabava',schedule:'Svakog ponedeljka od 18 do 21h',desc:'Uređuju i vode: Aleksa Nedić i Pavle Petrović iz benda Vizelj.',links:{}},
+  {id:'yugo-wav',name:'yugo.wav',cat:'zabava',schedule:'Svakog drugog utorka od 19 do 20h',desc:'Pripremaju i vode: Rade Končar, Stefan Vujanić i Marko Karadžić.',links:{}}
+];
 
-// Gradijenti po kategoriji (fallback dok se ne učita slika)
-var CAT_GRADS = {
-  muzika:  ['linear-gradient(135deg,#1a1a3e 0%,#0d0d1a 100%)',
-            'linear-gradient(135deg,#0a2a1a 0%,#051005 100%)',
-            'linear-gradient(135deg,#2a1a00 0%,#0f0800 100%)',
-            'linear-gradient(135deg,#2d0030 0%,#0d000f 100%)',
-            'linear-gradient(135deg,#003320 0%,#000d08 100%)',
-            'linear-gradient(135deg,#16162e 0%,#050510 100%)'],
-  kultura: ['linear-gradient(135deg,#1e1830 0%,#08060f 100%)',
-            'linear-gradient(135deg,#2e0a0a 0%,#0f0303 100%)',
-            'linear-gradient(135deg,#002535 0%,#000c15 100%)'],
-  drustvo: ['linear-gradient(135deg,#300028 0%,#0f0010 100%)',
-            'linear-gradient(135deg,#003030 0%,#000f0f 100%)',
-            'linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)'],
-  zabava:  ['linear-gradient(135deg,#2e0e00 0%,#0f0300 100%)',
-            'linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)',
-            'linear-gradient(135deg,#1e1830 0%,#08060f 100%)']
+// Gradijenti po kategoriji
+var _CAT_GRADS = {
+  muzika:  ['linear-gradient(135deg,#1a1a3e 0%,#0d0d1a 100%)','linear-gradient(135deg,#0a2a1a 0%,#051005 100%)','linear-gradient(135deg,#2a1a00 0%,#0f0800 100%)','linear-gradient(135deg,#2d0030 0%,#0d000f 100%)','linear-gradient(135deg,#003320 0%,#000d08 100%)','linear-gradient(135deg,#16162e 0%,#050510 100%)'],
+  kultura: ['linear-gradient(135deg,#1e1830 0%,#08060f 100%)','linear-gradient(135deg,#2e0a0a 0%,#0f0303 100%)','linear-gradient(135deg,#002535 0%,#000c15 100%)'],
+  drustvo: ['linear-gradient(135deg,#300028 0%,#0f0010 100%)','linear-gradient(135deg,#003030 0%,#000f0f 100%)','linear-gradient(135deg,#1a1500 0%,#0f0e00 100%)'],
+  zabava:  ['linear-gradient(135deg,#2e0e00 0%,#0f0300 100%)','linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)','linear-gradient(135deg,#1e1830 0%,#08060f 100%)']
 };
-
 function _showGrad(cat, idx) {
-  var grads = CAT_GRADS[cat] || CAT_GRADS.muzika;
-  return grads[idx % grads.length];
+  var g = _CAT_GRADS[cat] || _CAT_GRADS.muzika;
+  return g[idx % g.length];
 }
+// Dodeli gradijente fallback podacima
+SHOWS.forEach(function(s, i){ s.grad = _showGrad(s.cat, i); });
 
+// Učitaj Excel sa GitHuba i override-uj SHOWS
 function loadShowsFromExcel() {
-  // Prikaži loading u gridu dok se učitava
-  document.getElementById('shows-grid').innerHTML =
-    '<div class="ep-loading" style="grid-column:1/-1"><div class="ep-spinner"></div>Učitavam emisije...</div>';
-
   fetch(SHOWS_XLSX_URL)
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.arrayBuffer();
-    })
-    .then(function(buf) {
-      var wb = XLSX.read(buf, { type: 'array' });
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.arrayBuffer(); })
+    .then(function(buf){
+      var wb = XLSX.read(buf, {type:'array'});
       var ws = wb.Sheets['EMISIJE'];
-      if (!ws) throw new Error('Sheet EMISIJE nije pronađen');
-      var rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-      // Prva linija je header — preskoči
+      if(!ws) throw new Error('Sheet EMISIJE nije pronađen');
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1});
       var parsed = [];
-      for (var i = 1; i < rows.length; i++) {
-        var r = rows[i];
-        if (!r[0]) continue; // preskoči prazne redove
+      for(var i=1;i<rows.length;i++){
+        var r=rows[i];
+        if(!r[0]) continue;
         parsed.push({
-          id:       String(r[0] || '').trim(),
-          name:     String(r[1] || '').trim(),
-          cat:      String(r[2] || 'muzika').trim(),
-          schedule: String(r[3] || '').trim(),
-          desc:     String(r[4] || '').trim(),
-          img:      r[5] ? String(r[5]).trim() : null,
-          links: {
-            web:       r[6]  ? String(r[6]).trim()  : null,
-            mixcloud:  r[7]  ? String(r[7]).trim()  : null,
-            soundcloud:r[8]  ? String(r[8]).trim()  : null,
-            instagram: r[9]  ? String(r[9]).trim()  : null,
-            facebook:  r[10] ? String(r[10]).trim() : null,
-            youtube:   r[11] ? String(r[11]).trim() : null,
-            patreon:   r[12] ? String(r[12]).trim() : null
+          id:       String(r[0]||'').trim(),
+          name:     String(r[1]||'').trim(),
+          cat:      String(r[2]||'muzika').trim(),
+          schedule: String(r[3]||'').trim(),
+          desc:     String(r[4]||'').trim(),
+          img:      r[5]?String(r[5]).trim():null,
+          links:{
+            web:        r[6] ?String(r[6]).trim():null,
+            mixcloud:   r[7] ?String(r[7]).trim():null,
+            soundcloud: r[8] ?String(r[8]).trim():null,
+            instagram:  r[9] ?String(r[9]).trim():null,
+            facebook:   r[10]?String(r[10]).trim():null,
+            youtube:    r[11]?String(r[11]).trim():null,
+            patreon:    r[12]?String(r[12]).trim():null
           },
-          grad: _showGrad(String(r[2] || 'muzika').trim(), i)
+          grad: _showGrad(String(r[2]||'muzika').trim(), i)
         });
       }
-      SHOWS = parsed;
-      showImgFetched = false;
-      renderShows();
+      if(parsed.length > 0){
+        SHOWS = parsed;
+        showImgFetched = false;
+        renderShows();
+      }
     })
-    .catch(function(e) {
-      console.error('loadShowsFromExcel greška:', e);
-      // Fallback: prikaži poruku o grešci
-      document.getElementById('shows-grid').innerHTML =
-        '<div class="ep-loading" style="grid-column:1/-1">Greška pri učitavanju emisija.</div>';
-    });
+    .catch(function(e){ console.warn('Excel nije učitan, koristim fallback podatke:', e); });
 }
 
 function filterShows(cat,el){
@@ -2387,30 +2404,29 @@ function openDetail(id){
       '</div>';
   }
   var LINK_META = {
-    web:        { label: 'Web',        icon: '🌐' },
-    mixcloud:   { label: 'Mixcloud',   icon: '☁️' },
-    soundcloud: { label: 'SoundCloud', icon: '🔊' },
-    instagram:  { label: 'Instagram',  icon: '📷' },
-    facebook:   { label: 'Facebook',   icon: '👥' },
-    youtube:    { label: 'YouTube',    icon: '▶️' },
-    patreon:    { label: 'Patreon',    icon: '🎁' }
+    web:        {label:'Web',        icon:'🌐'},
+    mixcloud:   {label:'Mixcloud',   icon:'☁️'},
+    soundcloud: {label:'SoundCloud', icon:'🔊'},
+    instagram:  {label:'Instagram',  icon:'📷'},
+    facebook:   {label:'Facebook',   icon:'👥'},
+    youtube:    {label:'YouTube',    icon:'▶️'},
+    patreon:    {label:'Patreon',    icon:'🎁'}
   };
   var linksHTML = '';
   if (s.links) {
-    Object.keys(LINK_META).forEach(function(key) {
-      if (s.links[key]) {
-        var m = LINK_META[key];
-        linksHTML += '<a class="detail-link" href="' + s.links[key] + '" target="_blank">' + m.icon + ' ' + m.label + '</a>';
+    Object.keys(LINK_META).forEach(function(key){
+      if(s.links[key]){
+        var m=LINK_META[key];
+        linksHTML+='<a class="detail-link" href="'+s.links[key]+'" target="_blank">'+m.icon+' '+m.label+'</a>';
       }
     });
   }
-  // Ako emisija nema sopstvene linkove — prikaži opšte linkove stanice
-  if (!linksHTML) {
-    linksHTML = '<a class="detail-link" href="https://www.mixcloud.com/RADIO_APARAT/" target="_blank">☁️ Mixcloud</a>' +
-                '<a class="detail-link" href="https://www.instagram.com/radioaparat/" target="_blank">📷 Instagram</a>' +
-                '<a class="detail-link" href="https://www.facebook.com/radioAPARAT" target="_blank">👥 Facebook</a>';
+  if(!linksHTML){
+    linksHTML='<a class="detail-link" href="https://www.mixcloud.com/RADIO_APARAT/" target="_blank">☁️ Mixcloud</a>'+
+              '<a class="detail-link" href="https://www.instagram.com/radioaparat/" target="_blank">📷 Instagram</a>'+
+              '<a class="detail-link" href="https://www.facebook.com/radioAPARAT" target="_blank">👥 Facebook</a>';
   }
-  document.getElementById('detail-links').innerHTML = linksHTML;
+  document.getElementById('detail-links').innerHTML=linksHTML;
   document.getElementById('show-detail').classList.add('open');
   document.getElementById('show-detail').scrollTop=0;
 }
@@ -2866,6 +2882,7 @@ function setMode(mode) {
 
 /* ═══ BOOT ═══ */
 renderFavs();
+renderShows();
 loadShowsFromExcel();
 </script>
 </body>

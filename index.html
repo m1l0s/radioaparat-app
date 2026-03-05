@@ -72,8 +72,8 @@
     --sheet-bg:rgba(242,242,247,0.99);
     --prog-now-color:#000;
     --prog-dot-bg:#000;
-    --prog-now-badge-fg:#000;
-    --prog-now-badge-bg:rgba(0,0,0,0.1);
+    --prog-now-badge-fg:#fff;
+    --prog-now-badge-bg:#1a1a1a;
     --top3-color:#000;
     --trend-up:#1a7a1a; --trend-down:#c00;
     --stream-btn-hover:#000;
@@ -110,8 +110,8 @@
   --sheet-bg:rgba(242,242,247,0.99);
   --prog-now-color:#000;
   --prog-dot-bg:#000;
-  --prog-now-badge-fg:#000;
-  --prog-now-badge-bg:rgba(0,0,0,0.1);
+  --prog-now-badge-fg:#fff;
+  --prog-now-badge-bg:#1a1a1a;
   --top3-color:#000;
   --trend-up:#1a7a1a; --trend-down:#c00;
   --stream-btn-hover:#000;
@@ -540,6 +540,19 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .mc-player-wrap { padding:0 20px 12px; flex-shrink:0; }
 .mc-player-wrap iframe { width:100%; border-radius:12px; border:none; display:block; }
 .mc-player-hidden { display:none !important; }
+/* ── Mixcloud mini player ── */
+.mc-mini-player {
+  margin:0 12px 8px; border-radius:14px; flex-shrink:0;
+  background:var(--surface); border:1px solid var(--border2);
+  overflow:hidden; animation:miniSlideIn .3s cubic-bezier(.32,1,.55,1);
+}
+.mc-mini-header { display:flex; align-items:center; gap:8px; padding:10px 8px 10px 14px; }
+.mc-mini-info { flex:1; min-width:0; }
+.mc-mini-title { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mc-mini-sub { font-size:11px; color:var(--text2); margin-top:1px; }
+.mc-mini-actions { display:flex; align-items:center; gap:2px; flex-shrink:0; }
+.mc-mini-btn { background:none; border:none; cursor:pointer; color:var(--text2); padding:7px; display:flex; align-items:center; justify-content:center; border-radius:8px; transition:color .15s; text-decoration:none; }
+.mc-mini-btn:hover { color:var(--text); }
 
 /* ── FAVORITI ── */
 .fav-screen { padding:20px; gap:10px; }
@@ -604,7 +617,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .mini-info { flex:1; min-width:0; }
 .mini-title { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mini-artist { font-size:11px; color:var(--text2); margin-top:1px; font-weight:500; }
-.mini-controls { position:relative; display:flex; align-items:center; flex-shrink:0; width:44px; height:44px; }
+.mini-controls { position:relative; display:flex; align-items:center; flex-shrink:0; width:44px; height:44px; overflow:visible; }
 .mini-ring-wrap { position:relative; display:flex; align-items:center; justify-content:center; width:44px; height:44px; }
 .mini-ring-svg { position:absolute; inset:0; pointer-events:none; }
 .mini-ring-bg { fill:none; stroke:rgba(255,255,255,0.1); stroke-width:2.5; }
@@ -616,7 +629,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 }
 .mini-play-btn:active { transform:scale(0.9); }
 .mini-fav-btn {
-  position:absolute; right:-36px; top:50%; transform:translateY(-50%) scale(0.7);
+  position:absolute; left:-36px; top:50%; transform:translateY(-50%) scale(0.7);
   background:none; border:none; cursor:pointer; color:var(--text);
   padding:6px; display:flex; align-items:center; justify-content:center;
   transition:opacity .25s cubic-bezier(.34,1.56,.64,1), transform .25s cubic-bezier(.34,1.56,.64,1);
@@ -873,17 +886,11 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
       <div class="stream-sheet-artist">Drinčićeva 20, Beograd</div>
     </div>
     <div class="stream-service-list">
-      <a class="stream-service-item" href="https://maps.apple.com/?q=Drinčićeva+20,+Beograd" target="_blank" rel="noopener" onclick="closeMapsSheet()">
-        <div class="stream-service-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        </div>
+      <a class="stream-service-item" href="https://maps.apple.com/?q=Drin%C4%8Di%C4%87eva+20,+Beograd" target="_blank" rel="noopener" onclick="closeMapsSheet()">
         <div class="stream-service-name">Apple Maps</div>
         <svg class="stream-service-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
-      <a class="stream-service-item" href="https://www.google.com/maps/search/?api=1&query=Drinčićeva+20,+Beograd" target="_blank" rel="noopener" onclick="closeMapsSheet()">
-        <div class="stream-service-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
-        </div>
+      <a class="stream-service-item" href="https://www.google.com/maps/search/?api=1&query=Drin%C4%8Di%C4%87eva+20,+Beograd" target="_blank" rel="noopener" onclick="closeMapsSheet()">
         <div class="stream-service-name">Google Maps</div>
         <svg class="stream-service-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
@@ -925,6 +932,27 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- MIXCLOUD MINI PLAYER -->
+  <div class="mc-mini-player" id="mc-mini-player" style="display:none;">
+    <div class="mc-mini-header">
+      <div class="mc-mini-info">
+        <div class="mc-mini-title" id="mc-mini-title">Emisija</div>
+        <div class="mc-mini-sub">Replay · radioAPARAT</div>
+      </div>
+      <div class="mc-mini-actions">
+        <a class="mc-mini-btn" id="mc-mini-ext" href="#" target="_blank" rel="noopener" title="Otvori u Mixcloudu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        <button class="mc-mini-btn" onclick="stopEp()" title="Zaustavi">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="mc-mini-iframe-wrap">
+      <iframe id="mc-iframe" height="60" allow="autoplay" style="width:100%;border:none;display:block;"></iframe>
     </div>
   </div>
 
@@ -1115,11 +1143,8 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   <!-- REPLAY -->
   <div class="screen replay-screen" id="screen-replay">
     <div class="replay-header">
-      <div class="screen-title">radio<span style="font-weight:400">APARAT</span></div>
-      <div class="screen-sub">Replay • poslednjih 7 dana</div>
-    </div>
-    <div class="mc-player-wrap mc-player-hidden" id="mc-player-wrap">
-      <iframe id="mc-iframe" height="60" allow="autoplay"></iframe>
+      <div class="screen-title">REPLAY</div>
+      <div class="screen-sub">poslednjih 7 dana</div>
     </div>
     <div class="date-scroll" id="date-scroll"></div>
     <div class="search-wrap">
@@ -1143,22 +1168,13 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
         <div class="onama-logo-text">O NAMA</div>
       </div>
 
-      <p class="onama-bio">radioAPARAT je internet radio-stanica nastala novembra 2016. u prostoru galerije Kolektiv u Karađorđevoj ulici u beogradskoj Savamali. Od januara 2020. emituje program iz Drinčićeve ulice na Dorćolu. Program čine društveno-angažovane, muzičke, kulturno-obrazovne i zabavne emisije.</p>
+      <p class="onama-bio">radioAPARAT je internet radio-stanica nastala novembra 2016. u prostoru galerije Kolektiv u Karađorđevoj ulici u beogradskoj Savamali. Od januara 2020. emituje program iz Drinčićeve ulice na Dorćolu.</p>
+      <p class="onama-bio">Program čine društveno-angažovane, muzičke, kulturno-obrazovne i zabavne emisije.</p>
 
       <div class="onama-section-title">Kontakt</div>
       <div class="onama-contact-row" onclick="openMapsSheet()" style="cursor:pointer;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Drinčićeva 20, Beograd
-        <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-          <a href="maps://maps.apple.com/?q=Drin%C4%8Di%C4%87eva+20+Beograd" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;padding:4px 8px;border:1px solid var(--border2);border-radius:8px;">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-            Apple
-          </a>
-          <a href="https://maps.google.com/?q=Drin%C4%8Di%C4%87eva+20+Beograd" target="_blank" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;padding:4px 8px;border:1px solid var(--border2);border-radius:8px;">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-            Google
-          </a>
-        </span>
       </div>
       <a class="onama-contact-row" href="/cdn-cgi/l/email-protection#93e1f2f7fafcf2e3f2e1f2e7a3a2a2d3f4fef2faffbdf0fcfe">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
@@ -1504,7 +1520,28 @@ function applyTrack(t) {
   artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
   document.getElementById('now-stream-links').style.display = 'flex';
   fetchStreamLinks(current.artist, current.title);
+  fetchAlbumArt(current.artist, current.title);
+  updateMiniPlayer();
   checkFav();
+}
+
+function fetchAlbumArt(artist, title) {
+  var q = encodeURIComponent(((artist||'') + ' ' + (title||'')).trim());
+  if (!q || q.length < 3) return;
+  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.results || !d.results.length) return;
+      var art = d.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
+      var artEl = document.getElementById('album-art');
+      if (artEl) {
+        // Clear existing content and show artwork
+        artEl.style.backgroundImage = 'url('+art+')';
+        artEl.style.backgroundSize = 'cover';
+        artEl.style.backgroundPosition = 'center';
+      }
+    })
+    .catch(function(){}); // Silently fail — not critical
 }
 
 function fetchNow() {
@@ -1634,6 +1671,40 @@ function shareTrack() {
   else { navigator.clipboard && navigator.clipboard.writeText(txt); showToast('Kopirano ✓'); }
 }
 
+function fetchPlayedHistory(callback) {
+  // Try rcast played endpoint via CORS proxy
+  var url = 'https://api.allorigins.win/get?url=' + encodeURIComponent('http://live4.rcast.net:8268/played.html?sid=1');
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var html = d.contents || '';
+      var rows = [];
+      // Parse <tr> rows from the table
+      var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+      var trM;
+      while ((trM = trRe.exec(html)) !== null) {
+        var cells = [];
+        var tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+        var tdM;
+        while ((tdM = tdRe.exec(trM[1])) !== null) {
+          cells.push(tdM[1].replace(/<[^>]+>/g,'').trim());
+        }
+        // Row format: time | artist - title (or just title)
+        var trackStr = (cells[1] || cells[0] || '').replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim();
+        if (trackStr && trackStr.length > 1 && !/artist|pesma|title/i.test(trackStr)) {
+          var parts = trackStr.split(' - ');
+          rows.push({
+            artist: parts.length > 1 ? parts[0].trim() : '',
+            title: parts.length > 1 ? parts.slice(1).join(' - ').trim() : trackStr,
+            time: new Date()
+          });
+        }
+      }
+      if (rows.length > 0 && callback) callback(rows.slice(0,10));
+    })
+    .catch(function(e){ console.warn('History fetch failed:', e); });
+}
+
 function toggleHistory() {
   var btn = document.getElementById('history-btn');
   var isOpen = document.getElementById('history-sheet').classList.contains('open');
@@ -1646,6 +1717,17 @@ function toggleHistory() {
     document.getElementById('history-backdrop').classList.add('open');
     document.getElementById('history-sheet').classList.add('open');
     btn.classList.add('active');
+    // Fetch from rcast and update if we get more/better data
+    fetchPlayedHistory(function(rows){
+      // Merge rcast rows with local history
+      rows.forEach(function(r){
+        if (!trackHistory.some(function(t){ return t.title === r.title; })) {
+          trackHistory.push(r);
+        }
+      });
+      trackHistory = trackHistory.slice(0,10);
+      renderHistory();
+    });
   }
 }
 
@@ -2137,6 +2219,22 @@ var _smData={
 
 function initSuperMeni(){
   if(smInited)return; smInited=true; applySMData(_smData);
+  // Try to get latest Mixcloud episode link
+  var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.mixcloud.com/RADIO_APARAT/cloudcasts/?limit=5');
+  fetch(proxyUrl)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var json = d.contents ? JSON.parse(d.contents) : d;
+      if (json.data && json.data.length) {
+        // Find Super Meni episode
+        var smEp = json.data.find(function(e){ return /super.?meni/i.test(e.name); });
+        var ep = smEp || json.data[0];
+        if (ep && ep.url) {
+          document.getElementById('sm-preslušaj').href = ep.url;
+        }
+      }
+    })
+    .catch(function(e){ console.warn('SM Mixcloud fetch failed:', e); });
 }
 
 function refreshSuperMeni(){
@@ -2157,7 +2255,7 @@ function refreshSuperMeni(){
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514', max_tokens: 3000,
       tools: [{type:'web_search_20250305',name:'web_search'}],
-      system: 'You are a JSON bot. Use web_search. Return ONLY raw JSON object, no markdown. Format: {"date":"SUPER MENI – DD. MESEC YYYY.","preslušaj":"URL","tracks":[{"pos":"01","pn":"04","artist":"ARTIST","song":"Song","ned":"6"}]}',
+      system: 'You are a JSON bot. Use web_search. Return ONLY raw JSON object, no markdown. Format: {"date":"SUPER MENI – DD. MESEC YYYY.","preslušaj":"MIXCLOUD_URL","tracks":[{"pos":"01","pn":"04","naj":"03","artist":"ARTIST","song":"Song","ned":"6"}]}. The "naj" field is the best chart position ever for that song (column NAJ on the website). The "preslušaj" field must be the direct Mixcloud link to the latest episode.',
       messages: [{role:'user',content:'Fetch https://radioaparat.rs/super-meni/ and return the chart as JSON only.'}]
     })
   })
@@ -2449,28 +2547,47 @@ function filterEpisodes(){
   list.innerHTML=f.map(function(e){
     var thumb=e.thumb?'<img src="'+e.thumb+'" loading="lazy" alt="">':'<div class="ep-thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>';
     var playIco=playingKey===e.key?'<svg width="13" height="13" viewBox="0 0 24 24" fill="#000"><rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/></svg>':'<svg width="13" height="13" viewBox="0 0 24 24" fill="#000"><polygon points="6,3 20,12 6,21"/></svg>';
-    var sk=e.key.replace(/'/g,"\\'");
-    return '<div class="ep-item'+(playingKey===e.key?' playing':'')+'" onclick="playEp(\''+sk+'\')">' +
+    var sk=e.key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var st=(e.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div class="ep-item'+(playingKey===e.key?' playing':'')+'" onclick="playEp(\''+sk+'\',\''+st+'\')">' +
       '<div class="ep-thumb">'+thumb+'</div>' +
       '<div class="ep-info"><div class="ep-show">'+esc(e.show)+'</div><div class="ep-title">'+esc(e.name)+'</div>' +
       '<div class="ep-meta"><span>'+fmtD(e.date)+'</span>'+(e.dur?'<span>·</span><span>'+fmt(e.dur)+'</span>':'')+'</div></div>' +
-      '<button class="ep-play-btn" onclick="event.stopPropagation();playEp(\''+sk+'\')">'+playIco+'</button></div>';
+      '<button class="ep-play-btn" onclick="event.stopPropagation();playEp(\''+sk+'\',\''+st+'\')">'+playIco+'</button></div>';
   }).join('');
 }
 
-function playEp(key){
-  if(playingKey===key){
-    playingKey=null;
-    document.getElementById('mc-player-wrap').classList.add('mc-player-hidden');
-    document.getElementById('mc-iframe').src='';
-    filterEpisodes();return;
-  }
-  playingKey=key;
-  if(playing){audio.pause();audio.src='';playing=false;document.getElementById('live-badge').style.display='none';document.getElementById('play-icon').innerHTML='<polygon points="6,3 20,12 6,21"/>';document.getElementById('play-btn').classList.remove('playing-state');document.getElementById('album-art').classList.remove('playing');document.getElementById('album-glow').classList.remove('on');document.getElementById('eq-bars').classList.remove('on');}
-  document.getElementById('mc-iframe').src='https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&feed='+encodeURIComponent(key)+'&dark=1';
-  document.getElementById('mc-player-wrap').classList.remove('mc-player-hidden');
+function stopEp() {
+  if (!playingKey) return;
+  playingKey = null;
+  document.getElementById('mc-mini-player').style.display = 'none';
+  document.getElementById('mc-iframe').src = '';
   filterEpisodes();
-  setTimeout(function(){var wrap=document.getElementById("mc-player-wrap");var list=document.getElementById("episodes-list");if(wrap&&list){list.scrollTo({top:wrap.offsetTop-list.offsetTop-8,behavior:"smooth"});}},100);
+  updateMiniPlayer();
+}
+
+function playEp(key, title){
+  if(playingKey===key){ stopEp(); return; }
+  playingKey=key;
+  // Stop live stream if playing
+  if(playing){
+    audio.pause(); audio.src=''; playing=false;
+    document.getElementById('live-badge').style.display='none';
+    document.getElementById('play-icon').innerHTML='<polygon points="6,3 20,12 6,21"/>';
+    document.getElementById('play-btn').classList.remove('playing-state');
+    document.getElementById('album-art').classList.remove('playing');
+    document.getElementById('album-glow').classList.remove('on');
+    document.getElementById('eq-bars').classList.remove('on');
+  }
+  // Show Mixcloud mini player
+  var mcp = document.getElementById('mc-mini-player');
+  document.getElementById('mc-mini-title').textContent = title || key.split('/').filter(Boolean).pop() || 'Emisija';
+  document.getElementById('mc-mini-ext').href = 'https://www.mixcloud.com' + key;
+  document.getElementById('mc-iframe').src = 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&feed='+encodeURIComponent(key)+'&dark=1';
+  mcp.style.display = 'block';
+  // Hide regular mini player while mc-mini is shown
+  document.getElementById('mini-player').style.display = 'none';
+  filterEpisodes();
 }
 
 /* ═══ PROGRESS RING ═══ */
@@ -2716,6 +2833,13 @@ var MINI_CIRC = 113.1; // 2 * PI * 18
 function updateMiniPlayer() {
   var isPlayerTab = document.getElementById('screen-player').classList.contains('active');
   var mp = document.getElementById('mini-player');
+  var mcMini = document.getElementById('mc-mini-player');
+
+  // If Mixcloud episode is playing, hide regular mini player
+  if (mcMini && mcMini.style.display !== 'none') {
+    mp.style.display = 'none';
+    return;
+  }
 
   // Show only when NOT on player tab
   if (isPlayerTab) {
@@ -2724,9 +2848,13 @@ function updateMiniPlayer() {
   }
   mp.style.display = 'flex';
 
-  // Sync title/artist
-  document.getElementById('mini-title').textContent = current.title || 'radioAPARAT';
-  document.getElementById('mini-artist').textContent = playing ? (current.artist || 'Uživo') : 'Pauzirano';
+  // Sync title/artist — show RDS track when available
+  var liveTitle = (current.title && current.title !== 'radioAPARAT') ? current.title : 'radioAPARAT';
+  var liveArtist = playing
+    ? (current.artist && current.artist !== 'radioAPARAT' ? current.artist : 'Uživo')
+    : 'Pauzirano';
+  document.getElementById('mini-title').textContent = liveTitle;
+  document.getElementById('mini-artist').textContent = liveArtist;
 
   // Sync play/pause icon
   var miniIcon = document.getElementById('mini-play-icon');

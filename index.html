@@ -475,9 +475,9 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 /* ── EMISIJE ── */
 .shows-screen { padding:0; }
 .shows-header { padding:16px 20px 0; flex-shrink:0; }
-.cat-scroll { display:flex; gap:8px; padding:10px 12px 12px; overflow-x:auto; flex-shrink:0; }
-.cat-scroll::-webkit-scrollbar { height:0; }
-.cat-pill { flex-shrink:0; padding:7px 16px; border-radius:20px; border:1px solid var(--border2); background:var(--surface); font-size:12px; font-weight:700; cursor:pointer; color:var(--text2); font-family:'Space Grotesk',sans-serif; transition:all .15s; }
+.cat-pills-wrap { padding:0 12px 12px; flex-shrink:0; }
+.cat-pills { display:flex; gap:6px; padding:10px 12px 12px; flex-shrink:0; overflow:hidden; }
+.cat-pill { flex:1; min-width:0; padding:7px 4px; border-radius:20px; border:1px solid var(--border2); background:var(--surface); font-size:11px; font-weight:700; cursor:pointer; color:var(--text2); font-family:'Space Grotesk',sans-serif; transition:all .15s; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cat-pill.active { background:var(--active-pill-bg); color:var(--active-pill-fg); border-color:var(--active-pill-bg); }
 .shows-grid { flex:1; overflow-y:auto; padding:12px 12px 20px; display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:160px; gap:6px; align-content:start; border-radius:0; }
 .shows-grid::-webkit-scrollbar { width:0; }
@@ -604,7 +604,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .mini-info { flex:1; min-width:0; }
 .mini-title { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mini-artist { font-size:11px; color:var(--text2); margin-top:1px; font-weight:500; }
-.mini-controls { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.mini-controls { position:relative; display:flex; align-items:center; flex-shrink:0; width:44px; height:44px; }
 .mini-ring-wrap { position:relative; display:flex; align-items:center; justify-content:center; width:44px; height:44px; }
 .mini-ring-svg { position:absolute; inset:0; pointer-events:none; }
 .mini-ring-bg { fill:none; stroke:rgba(255,255,255,0.1); stroke-width:2.5; }
@@ -616,12 +616,13 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 }
 .mini-play-btn:active { transform:scale(0.9); }
 .mini-fav-btn {
+  position:absolute; right:-36px; top:50%; transform:translateY(-50%) scale(0.7);
   background:none; border:none; cursor:pointer; color:var(--text);
   padding:6px; display:flex; align-items:center; justify-content:center;
-  transition:color .15s, opacity .2s, transform .2s, max-width .2s;
-  opacity:0; max-width:0; overflow:hidden; pointer-events:none;
+  transition:opacity .25s cubic-bezier(.34,1.56,.64,1), transform .25s cubic-bezier(.34,1.56,.64,1);
+  opacity:0; pointer-events:none;
 }
-.mini-fav-btn.visible { opacity:1; max-width:44px; pointer-events:all; }
+.mini-fav-btn.visible { opacity:1; transform:translateY(-50%) scale(1); pointer-events:all; }
 .mini-fav-btn.active { color:var(--text); }
 
 /* ── Bottom sheets ── */
@@ -920,10 +921,10 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
         <button class="mini-play-btn" id="mini-play-btn" onclick="togglePlay()">
           <svg id="mini-play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
         </button>
+        <button class="mini-fav-btn" id="mini-fav-btn" onclick="event.stopPropagation();toggleFav()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
       </div>
-      <button class="mini-fav-btn" id="mini-fav-btn" onclick="toggleFav()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      </button>
     </div>
   </div>
 
@@ -1071,7 +1072,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
     <div class="shows-header">
       <div class="screen-title">EMISIJE</div>
     </div>
-    <div class="cat-scroll">
+    <div class="cat-pills">
       <button class="cat-pill active" onclick="filterShows('sve',this)">Sve</button>
       <button class="cat-pill" onclick="filterShows('muzika',this)">Muzika</button>
       <button class="cat-pill" onclick="filterShows('kultura',this)">Kultura</button>
@@ -1142,8 +1143,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
         <div class="onama-logo-text">O NAMA</div>
       </div>
 
-      <p class="onama-bio">Internet radio-stanica nastala novembra 2016. u prostoru galerije Kolektiv u Karađorđevoj ulici u beogradskoj Savamali. Od januara 2020. emituje program iz Drinčićeve ulice na Dorćolu.</p>
-      <p class="onama-bio">Program čine društveno-angažovane, muzičke, kulturno-obrazovne i zabavne emisije.</p>
+      <p class="onama-bio">radioAPARAT je internet radio-stanica nastala novembra 2016. u prostoru galerije Kolektiv u Karađorđevoj ulici u beogradskoj Savamali. Od januara 2020. emituje program iz Drinčićeve ulice na Dorćolu. Program čine društveno-angažovane, muzičke, kulturno-obrazovne i zabavne emisije.</p>
 
       <div class="onama-section-title">Kontakt</div>
       <div class="onama-contact-row" onclick="openMapsSheet()" style="cursor:pointer;">
@@ -2880,6 +2880,47 @@ function addCalendarEvent(title, dateStr, timeStr) {
 }
 
 renderFavs();
+
+/* ═══ EXCEL SHOWS ═══ */
+var SHOWS_XLSX_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/radioAPARAT_linkovi.xlsx';
+function loadShowsFromExcel() {
+  if (typeof XLSX === 'undefined') return;
+  fetch(SHOWS_XLSX_URL)
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.arrayBuffer(); })
+    .then(function(buf){
+      var wb = XLSX.read(buf, {type:'array'});
+      var ws = wb.Sheets['EMISIJE'];
+      if (!ws) return;
+      var rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+      var updated = rows.map(function(r){
+        var links = {};
+        if(r['Link: Web'])       links.web       = r['Link: Web'];
+        if(r['Link: Mixcloud'])  links.mixcloud  = r['Link: Mixcloud'];
+        if(r['Link: SoundCloud'])links.soundcloud= r['Link: SoundCloud'];
+        if(r['Link: Instagram']) links.instagram = r['Link: Instagram'];
+        if(r['Link: Facebook'])  links.facebook  = r['Link: Facebook'];
+        if(r['Link: YouTube'])   links.youtube   = r['Link: YouTube'];
+        if(r['Link: Patreon'])   links.patreon   = r['Link: Patreon'];
+        var catMap = {muzika:'muzika',kultura:'kultura',drustvo:'drustvo',zabava:'zabava'};
+        return {
+          id: String(r['ID']||'').toLowerCase().replace(/\s+/g,'-'),
+          name: r['Naziv']||'',
+          cat: catMap[(r['Kategorija']||'').toLowerCase()] || 'muzika',
+          schedule: r['Termin']||'',
+          desc: r['Opis']||'',
+          img: r['URL slike']||null,
+          links: Object.keys(links).length ? links : null,
+          grad: 'linear-gradient(135deg,#1a1a2e 0%,#0d0d1a 100%)'
+        };
+      }).filter(function(s){ return s.name; });
+      if (updated.length) {
+        SHOWS.length = 0;
+        updated.forEach(function(s){ SHOWS.push(s); });
+        renderShows();
+      }
+    })
+    .catch(function(e){ console.warn('Excel fetch failed:', e); });
+}
 loadShowsFromExcel();
 </script>
 </body>

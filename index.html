@@ -1089,9 +1089,9 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Drinčićeva 20, Beograd
       </div>
-      <a class="onama-contact-row" href="mailto:radioaparat011@gmail.com">
+      <a class="onama-contact-row" href="/cdn-cgi/l/email-protection#93e1f2f7fafcf2e3f2e1f2e7a3a2a2d3f4fef2faffbdf0fcfe">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-        radioaparat011@gmail.com
+        <span class="__cf_email__" data-cfemail="ccbeada8a5a3adbcadbeadb8fcfdfd8caba1ada5a0e2afa3a1">[email&#160;protected]</span>
       </a>
 
       <div class="onama-section-title">Pratite nas</div>
@@ -1184,7 +1184,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 </div>
 
 <audio id="audio" crossorigin="anonymous"></audio>
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ═══ CONFIG ═══ */
 var STREAMS = [
   'http://live4.rcast.net:8268/',
@@ -1201,6 +1201,8 @@ audio.volume = 0.7;
 // NIKADA ne commit-uj pravi ključ u javni repozitorijum.
 // Za lokalni razvoj: postavi ovde. Za produkciju: koristi backend proxy.
 var ANTHROPIC_API_KEY = '';
+// GitHub raw URL za schedule.json — PROMENI u svoj username/repo
+var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/radioaparat-app/main/schedule.json';
 
 var playing      = false;
 var favorites    = [];
@@ -1655,20 +1657,234 @@ var rasporedData = [
 var activeDayIdx = 0;
 var rasporedInited = false;
 
+/* ── Raspored cache helpers ── */
+var RASPORED_CACHE_KEY  = 'ra_raspored_data';
+var RASPORED_CACHE_TIME = 'ra_raspored_time';
+var RASPORED_MAX_AGE_MS = 3 * 60 * 60 * 1000; // 3 sata
+
+function rasporedIsStale() {
+  // Smatra se zastarelim ako: 1) prvi dan nije danas, ili 2) cache je stariji od 3h
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2,'0');
+  var mm = String(today.getMonth()+1).padStart(2,'0');
+  var yyyy = today.getFullYear();
+  var todayStr = dd + '.' + mm + '.' + yyyy + '.';
+  if (!rasporedData || !rasporedData[0]) return true;
+  if (rasporedData[0].date !== todayStr) return true;
+  try {
+    var t = parseInt(localStorage.getItem(RASPORED_CACHE_TIME) || '0');
+    if (Date.now() - t > RASPORED_MAX_AGE_MS) return true;
+  } catch(e){}
+  return false;
+}
+
+function rasporedSaveCache(data) {
+  try {
+    localStorage.setItem(RASPORED_CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(RASPORED_CACHE_TIME, String(Date.now()));
+  } catch(e){}
+}
+
+function rasporedLoadCache() {
+  try {
+    var raw = localStorage.getItem(RASPORED_CACHE_KEY);
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    if (!Array.isArray(data) || data.length === 0) return false;
+    rasporedData = data;
+    return true;
+  } catch(e){ return false; }
+}
+
+function rasporedApplyData(data, source) {
+  rasporedData = data;
+  rasporedSaveCache(data);
+  var sub = document.getElementById('raspored-sub');
+  if (sub) {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes();
+    sub.textContent = 'Ažurirano ' + h + ':' + (m<10?'0':'')+m;
+  }
+  rasporedInited = false;
+  initProgram();
+}
+
+/* ── HTML parser za radioaparat.rs/raspored/ ── */
+function parseRasporedHTML(html) {
+  // Parsiramo HTML stranicu rasporeda u naš format
+  // Radimo sa DOM parserom koji je uvek dostupan u browseru
+  var doc = (new DOMParser()).parseFromString(html, 'text/html');
+  var results = [];
+
+  // Strategija: tražimo elemente koji sadrže datum i listu emisija
+  // Tipični CMS pattern: .schedule-day / .program-day / article / section sa datumom i listom
+  var dayContainers = doc.querySelectorAll(
+    '.schedule-day, .program-day, .raspored-day, ' +
+    '[class*="schedule"] [class*="day"], [class*="program"] [class*="day"], ' +
+    'article, .entry, .post, .wp-block'
+  );
+
+  // Fallback: pokušaj da pronađemo direktno datume i vremena u celoj stranici
+  if (dayContainers.length === 0) {
+    dayContainers = doc.querySelectorAll('div, section, article');
+  }
+
+  // Regex patterns
+  var rDate = /\b(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})\b/;
+  var rTime = /\b(\d{1,2}):(\d{2})\b/;
+
+  // Skupljamo sve tekstualne čvorove koji sadrže datum + vremena
+  var bodyText = doc.body ? doc.body.innerText || doc.body.textContent : '';
+  
+  // Splitujemo po linijama i tražimo datume i vremena
+  var lines = bodyText.split(/\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+  
+  var currentDay = null;
+  var currentItems = [];
+
+  lines.forEach(function(line) {
+    var dateMatch = line.match(rDate);
+    if (dateMatch) {
+      // Sačuvaj prethodni dan ako postoji
+      if (currentDay && currentItems.length > 0) {
+        results.push({ date: currentDay, items: currentItems });
+      }
+      // Novi dan — normalizuj format na DD.MM.YYYY.
+      var d = dateMatch[1].padStart(2,'0');
+      var m = dateMatch[2].padStart(2,'0');
+      var y = dateMatch[3];
+      currentDay = d + '.' + m + '.' + y + '.';
+      currentItems = [];
+      return;
+    }
+    if (currentDay) {
+      var timeMatch = line.match(rTime);
+      if (timeMatch) {
+        var time = timeMatch[1].padStart(2,'0') + ':' + timeMatch[2];
+        // Ostatak linije (posle vremena) je naslov emisije
+        var rest = line.replace(rTime, '').replace(/^[\s\-–—:]+/, '').trim();
+        // Pokušaj da odvojiš host (format: "NASLOV / Host" ili "NASLOV — Host")
+        var hostSplit = rest.split(/\s*[\/|–—]\s*/);
+        var title = hostSplit[0].trim();
+        var host  = hostSplit.length > 1 ? hostSplit.slice(1).join(', ').trim() : '';
+        if (title) currentItems.push({ time: time, title: title, host: host });
+      }
+    }
+  });
+
+  // Dodaj poslednji dan
+  if (currentDay && currentItems.length > 0) {
+    results.push({ date: currentDay, items: currentItems });
+  }
+
+  return results;
+}
+
+/* ── Auto-fetch direktno sa sajta (bez API ključa) ── */
+/* ── GitHub raw fetch — schedule.json koji GitHub Actions ažurira ── */
+function fetchRasporedDirect(onSuccess, onFail) {
+  if (!SCHEDULE_JSON_URL || SCHEDULE_JSON_URL.indexOf('YOUR_GITHUB_USERNAME') >= 0) {
+    console.warn('SCHEDULE_JSON_URL nije podešen');
+    onFail(); return;
+  }
+  // Dodajemo timestamp da zaobiđemo browser cache
+  var url = SCHEDULE_JSON_URL + '?t=' + Math.floor(Date.now() / (1000*60*10));
+  fetch(url)
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(d){
+      // schedule.json format: { updated:"...", days:[{date, items}] }
+      var days = d.days || d; // podrška i za stari array format
+      if (!Array.isArray(days) || days.length === 0) throw new Error('Prazan raspored');
+      onSuccess(days);
+    })
+    .catch(function(e){
+      console.warn('fetchRasporedDirect GitHub greška:', e.message);
+      onFail();
+    });
+}
+
+/* ── Glavni init — sa auto-refresh logikom ── */
 function initProgram() {
   if (rasporedInited) return;
   rasporedInited = true;
-  buildDayTabs();
-  renderRasporedDay(0);
-}
 
-function refreshRaspored() {
-  if (!ANTHROPIC_API_KEY) {
-    showToast('API ključ nije podešen — raspored se ne može osvežiti');
+  // Pokušaj da učitamo cache pre renderovanja
+  if (rasporedLoadCache() && !rasporedIsStale()) {
+    // Cache je svež — prikaži odmah
+    buildDayTabs();
+    renderRasporedDay(0);
+    _updateRasporedSub(false);
     return;
   }
+
+  // Podaci su zastareli ili nema cache-a — prikaži šta imamo i tiho fetchuj u pozadini
+  buildDayTabs();
+  renderRasporedDay(0);
+
+  var sub = document.getElementById('raspored-sub');
+  if (sub) sub.textContent = 'Ažuriram...';
   var btn = document.getElementById('raspored-refresh-btn');
-  btn.classList.add('spinning'); btn.disabled = true;
+  if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+
+  fetchRasporedDirect(
+    function(data) {
+      // Uspeh — primeni i sačuvaj
+      rasporedApplyData(data, 'direct');
+      if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+    },
+    function() {
+      // Direct fetch nije uspeo — pokušaj Anthropic API ako je ključ dostupan
+      if (ANTHROPIC_API_KEY) {
+        _refreshRasporedViaAPI(btn);
+      } else {
+        // Prikaži poslednje poznate podatke sa napomenom
+        if (sub) sub.textContent = 'Raspored možda nije ažuran';
+        if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+        _updateRasporedSub(true);
+      }
+    }
+  );
+}
+
+function _updateRasporedSub(stale) {
+  var sub = document.getElementById('raspored-sub');
+  if (!sub) return;
+  try {
+    var t = parseInt(localStorage.getItem(RASPORED_CACHE_TIME) || '0');
+    if (t) {
+      var d = new Date(t);
+      var h = d.getHours(), m = d.getMinutes();
+      sub.textContent = (stale ? '⚠ ' : '') + 'Ažurirano ' + h + ':' + (m<10?'0':'')+m;
+    }
+  } catch(e){}
+}
+
+/* ── Ručni refresh (dugme) ── */
+function refreshRaspored() {
+  var btn = document.getElementById('raspored-refresh-btn');
+  var sub = document.getElementById('raspored-sub');
+  if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+  if (sub) sub.textContent = 'Ažuriram...';
+
+  fetchRasporedDirect(
+    function(data) {
+      rasporedApplyData(data, 'direct');
+      if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+    },
+    function() {
+      if (ANTHROPIC_API_KEY) {
+        _refreshRasporedViaAPI(btn);
+      } else {
+        if (sub) sub.textContent = 'Nije moguće ažurirati raspored';
+        if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+        showToast('Nije moguće učitati raspored — proveri konekciju');
+      }
+    }
+  );
+}
+
+/* ── Anthropic API fallback ── */
+function _refreshRasporedViaAPI(btn) {
   fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
     headers:{
@@ -1688,22 +1904,21 @@ function refreshRaspored() {
   .then(function(d){
     var text = '';
     (d.content||[]).forEach(function(b){ if (b.type==='text') text += b.text; });
-    // Robustniji parser: traži JSON array, ignoriši markdown fences
     text = text.replace(/```json|```/g, '');
     var m = text.match(/\[[\s\S]*\]/);
-    if (!m) throw new Error('Nije pronađen JSON array u odgovoru');
+    if (!m) throw new Error('Nije pronađen JSON array');
     var parsed = JSON.parse(m[0]);
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Prazan raspored');
-    rasporedData = parsed;
-    document.getElementById('raspored-sub').textContent = 'Ažurirano upravo';
-    rasporedInited = false;
-    initProgram();
+    rasporedApplyData(parsed, 'api');
   })
   .catch(function(e){
-    console.error('refreshRaspored greška:', e);
-    document.getElementById('raspored-sub').textContent = 'Greška — prikazujem poslednji raspored';
+    console.error('_refreshRasporedViaAPI greška:', e);
+    var sub = document.getElementById('raspored-sub');
+    if (sub) sub.textContent = 'Raspored možda nije ažuran';
   })
-  .finally(function(){ btn.classList.remove('spinning'); btn.disabled = false; });
+  .finally(function(){
+    if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+  });
 }
 
 function buildDayTabs() {

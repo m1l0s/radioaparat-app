@@ -706,6 +706,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .device-check { color:#fff; flex-shrink:0; }
 .airplay-note { font-size:11px; color:var(--text3); line-height:1.6; text-align:center; padding:0 8px; }
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="mode-toggle">
@@ -1256,6 +1257,8 @@ audio.volume = 0.7;
 var ANTHROPIC_API_KEY = '';
 // GitHub raw URL za schedule.json — PROMENI u svoj username/repo
 var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/schedule.json';
+// GitHub raw URL za Excel fajl sa podacima o emisijama
+var SHOWS_XLSX_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/radioAPARAT_linkovi.xlsx';
 
 var playing      = false;
 var favorites    = [];
@@ -1329,7 +1332,7 @@ function switchTab(n, el) {
   el.classList.add('active');
   if (n === 'raspored') initProgram();
   if (n === 'supermeni') initSuperMeni();
-  if (n === 'shows' && !showImgFetched) { renderShows(); }
+  if (n === 'shows' && SHOWS.length > 0 && !showImgFetched) { renderShows(); }
 }
 
 function toggleMore() {
@@ -1362,7 +1365,7 @@ function openMore(tabName) {
   document.getElementById('nav-more').classList.add('active');
   document.getElementById('screen-' + tabName).classList.add('active');
   if (tabName === 'replay' && !replayLoaded) { replayLoaded = true; loadReplay(); }
-  if (tabName === 'shows' && !showImgFetched) { renderShows(); }
+  if (tabName === 'shows' && SHOWS.length > 0 && !showImgFetched) { renderShows(); }
 }
 
 /* ═══ PLAYER ═══ */
@@ -2210,24 +2213,82 @@ function closeMapsSheet() {
 }
 
 /* ═══ EMISIJE ═══ */
-var SHOWS=[
-  {id:'after-hours',name:'After Hours',cat:'muzika',schedule:'Subotom 21–23h',desc:'Dvočasovni miks set legendarnog beogradskog DJ Aćima. Aktuelni trendovi u house, progressive i organic house pravcima.',img:null,color:'#0d0d1a',grad:'linear-gradient(135deg,#1a1a3e 0%,#0d0d1a 100%)'},
-  {id:'arcadia',name:'Arcadia',cat:'muzika',schedule:'Četvrtkom uveče',desc:'Emisija posvećena eksperimentalnoj elektronskoj muzici, ambijentu i zvučnim pejzažima.',img:null,color:'#0a1a0a',grad:'linear-gradient(135deg,#0a2a1a 0%,#051005 100%)'},
-  {id:'arheofonija',name:'Arheofonija',cat:'muzika',schedule:'Nedeljom',desc:'Putovanje kroz zvučnu arhivu — stara i zaboravljena muzika iz svih krajeva sveta.',img:null,color:'#1a0f00',grad:'linear-gradient(135deg,#2a1a00 0%,#0f0800 100%)'},
-  {id:'disko-buvljak',name:'Disko buvljak',cat:'muzika',schedule:'Petkom',desc:'Najzanimljiviji nalaz sa globalnih muzičkih buvljaka — retke ploče, neočekivane pesme.',img:null,color:'#1a001a',grad:'linear-gradient(135deg,#2d0030 0%,#0d000f 100%)'},
-  {id:'groove-variations',name:'Groove Variations',cat:'muzika',schedule:'Sredom',desc:'Varijacije na temu groovea — od funka i soula do savremenih ritmičkih eksperimenata.',img:null,color:'#001a0a',grad:'linear-gradient(135deg,#003320 0%,#000d08 100%)'},
-  {id:'podzemlje',name:'Podzemlje',cat:'muzika',schedule:'Utorkom',desc:'Emisija posvećena undergroundu — punk, metal, industrial.',img:null,color:'#111',grad:'linear-gradient(135deg,#222 0%,#080808 100%)'},
-  {id:'mono',name:'Mono',cat:'muzika',schedule:'Ponedeljkom',desc:'Jedna tema, jedna priča, jedna muzička nit.',img:null,color:'#0a0a1a',grad:'linear-gradient(135deg,#16162e 0%,#050510 100%)'},
-  {id:'reggae-fever',name:'Reggae Fever',cat:'muzika',schedule:'Subotom posle podne',desc:'Sve što dišu reggae, dub i roots muzika.',img:null,color:'#001500',grad:'linear-gradient(135deg,#002800 0%,#001000 100%)'},
-  {id:'mansarda',name:'Mansarda',cat:'muzika',schedule:'Nedeljom uveče',desc:'Intimna atmosfera, pažljivo odabrana muzika.',img:null,color:'#1a0800',grad:'linear-gradient(135deg,#2e1200 0%,#0f0500 100%)'},
-  {id:'desk-kultura',name:'Desk Kultura',cat:'kultura',schedule:'Sredom',desc:'Kritički osvrt na aktuelna dešavanja u kulturi — knjige, film, pozorište.',img:null,color:'#0d0a1a',grad:'linear-gradient(135deg,#1e1830 0%,#08060f 100%)'},
-  {id:'sceniranje',name:'Sceniranje',cat:'kultura',schedule:'Četvrtkom',desc:'Pozorišna scena pod lupom.',img:null,color:'#1a0505',grad:'linear-gradient(135deg,#2e0a0a 0%,#0f0303 100%)'},
-  {id:'grad-u-prolazu',name:'Grad u prolazu',cat:'kultura',schedule:'Petkom',desc:'Beograd i njegovi stanovnici.',img:null,color:'#001520',grad:'linear-gradient(135deg,#002535 0%,#000c15 100%)'},
-  {id:'zenergija',name:'Ženergija',cat:'drustvo',schedule:'Sredom',desc:'Emisija koja daje glas ženskim pričama.',img:null,color:'#1a0015',grad:'linear-gradient(135deg,#300028 0%,#0f0010 100%)'},
-  {id:'eureka',name:'Eureka',cat:'drustvo',schedule:'Utorkom',desc:'Nauka, tehnologija i inovacije objašnjeni na razumljiv način.',img:null,color:'#001a1a',grad:'linear-gradient(135deg,#003030 0%,#000f0f 100%)'},
-  {id:'nevergrin',name:'Nevergrin',cat:'zabava',schedule:'Petkom uveče',desc:'Evergreen koji nikada neće ostariti.',img:null,color:'#1a1500',grad:'linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)'},
-  {id:'pop-kujna',name:'Pop kujna',cat:'zabava',schedule:'Subotom',desc:'Pop kultura servirana kao obrok.',img:null,color:'#1a0500',grad:'linear-gradient(135deg,#2e0e00 0%,#0f0300 100%)'}
-];
+var SHOWS = []; // Puni se iz Excel fajla na GitHubu
+
+// Gradijenti po kategoriji (fallback dok se ne učita slika)
+var CAT_GRADS = {
+  muzika:  ['linear-gradient(135deg,#1a1a3e 0%,#0d0d1a 100%)',
+            'linear-gradient(135deg,#0a2a1a 0%,#051005 100%)',
+            'linear-gradient(135deg,#2a1a00 0%,#0f0800 100%)',
+            'linear-gradient(135deg,#2d0030 0%,#0d000f 100%)',
+            'linear-gradient(135deg,#003320 0%,#000d08 100%)',
+            'linear-gradient(135deg,#16162e 0%,#050510 100%)'],
+  kultura: ['linear-gradient(135deg,#1e1830 0%,#08060f 100%)',
+            'linear-gradient(135deg,#2e0a0a 0%,#0f0303 100%)',
+            'linear-gradient(135deg,#002535 0%,#000c15 100%)'],
+  drustvo: ['linear-gradient(135deg,#300028 0%,#0f0010 100%)',
+            'linear-gradient(135deg,#003030 0%,#000f0f 100%)',
+            'linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)'],
+  zabava:  ['linear-gradient(135deg,#2e0e00 0%,#0f0300 100%)',
+            'linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)',
+            'linear-gradient(135deg,#1e1830 0%,#08060f 100%)']
+};
+
+function _showGrad(cat, idx) {
+  var grads = CAT_GRADS[cat] || CAT_GRADS.muzika;
+  return grads[idx % grads.length];
+}
+
+function loadShowsFromExcel() {
+  // Prikaži loading u gridu dok se učitava
+  document.getElementById('shows-grid').innerHTML =
+    '<div class="ep-loading" style="grid-column:1/-1"><div class="ep-spinner"></div>Učitavam emisije...</div>';
+
+  fetch(SHOWS_XLSX_URL)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.arrayBuffer();
+    })
+    .then(function(buf) {
+      var wb = XLSX.read(buf, { type: 'array' });
+      var ws = wb.Sheets['EMISIJE'];
+      if (!ws) throw new Error('Sheet EMISIJE nije pronađen');
+      var rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      // Prva linija je header — preskoči
+      var parsed = [];
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (!r[0]) continue; // preskoči prazne redove
+        parsed.push({
+          id:       String(r[0] || '').trim(),
+          name:     String(r[1] || '').trim(),
+          cat:      String(r[2] || 'muzika').trim(),
+          schedule: String(r[3] || '').trim(),
+          desc:     String(r[4] || '').trim(),
+          img:      r[5] ? String(r[5]).trim() : null,
+          links: {
+            web:       r[6]  ? String(r[6]).trim()  : null,
+            mixcloud:  r[7]  ? String(r[7]).trim()  : null,
+            soundcloud:r[8]  ? String(r[8]).trim()  : null,
+            instagram: r[9]  ? String(r[9]).trim()  : null,
+            facebook:  r[10] ? String(r[10]).trim() : null,
+            youtube:   r[11] ? String(r[11]).trim() : null,
+            patreon:   r[12] ? String(r[12]).trim() : null
+          },
+          grad: _showGrad(String(r[2] || 'muzika').trim(), i)
+        });
+      }
+      SHOWS = parsed;
+      showImgFetched = false;
+      renderShows();
+    })
+    .catch(function(e) {
+      console.error('loadShowsFromExcel greška:', e);
+      // Fallback: prikaži poruku o grešci
+      document.getElementById('shows-grid').innerHTML =
+        '<div class="ep-loading" style="grid-column:1/-1">Greška pri učitavanju emisija.</div>';
+    });
+}
 
 function filterShows(cat,el){
   document.querySelectorAll('.cat-pill').forEach(function(p){p.classList.remove('active');});
@@ -2325,15 +2386,31 @@ function openDetail(id){
         '</div>'+
       '</div>';
   }
-  var links=[
-    {href:'https://www.mixcloud.com/RADIO_APARAT/',label:'Mixcloud'},
-    {href:'https://www.instagram.com/radioaparat/',label:'Instagram'},
-    {href:'https://www.facebook.com/radioAPARAT',label:'Facebook'},
-    {href:'https://www.tiktok.com/@radioaparat',label:'TikTok'}
-  ];
-  document.getElementById('detail-links').innerHTML=links.map(function(l){
-    return '<a class="detail-link" href="'+l.href+'" target="_blank">'+l.label+'</a>';
-  }).join('');
+  var LINK_META = {
+    web:        { label: 'Web',        icon: '🌐' },
+    mixcloud:   { label: 'Mixcloud',   icon: '☁️' },
+    soundcloud: { label: 'SoundCloud', icon: '🔊' },
+    instagram:  { label: 'Instagram',  icon: '📷' },
+    facebook:   { label: 'Facebook',   icon: '👥' },
+    youtube:    { label: 'YouTube',    icon: '▶️' },
+    patreon:    { label: 'Patreon',    icon: '🎁' }
+  };
+  var linksHTML = '';
+  if (s.links) {
+    Object.keys(LINK_META).forEach(function(key) {
+      if (s.links[key]) {
+        var m = LINK_META[key];
+        linksHTML += '<a class="detail-link" href="' + s.links[key] + '" target="_blank">' + m.icon + ' ' + m.label + '</a>';
+      }
+    });
+  }
+  // Ako emisija nema sopstvene linkove — prikaži opšte linkove stanice
+  if (!linksHTML) {
+    linksHTML = '<a class="detail-link" href="https://www.mixcloud.com/RADIO_APARAT/" target="_blank">☁️ Mixcloud</a>' +
+                '<a class="detail-link" href="https://www.instagram.com/radioaparat/" target="_blank">📷 Instagram</a>' +
+                '<a class="detail-link" href="https://www.facebook.com/radioAPARAT" target="_blank">👥 Facebook</a>';
+  }
+  document.getElementById('detail-links').innerHTML = linksHTML;
   document.getElementById('show-detail').classList.add('open');
   document.getElementById('show-detail').scrollTop=0;
 }
@@ -2789,7 +2866,7 @@ function setMode(mode) {
 
 /* ═══ BOOT ═══ */
 renderFavs();
-renderShows();
+loadShowsFromExcel();
 </script>
 </body>
 </html>

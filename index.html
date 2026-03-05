@@ -240,7 +240,16 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   transition:background .15s, color .15s; text-transform:uppercase; letter-spacing:.3px;
 }
 .more-item:active { transform:scale(0.94); }
-.more-item.spring-pop .more-icon { animation:navSpring .4s cubic-bezier(.36,1.6,.6,1) forwards; }
+.more-item.spring-pop .more-icon { animation:iconSpringPop .42s cubic-bezier(.36,1.6,.6,1) forwards; }
+.nav-tab.spring-pop svg { animation:iconSpringPop .42s cubic-bezier(.36,1.6,.6,1) forwards; }
+
+@keyframes iconSpringPop {
+  0%   { transform:scale(1); }
+  25%  { transform:scale(0.72); }
+  65%  { transform:scale(1.22); }
+  82%  { transform:scale(0.96); }
+  100% { transform:scale(1); }
+}
 .more-icon { width:48px; height:48px; border-radius:14px; background:var(--surface); border:1px solid var(--border2); display:flex; align-items:center; justify-content:center; color:var(--text); }
 .more-icon svg { width:24px; height:24px; }
 
@@ -833,6 +842,33 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
     <div class="airplay-note">Pokrenite stream na uređaju direktno iz browsera ili koristite Share → AirPlay na iOS-u.</div>
   </div>
 
+  <!-- MAPS SHEET -->
+  <div class="sheet-backdrop" id="maps-backdrop" onclick="closeMapsSheet()"></div>
+  <div class="bottom-sheet" id="maps-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Otvori u aplikaciji</div>
+    <div class="stream-sheet-track">
+      <div class="stream-sheet-title">radioAPARAT</div>
+      <div class="stream-sheet-artist">Drinčićeva 20, Beograd</div>
+    </div>
+    <div class="stream-service-list">
+      <a class="stream-service-item" href="https://maps.apple.com/?q=Drinčićeva+20,+Beograd" target="_blank" rel="noopener" onclick="closeMapsSheet()">
+        <div class="stream-service-icon" style="background:linear-gradient(135deg,#34c759,#30d158);">
+          <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </div>
+        <div class="stream-service-name">Apple Maps</div>
+        <svg class="stream-service-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a class="stream-service-item" href="https://www.google.com/maps/search/?api=1&query=Drinčićeva+20,+Beograd" target="_blank" rel="noopener" onclick="closeMapsSheet()">
+        <div class="stream-service-icon" style="background:#fff; border:1px solid #e0e0e0;">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="white"/></svg>
+        </div>
+        <div class="stream-service-name">Google Maps</div>
+        <svg class="stream-service-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
@@ -1086,7 +1122,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
       <p class="onama-bio">Program čine društveno-angažovane, muzičke, kulturno-obrazovne i zabavne emisije.</p>
 
       <div class="onama-section-title">Kontakt</div>
-      <div class="onama-contact-row">
+      <div class="onama-contact-row" onclick="openMapsSheet()" style="cursor:pointer;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Drinčićeva 20, Beograd
       </div>
@@ -1161,6 +1197,12 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
           <div>
             <div class="onama-account-field">Primalac</div>
             <div class="onama-account-val">FONDACIJA APARAT, Drinčićeva 20, Beograd</div>
+          </div>
+        </div>
+        <div class="onama-account-row">
+          <div style="flex:1">
+            <div class="onama-account-field">Svrha uplate</div>
+            <div class="onama-account-val">DONACIJA ZA RADIO APARAT</div>
           </div>
         </div>
         <div class="onama-account-row">
@@ -1246,7 +1288,7 @@ function navSpring(el) {
   el.classList.remove('spring-pop');
   void el.offsetWidth;
   el.classList.add('spring-pop');
-  setTimeout(function(){ el.classList.remove('spring-pop'); }, 400);
+  setTimeout(function(){ el.classList.remove('spring-pop'); }, 420);
 }
 
 function moreSpring(el) {
@@ -1254,13 +1296,13 @@ function moreSpring(el) {
   el.classList.remove('spring-pop');
   void el.offsetWidth;
   el.classList.add('spring-pop');
-  setTimeout(function(){ el.classList.remove('spring-pop'); }, 400);
+  setTimeout(function(){ el.classList.remove('spring-pop'); }, 420);
 }
 
 function closeAllSheets() {
   // Zatvara sve bottom sheet-ove — pozivati uvek pri promeni taba
-  var sheets = ['stream-sheet','sleep-sheet','airplay-sheet'];
-  var backdrops = ['stream-backdrop','sleep-backdrop','airplay-backdrop'];
+  var sheets = ['stream-sheet','sleep-sheet','airplay-sheet','maps-sheet'];
+  var backdrops = ['stream-backdrop','sleep-backdrop','airplay-backdrop','maps-backdrop'];
   sheets.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('open'); });
   backdrops.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('open'); });
 }
@@ -1295,9 +1337,7 @@ function closeMore() {
 }
 function copyText(text, btn) {
   navigator.clipboard.writeText(text).then(function() {
-    var orig = btn.textContent;
-    btn.textContent = 'Kopirano!';
-    setTimeout(function(){ btn.textContent = orig; }, 1500);
+    showToast('Kopirano ✓');
   }).catch(function() {
     showToast('Kopirajte ručno: ' + text);
   });
@@ -1800,7 +1840,7 @@ function fetchRasporedDirect(onSuccess, onFail) {
       onSuccess(days);
     })
     .catch(function(e){
-      console.warn('fetchRasporedDirect GitHub greška:', e.message);
+      console.log('fetchRasporedDirect: nije dostupan GitHub, koristim lokalne podatke');
       onFail();
     });
 }
@@ -1840,7 +1880,7 @@ function initProgram() {
         _refreshRasporedViaAPI(btn);
       } else {
         // Prikaži poslednje poznate podatke sa napomenom
-        if (sub) sub.textContent = 'Raspored možda nije ažuran';
+        if (sub) sub.textContent = 'Prikazujem poslednji raspored';
         if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
         _updateRasporedSub(true);
       }
@@ -1877,7 +1917,7 @@ function refreshRaspored() {
       if (ANTHROPIC_API_KEY) {
         _refreshRasporedViaAPI(btn);
       } else {
-        if (sub) sub.textContent = 'Nije moguće ažurirati raspored';
+        if (sub) sub.textContent = 'Prikazujem poslednji raspored';
         if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
         showToast('Nije moguće učitati raspored — proveri konekciju');
       }
@@ -2131,6 +2171,17 @@ function openStreamSheet(artist, song, rawQ) {
 function closeStreamSheet() {
   document.getElementById('stream-backdrop').classList.remove('open');
   document.getElementById('stream-sheet').classList.remove('open');
+}
+
+/* ═══ MAPS SHEET ═══ */
+function openMapsSheet() {
+  closeAllSheets();
+  document.getElementById('maps-backdrop').classList.add('open');
+  document.getElementById('maps-sheet').classList.add('open');
+}
+function closeMapsSheet() {
+  document.getElementById('maps-backdrop').classList.remove('open');
+  document.getElementById('maps-sheet').classList.remove('open');
 }
 
 /* ═══ EMISIJE ═══ */

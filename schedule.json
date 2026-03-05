@@ -1,108 +1,23 @@
 {
-  "updated": "2026-03-05T15:46:05.333Z",
+  "updated": "2026-03-05T15:55:38.172Z",
   "days": [
     {
       "date": "05.03.2026.",
       "items": [
         {
           "time": "16:00",
-          "title": "18:00",
-          "host": ""
+          "title": "ARCADIA",
+          "host": "Gordan Paunović, Slobodan Brkić"
         },
         {
           "time": "19:00",
-          "title": "20:00",
-          "host": ""
+          "title": "EUREKA",
+          "host": "Jovana Nikolić Živković"
         },
         {
           "time": "20:00",
-          "title": "22:00",
-          "host": ""
-        },
-        {
-          "time": "10:30",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "15:00",
-          "title": "16:00",
-          "host": ""
-        },
-        {
-          "time": "17:00",
-          "title": "18:30",
-          "host": ""
-        },
-        {
-          "time": "19:00",
-          "title": "21:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "12:00",
-          "host": ""
-        },
-        {
-          "time": "12:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "21:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "10:00",
-          "title": "12:00",
-          "host": ""
-        },
-        {
-          "time": "15:00",
-          "title": "17:00",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "20:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "15:00",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:30",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "19:30",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "00:00",
-          "host": ""
+          "title": "LANČANI SUDAR",
+          "host": "Bojan Marjanović"
         }
       ]
     },
@@ -111,93 +26,23 @@
       "items": [
         {
           "time": "10:30",
-          "title": "14:00",
-          "host": ""
+          "title": "DJ SATARAŠ - Soundtrack time!",
+          "host": "Ceca"
         },
         {
           "time": "15:00",
-          "title": "16:00",
-          "host": ""
+          "title": "REALITY CHECK",
+          "host": "Dubravko Jagatić"
         },
         {
           "time": "17:00",
-          "title": "18:30",
-          "host": ""
+          "title": "LICE ULICE FM",
+          "host": "Nikoleta Kosovac, Bojan Marjanović i redakcija magazina Lice ulice"
         },
         {
           "time": "19:00",
-          "title": "21:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "12:00",
-          "host": ""
-        },
-        {
-          "time": "12:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "21:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "10:00",
-          "title": "12:00",
-          "host": ""
-        },
-        {
-          "time": "15:00",
-          "title": "17:00",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "20:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "15:00",
-          "host": ""
-        },
-        {
-          "time": "20:00",
-          "title": "22:00",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:30",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "19:30",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "00:00",
-          "host": ""
+          "title": "PIRATSKI SATELIT",
+          "host": "Marko Blažić"
         }
       ]
     },
@@ -206,78 +51,18 @@
       "items": [
         {
           "time": "11:00",
-          "title": "12:00",
-          "host": ""
+          "title": "MANSARDA",
+          "host": "Jovana Nikolić Živković i Pavle Živković"
         },
         {
           "time": "12:00",
-          "title": "14:00",
-          "host": ""
+          "title": "SUPER MENI",
+          "host": "Zvanična muzička top-lista radioAparata, uređuje i vodi: Svetlana Đolović"
         },
         {
           "time": "21:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "10:00",
-          "title": "12:00",
-          "host": ""
-        },
-        {
-          "time": "15:00",
-          "title": "17:00",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "20:00",
-          "host": ""
-        },
-        {
-          "time": "10:30",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "15:00",
-          "host": ""
-        },
-        {
-          "time": "20:00",
-          "title": "22:00",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:30",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "19:30",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "00:00",
-          "host": ""
+          "title": "AFTER HOURS",
+          "host": "Aćim"
         }
       ]
     },
@@ -286,67 +71,22 @@
       "items": [
         {
           "time": "10:00",
-          "title": "12:00",
-          "host": ""
+          "title": "ARHEOFONIJA",
+          "host": "Ivan Čkonjević"
         },
         {
           "time": "12:00",
-          "title": "14:00",
-          "host": ""
+          "title": "POVRATAK LOPOVA",
+          "host": "Mimi, Moma i Denča"
         },
         {
           "time": "15:00",
-          "title": "17:00",
-          "host": ""
+          "title": "GISTRO FM",
+          "host": "Skoča"
         },
         {
           "time": "18:00",
-          "title": "20:00",
-          "host": ""
-        },
-        {
-          "time": "10:30",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "15:00",
-          "host": ""
-        },
-        {
-          "time": "20:00",
-          "title": "22:00",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:30",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "19:30",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "00:00",
+          "title": "ZELENI KAČKET",
           "host": ""
         }
       ]
@@ -356,53 +96,23 @@
       "items": [
         {
           "time": "10:30",
-          "title": "14:00",
-          "host": ""
+          "title": "DJ SATARAŠ - Noviteti",
+          "host": "Ceca"
         },
         {
           "time": "14:00",
-          "title": "15:00",
-          "host": ""
+          "title": "EKSPEDICIJA",
+          "host": "Knower"
         },
         {
           "time": "20:00",
-          "title": "22:00",
-          "host": ""
+          "title": "NEDALEKO ODAVDE",
+          "host": "digitalno kopanje po devedesetim Bobe Vujanovića Fridoma"
         },
         {
           "time": "22:00",
-          "title": "23:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:00",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "20:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:30",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "19:30",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "00:00",
-          "host": ""
+          "title": "PODZEMLJE",
+          "host": "Radoš M."
         }
       ]
     },
@@ -411,38 +121,13 @@
       "items": [
         {
           "time": "14:00",
-          "title": "16:00",
-          "host": ""
+          "title": "SUPER MENI LISTA (r)",
+          "host": "Ceca Đolović"
         },
         {
           "time": "18:00",
-          "title": "20:00",
-          "host": ""
-        },
-        {
-          "time": "11:00",
-          "title": "14:00",
-          "host": ""
-        },
-        {
-          "time": "14:00",
-          "title": "16:30",
-          "host": ""
-        },
-        {
-          "time": "18:00",
-          "title": "19:30",
-          "host": ""
-        },
-        {
-          "time": "20:00",
-          "title": "22:00",
-          "host": ""
-        },
-        {
-          "time": "22:00",
-          "title": "00:00",
-          "host": ""
+          "title": "BEOPOLIS IZ RADIOAPARATA",
+          "host": "Aleksandar Nikolić Kafka"
         }
       ]
     },
@@ -451,28 +136,28 @@
       "items": [
         {
           "time": "11:00",
-          "title": "14:00",
-          "host": ""
+          "title": "DJ SATARAŠ - Uncool",
+          "host": "Ceca"
         },
         {
           "time": "14:00",
-          "title": "16:30",
-          "host": ""
+          "title": "POP DEPRESIJA",
+          "host": "Ivan Lončarević"
         },
         {
           "time": "18:00",
-          "title": "19:30",
-          "host": ""
+          "title": "KAMILICA",
+          "host": "Milica Joksimović"
         },
         {
           "time": "20:00",
-          "title": "22:00",
-          "host": ""
+          "title": "VEČE SA TEGLINIM POPODNEVOM",
+          "host": "tegla.rs"
         },
         {
           "time": "22:00",
-          "title": "00:00",
-          "host": ""
+          "title": "MONO",
+          "host": "Horhe Akimov"
         }
       ]
     }

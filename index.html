@@ -1202,7 +1202,7 @@ audio.volume = 0.7;
 // Za lokalni razvoj: postavi ovde. Za produkciju: koristi backend proxy.
 var ANTHROPIC_API_KEY = '';
 // GitHub raw URL za schedule.json — PROMENI u svoj username/repo
-var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/schedule.json';
+var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/radioaparat-app/main/schedule.json';
 
 var playing      = false;
 var favorites    = [];
@@ -1783,7 +1783,7 @@ function parseRasporedHTML(html) {
 /* ── Auto-fetch direktno sa sajta (bez API ključa) ── */
 /* ── GitHub raw fetch — schedule.json koji GitHub Actions ažurira ── */
 function fetchRasporedDirect(onSuccess, onFail) {
-  if (!SCHEDULE_JSON_URL || SCHEDULE_JSON_URL.indexOf('m1l0s') >= 0) {
+  if (!SCHEDULE_JSON_URL || SCHEDULE_JSON_URL.indexOf('YOUR_GITHUB_USERNAME') >= 0) {
     console.warn('SCHEDULE_JSON_URL nije podešen');
     onFail(); return;
   }

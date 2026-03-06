@@ -1,26 +1,6 @@
 {
-  "updated": "2026-03-05T21:24:03.534Z",
+  "updated": "2026-03-06T01:11:01.721Z",
   "days": [
-    {
-      "date": "05.03.2026.",
-      "items": [
-        {
-          "time": "16:00",
-          "title": "ARCADIA",
-          "host": "Gordan Paunović, Slobodan Brkić"
-        },
-        {
-          "time": "19:00",
-          "title": "EUREKA",
-          "host": "Jovana Nikolić Živković"
-        },
-        {
-          "time": "20:00",
-          "title": "LANČANI SUDAR",
-          "host": "Bojan Marjanović"
-        }
-      ]
-    },
     {
       "date": "06.03.2026.",
       "items": [
@@ -158,6 +138,26 @@
           "time": "22:00",
           "title": "MONO",
           "host": "Horhe Akimov"
+        }
+      ]
+    },
+    {
+      "date": "12.03.2026.",
+      "items": [
+        {
+          "time": "14:00",
+          "title": "NOBOYWHAT MIX SERIES",
+          "host": "Nebojša Marković Intruder"
+        },
+        {
+          "time": "16:00",
+          "title": "ARCADIA",
+          "host": "Gordan Paunović, Slobodan Brkić"
+        },
+        {
+          "time": "20:00",
+          "title": "LANČANI SUDAR",
+          "host": "Bojan Marjanović"
         }
       ]
     }

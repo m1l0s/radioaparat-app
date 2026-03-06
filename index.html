@@ -34,9 +34,9 @@
   --glow-max:0 0 70px 20px rgba(255,255,255,.13);
   --sheet-bg:rgba(32,32,32,0.99);
   --prog-now-color:#fff;
-  --prog-dot-bg:#fff;
-  --prog-now-badge-fg:#fff;
-  --prog-now-badge-bg:rgba(255,255,255,0.15);
+  --prog-dot-bg:#000;
+  --prog-now-badge-fg:#000;
+  --prog-now-badge-bg:rgba(255,255,255,0.92);
   --top3-color:#fff;
   --trend-up:#7fff7f; --trend-down:#ff7f7f;
   --stream-btn-hover:#fff;
@@ -71,7 +71,7 @@
     --album-pin-blend:multiply;
     --sheet-bg:rgba(242,242,247,0.99);
     --prog-now-color:#000;
-    --prog-dot-bg:#000;
+    --prog-dot-bg:#fff;
     --prog-now-badge-fg:#fff;
     --prog-now-badge-bg:#1a1a1a;
     --top3-color:#000;
@@ -109,7 +109,7 @@
   --album-pin-blend:multiply;
   --sheet-bg:rgba(242,242,247,0.99);
   --prog-now-color:#000;
-  --prog-dot-bg:#000;
+  --prog-dot-bg:#fff;
   --prog-now-badge-fg:#fff;
   --prog-now-badge-bg:#1a1a1a;
   --top3-color:#000;
@@ -146,9 +146,9 @@
   --album-pin-blend:screen;
   --sheet-bg:rgba(32,32,32,0.99);
   --prog-now-color:#fff;
-  --prog-dot-bg:#fff;
-  --prog-now-badge-fg:#fff;
-  --prog-now-badge-bg:rgba(255,255,255,0.15);
+  --prog-dot-bg:#000;
+  --prog-now-badge-fg:#000;
+  --prog-now-badge-bg:rgba(255,255,255,0.92);
   --top3-color:#fff;
   --trend-up:#7fff7f; --trend-down:#ff7f7f;
   --stream-btn-hover:#fff;
@@ -542,7 +542,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .mc-player-hidden { display:none !important; }
 /* ── Mixcloud mini player ── */
 .mc-mini-player {
-  margin:0 12px 8px; border-radius:14px; flex-shrink:0;
+  margin:0 12px 8px; border-radius:14px; flex-shrink:0; order:98;
   background:var(--surface); border:1px solid var(--border2);
   overflow:hidden; animation:miniSlideIn .3s cubic-bezier(.32,1,.55,1);
 }
@@ -1123,6 +1123,10 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
       <div class="detail-schedule" id="detail-schedule"></div>
       <div class="detail-desc" id="detail-desc"></div>
       <div class="detail-links" id="detail-links"></div>
+      <div id="detail-episodes-section" style="display:none;margin-top:18px;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--text3);margin-bottom:10px;">ARHIVA EPIZODA</div>
+        <div id="detail-episodes-list"></div>
+      </div>
     </div>
   </div>
 
@@ -2174,13 +2178,13 @@ var _smData={
   "date":"SUPER MENI – 28. FEBRUAR 2026.",
   "preslušaj":"https://radioaparat.rs/shows/super-meni/",
   "tracks":[
-    {"pos":"01","pn":"04","artist":"ARCTIC MONKEYS","song":"Opening Night","ned":"6"},
-    {"pos":"02","pn":"05","artist":"LU","song":"Gde đavo spava","ned":"6"},
-    {"pos":"03","pn":"06","artist":"JAMES BLAKE","song":"Death of Love","ned":"6"},
-    {"pos":"04","pn":"07","artist":"ROBBIE WILLIAMS","song":"Selfish Disco","ned":"5"},
-    {"pos":"05","pn":"12","artist":"DJU DJU","song":"Natural","ned":"5"},
-    {"pos":"06","pn":"14","artist":"ERIC CANTONA","song":"On se love","ned":"5"},
-    {"pos":"07","pn":"01","artist":"ALEN SINKAUZ, NENAD SINKAUZ, A. STOJKOVIĆ","song":"Nešto se promenilo","ned":"7"},
+    {"pos":"01","pn":"04","naj":"1","artist":"ARCTIC MONKEYS","song":"Opening Night","ned":"6"},
+    {"pos":"02","pn":"05","naj":"2","artist":"LU","song":"Gde đavo spava","ned":"6"},
+    {"pos":"03","pn":"06","naj":"3","artist":"JAMES BLAKE","song":"Death of Love","ned":"6"},
+    {"pos":"04","pn":"07","naj":"4","artist":"ROBBIE WILLIAMS","song":"Selfish Disco","ned":"5"},
+    {"pos":"05","pn":"12","naj":"5","artist":"DJU DJU","song":"Natural","ned":"5"},
+    {"pos":"06","pn":"14","naj":"6","artist":"ERIC CANTONA","song":"On se love","ned":"5"},
+    {"pos":"07","pn":"01","naj":"1","artist":"ALEN SINKAUZ, NENAD SINKAUZ, A. STOJKOVIĆ","song":"Nešto se promenilo","ned":"7"},
     {"pos":"08","pn":"13","artist":"IGRALOM x ORKESTAR B. NIKOLIĆ DONJA","song":"Lešinari (Nisville Live 2025)","ned":"5"},
     {"pos":"09","pn":"15","artist":"FRIKO","song":"Seven Degrees","ned":"4"},
     {"pos":"10","pn":"19","artist":"BROWN HORSE","song":"Twisters","ned":"4"},
@@ -2298,7 +2302,7 @@ var TREND_ICONS={
 };
 
 function smRowHTML(t){
-  var najStr = t.naj ? '<div class="sm-naj">NAJ: '+esc(t.naj)+'</div>' : '';
+  var najStr = (t.naj && t.naj !== '00') ? '<div class="sm-naj">NAJ: '+esc(t.naj)+'</div>' : '';
   return '<div class="sm-row" data-q="'+esc(t.artist+' '+t.song)+'" onclick="smRowClick(this)">'+
     '<div class="sm-pos'+(t.posNum<=3?' top3':'')+'">'+esc(t.pos)+'</div>'+
     '<div class="sm-trend '+t.trend+'">'+(TREND_ICONS[t.trend]||'')+'</div>'+
@@ -2397,43 +2401,76 @@ function renderShows(){
 
 function fetchShowImages(cb){
   if(showImgFetched){cb();return;}
-  var done=0;
-  fetch('https://api.mixcloud.com/RADIO_APARAT/cloudcasts/?limit=100')
-    .then(function(r){return r.json();})
-    .then(function(d){
-      var cc=d.data||[];
-      SHOWS.forEach(function(s){
-        // Normalizuj ime emisije za poređenje (bez dijakritike, lowercase)
-        function norm(str) {
-          return str.toLowerCase()
-            .replace(/[šś]/g,'s').replace(/[đ]/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z')
-            .replace(/[^a-z0-9\s]/g,'').trim();
-        }
-        var sNorm = norm(s.name);
-        var sWords = sNorm.split(/\s+/).filter(function(w){ return w.length > 2; });
-        var best = null, bestScore = 0;
-        cc.forEach(function(c){
-          var cNorm = norm(c.name);
-          var score = 0;
-          // Egzaktno poklapanje naziva emisije
-          if (cNorm.indexOf(sNorm) >= 0) score = 100;
-          else {
-            // Broj zajedničkih reči (dužine > 2)
-            var cWords = cNorm.split(/\s+/);
-            var matches = sWords.filter(function(w){ return cWords.indexOf(w) >= 0; }).length;
-            score = matches * 35;
+  // Primarno: povuci slike sa radioaparat.rs/shows/[id]/
+  // Sekundarno: Mixcloud API kao fallback
+  var pendingWebFetch = SHOWS.length;
+  var webDone = false;
+  function tryMixcloudFallback(){
+    if(webDone) return;
+    webDone = true;
+    fetch('https://api.mixcloud.com/RADIO_APARAT/cloudcasts/?limit=100')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var cc=d.data||[];
+        SHOWS.forEach(function(s){
+          if(showImgCache[s.id]) return; // već imamo sliku sa sajta
+          function norm(str) {
+            return str.toLowerCase()
+              .replace(/[šś]/g,'s').replace(/[đ]/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z')
+              .replace(/[^a-z0-9\s]/g,'').trim();
           }
-          if (score > bestScore) { bestScore = score; best = c; }
+          var sNorm = norm(s.name);
+          var sWords = sNorm.split(/\s+/).filter(function(w){ return w.length > 2; });
+          var best = null, bestScore = 0;
+          cc.forEach(function(c){
+            var cNorm = norm(c.name);
+            var score = 0;
+            if (cNorm.indexOf(sNorm) >= 0) score = 100;
+            else {
+              var cWords = cNorm.split(/\s+/);
+              var matches = sWords.filter(function(w){ return cWords.indexOf(w) >= 0; }).length;
+              score = matches * 35;
+            }
+            if (score > bestScore) { bestScore = score; best = c; }
+          });
+          if (best && bestScore >= 35 && best.pictures) {
+            var p = best.pictures['640wx640h'] || best.pictures.medium_mobile || best.pictures.medium || best.pictures.small;
+            if (p) showImgCache[s.id] = p;
+          }
         });
-        // Minimalni prag da bi se prihvatilo poklapanje
-        if (best && bestScore >= 35 && best.pictures) {
-          var p = best.pictures['640wx640h'] || best.pictures.medium_mobile || best.pictures.medium || best.pictures.small;
-          if (p) showImgCache[s.id] = p;
+        showImgFetched=true; cb();
+      })
+      .catch(function(){ showImgFetched=true; cb(); });
+  }
+  // Pokušaj sa sajta za svaku emisiju
+  SHOWS.forEach(function(s){
+    var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://radioaparat.rs/shows/' + s.id + '/');
+    fetch(proxyUrl)
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var html = d.contents || '';
+        // Traži OG image ili featured image
+        var ogM = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https?:[^"']+)["']/i);
+        if (!ogM) ogM = html.match(/<meta[^>]+content=["'](https?:[^"']+)["'][^>]+property=["']og:image["']/i);
+        if (!ogM) {
+          // Traži wp-post-image
+          var wpM = html.match(/class=["'][^"']*wp-post-image[^"']*["'][^>]+src=["'](https?:[^"']+)["']/i);
+          if (!wpM) wpM = html.match(/src=["'](https?:[^"']+)["'][^>]+class=["'][^"']*wp-post-image[^"']*["']/i);
+          if (wpM) showImgCache[s.id] = wpM[1];
+        } else {
+          showImgCache[s.id] = ogM[1];
         }
+      })
+      .catch(function(){})
+      .finally(function(){
+        pendingWebFetch--;
+        if(pendingWebFetch <= 0) tryMixcloudFallback();
       });
-      showImgFetched=true; cb();
-    })
-    .catch(function(){ showImgFetched=true; cb(); });
+  });
+  // Timeout fallback ako web fetch kasni
+  setTimeout(function(){
+    if(!webDone){ tryMixcloudFallback(); }
+  }, 5000);
 }
 
 function _renderShowsGrid(){
@@ -2495,10 +2532,71 @@ function openDetail(id){
               '<a class="detail-link" href="https://www.facebook.com/radioAPARAT" target="_blank">Facebook</a>';
   }
   document.getElementById('detail-links').innerHTML=linksHTML;
+  // Reset i učitaj arhivske epizode
+  var epSection = document.getElementById('detail-episodes-section');
+  var epList = document.getElementById('detail-episodes-list');
+  epSection.style.display = 'none';
+  epList.innerHTML = '';
+  fetchShowEpisodes(s.id, function(eps){
+    if (!eps || !eps.length) return;
+    epList.innerHTML = eps.slice(0, 8).map(function(ep){
+      var safeKey = ep.mcKey ? ep.mcKey.replace(/'/g,"\\'") : '';
+      var safeTitle = esc(ep.title);
+      var playBtn = ep.mcKey
+        ? '<button onclick="event.stopPropagation();closeDetail();openMore(\'replay\');setTimeout(function(){playEp(\''+safeKey+'\',\''+safeTitle+'\')},200);" style="background:none;border:1px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;white-space:nowrap;">&#9654; Replay</button>'
+        : '<a href="'+ep.url+'" target="_blank" rel="noopener" style="background:none;border:1px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;white-space:nowrap;">Slu&#353;aj &#8599;</a>';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">'+
+        '<div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+safeTitle+'</div>'+
+        '<div style="flex-shrink:0;">'+playBtn+'</div>'+
+      '</div>';
+    }).join('');
+    epSection.style.display = 'block';
+  });
   document.getElementById('show-detail').classList.add('open');
   document.getElementById('show-detail').scrollTop=0;
 }
 function closeDetail(){document.getElementById('show-detail').classList.remove('open');}
+
+/* Keš za epizode */
+var _epCache = {};
+function fetchShowEpisodes(showId, cb) {
+  if (_epCache[showId]) { cb(_epCache[showId]); return; }
+  var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://radioaparat.rs/shows/' + showId + '/');
+  fetch(proxyUrl)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var html = d.contents || '';
+      var eps = [];
+      // Traži EPIZODE sekciju
+      var epIdx = html.indexOf('EPIZODE');
+      if (epIdx < 0) epIdx = html.indexOf('epizode');
+      if (epIdx < 0) epIdx = 0;
+      var chunk = html.slice(epIdx);
+      // Pronađi sve Mixcloud linkove
+      var linkRe = /<a[^>]+href=["']([^"']*mixcloud[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+      var m;
+      while ((m = linkRe.exec(chunk)) !== null && eps.length < 20) {
+        var url = m[1];
+        var title = m[2].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim();
+        if (!title || title.length < 3) continue;
+        var mcM = url.match(/mixcloud\.com(\/[A-Za-z0-9_]+\/[^/?#\s"']+\/?)/);
+        eps.push({ url: url, title: title, mcKey: mcM ? mcM[1] : null });
+      }
+      // Fallback: linkovi sa brojevima epizoda
+      if (!eps.length) {
+        var re2 = /<a[^>]+href=["']([^"']+)["'][^>]*>([^<]*#\d+[^<]*)<\/a>/gi;
+        while ((m = re2.exec(chunk)) !== null && eps.length < 20) {
+          var url2 = m[1], title2 = m[2].replace(/&amp;/g,'&').trim();
+          if (!title2) continue;
+          var mcM2 = url2.match(/mixcloud\.com(\/[A-Za-z0-9_]+\/[^/?#\s"']+\/?)/);
+          eps.push({ url: url2, title: title2, mcKey: mcM2 ? mcM2[1] : null });
+        }
+      }
+      _epCache[showId] = eps;
+      cb(eps);
+    })
+    .catch(function(){ cb([]); });
+}
 
 /* ═══ REPLAY ═══ */
 function loadReplay(){

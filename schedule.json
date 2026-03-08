@@ -1,26 +1,6 @@
 {
-  "updated": "2026-03-07T21:11:50.386Z",
+  "updated": "2026-03-08T01:07:32.077Z",
   "days": [
-    {
-      "date": "07.03.2026.",
-      "items": [
-        {
-          "time": "11:00",
-          "title": "MANSARDA",
-          "host": "Jovana Nikolić Živković i Pavle Živković"
-        },
-        {
-          "time": "12:00",
-          "title": "SUPER MENI",
-          "host": "Zvanična muzička top-lista radioAparata, uređuje i vodi: Svetlana Đolović"
-        },
-        {
-          "time": "21:00",
-          "title": "AFTER HOURS",
-          "host": "Aćim"
-        }
-      ]
-    },
     {
       "date": "08.03.2026.",
       "items": [
@@ -158,6 +138,21 @@
           "time": "19:00",
           "title": "PIRATSKI SATELIT",
           "host": "Marko Blažić"
+        }
+      ]
+    },
+    {
+      "date": "14.03.2026.",
+      "items": [
+        {
+          "time": "12:00",
+          "title": "SUPER MENI",
+          "host": "Zvanična muzička top-lista radioAparata, uređuje i vodi: Svetlana Đolović"
+        },
+        {
+          "time": "21:00",
+          "title": "AFTER HOURS",
+          "host": "Aćim"
         }
       ]
     }

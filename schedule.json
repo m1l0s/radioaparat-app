@@ -1,31 +1,6 @@
 {
-  "updated": "2026-03-08T21:13:33.027Z",
+  "updated": "2026-03-09T01:07:36.155Z",
   "days": [
-    {
-      "date": "08.03.2026.",
-      "items": [
-        {
-          "time": "10:00",
-          "title": "ARHEOFONIJA",
-          "host": "Ivan Čkonjević"
-        },
-        {
-          "time": "12:00",
-          "title": "POVRATAK LOPOVA",
-          "host": "Mimi, Moma i Denča"
-        },
-        {
-          "time": "15:00",
-          "title": "GISTRO FM",
-          "host": "Skoča"
-        },
-        {
-          "time": "18:00",
-          "title": "ZELENI KAČKET",
-          "host": ""
-        }
-      ]
-    },
     {
       "date": "09.03.2026.",
       "items": [
@@ -153,6 +128,36 @@
           "time": "21:00",
           "title": "AFTER HOURS",
           "host": "Aćim"
+        }
+      ]
+    },
+    {
+      "date": "15.03.2026.",
+      "items": [
+        {
+          "time": "10:00",
+          "title": "ARHEOFONIJA",
+          "host": "Ivan Čkonjević"
+        },
+        {
+          "time": "12:00",
+          "title": "ORFEJEVA KUTIJA",
+          "host": "Marija Babić Milovanović"
+        },
+        {
+          "time": "15:00",
+          "title": "GISTRO FM",
+          "host": "Skoča"
+        },
+        {
+          "time": "18:00",
+          "title": "ZELENI KAČKET",
+          "host": ""
+        },
+        {
+          "time": "20:00",
+          "title": "PREŠLICAVANJE",
+          "host": "Nebojša Krivokuća"
         }
       ]
     }

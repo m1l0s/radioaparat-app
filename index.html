@@ -2846,17 +2846,15 @@ function fetchShowImages(cb){
               .replace(/[^a-z0-9\s]/g,'').trim();
           }
           var sNorm = norm(s.name);
-          var sWords = sNorm.split(/\s+/).filter(function(w){ return w.length > 2; });
+          var sWords = sNorm.split(/\s+/).filter(function(w){ return w.length > 1; });
           var best = null, bestScore = 0;
           cc.forEach(function(c){
             var cNorm = norm(c.name);
+            var cWords = cNorm.split(/\s+/);
             var score = 0;
-            if (cNorm.indexOf(sNorm) >= 0) score = 100;
-            else {
-              var cWords = cNorm.split(/\s+/);
-              var matches = sWords.filter(function(w){ return cWords.indexOf(w) >= 0; }).length;
-              score = matches * 35;
-            }
+            // Exact show name mora biti kao zasebne reči — ne substring
+            var allMatch = sWords.length > 0 && sWords.every(function(w){ return cWords.indexOf(w) >= 0; });
+            if (allMatch) score = sWords.length * 35;
             if (score > bestScore) { bestScore = score; best = c; }
           });
           if (best && bestScore >= 35 && best.pictures) {
@@ -3065,11 +3063,13 @@ function fetchShowEpisodes(showId, mixcloudLink, cb) {
 
   function fetchFromRadioAparat() {
     getMixcloudCasts(function(casts) {
-      var showWords = norm(showId.replace(/-/g,' ')).split(/\s+/).filter(function(w){ return w.length > 2; });
+      var showWords = norm(showId.replace(/-/g,' ')).split(/\s+/).filter(function(w){ return w.length > 1; });
+      if (showWords.length === 0) { done([]); return; }
       var eps = casts.filter(function(c) {
         var cNorm = norm(c.name);
-        if (showWords.length === 0) return false;
-        var matches = showWords.filter(function(w){ return cNorm.indexOf(w) >= 0; }).length;
+        var cWords = cNorm.split(/\s+/);
+        // Svaka reč iz naziva emisije mora biti zasebna reč u naslovu (ne substring)
+        var matches = showWords.filter(function(w){ return cWords.indexOf(w) >= 0; }).length;
         return matches >= Math.min(showWords.length, 2);
       }).map(function(c){
         return { url: 'https://www.mixcloud.com'+c.key, title: c.name, mcKey: c.key, date: (c.created_time||'').slice(0,10) };

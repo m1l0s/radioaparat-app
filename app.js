@@ -2167,14 +2167,12 @@ function updateMiniPlayer() {
     : (hasTrack ? current.artist : 'Uživo');
   document.getElementById('mini-title').textContent = liveTitle;
   document.getElementById('mini-artist').textContent = liveArtist;
-  // Marquee — aktivira se samo kada tekst prelazi dostupnu širinu
   requestAnimationFrame(function() {
     var el = document.getElementById('mini-title');
     el.classList.remove('marquee');
-    if (el.scrollWidth > el.clientWidth) {
-      // Trajanje proporcionalno dužini teksta — kraći tekst ide sporije
+    if (el.scrollWidth > el.parentElement.clientWidth) {
       var dur = Math.max(5, el.scrollWidth / 40);
-      var dist = -(el.scrollWidth + 40); // pikselno pomeranje
+      var dist = -(el.scrollWidth + 40);
       el.style.setProperty('--marquee-dur', dur + 's');
       el.style.setProperty('--marquee-dist', dist + 'px');
       el.classList.add('marquee');

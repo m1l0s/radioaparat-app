@@ -307,7 +307,8 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .track-info { text-align:center; width:100%; padding:0 8px; }
 .track-title { font-size:17px; font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.3px; transition:opacity .2s; }
 .track-artist { font-size:13px; color:var(--text2); font-weight:500; }
-.now-stream-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; align-self:stretch; }
+.now-stream-links { display:none; grid-template-columns:1fr 1fr; gap:8px; width:100%; align-self:stretch; min-height:0; }
+.now-stream-links.shown { display:grid; }
 .now-stream-btn {
   display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 0;
   border-radius:20px; border:1px solid var(--border2); background:var(--surface);
@@ -585,23 +586,26 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
   box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
-.mini-info { flex:1; min-width:0; padding-right:36px; overflow:hidden; }
+.mini-info { flex:1; min-width:0; overflow:hidden; padding-right:36px; }
+.mini-title-wrap { overflow:hidden; width:100%; }
 .mini-title {
   font-size:13px; font-weight:700; white-space:nowrap;
   overflow:hidden; text-overflow:ellipsis;
+  display:block;
 }
 .mini-title.marquee {
   text-overflow:clip;
+  overflow:visible;
   animation: marqueeScroll linear infinite;
   animation-duration: var(--marquee-dur, 8s);
   display:inline-block;
-  padding-right:40px; /* razmak između kraja i početka novog ciklusa */
+  padding-right:40px;
 }
 @keyframes marqueeScroll {
   0%   { transform: translateX(0); }
-  15%  { transform: translateX(0); }        /* pauza na početku */
+  15%  { transform: translateX(0); }
   85%  { transform: translateX(var(--marquee-dist, -50%)); }
-  100% { transform: translateX(var(--marquee-dist, -50%)); } /* pauza na kraju */
+  100% { transform: translateX(var(--marquee-dist, -50%)); }
 }
 .mini-artist { font-size:11px; color:var(--text2); margin-top:1px; font-weight:500; }
 .mini-controls { position:relative; display:flex; align-items:center; flex-shrink:0; width:44px; height:44px; overflow:visible; }

@@ -1,21 +1,6 @@
 {
-  "updated": "2026-03-10T21:20:53.934Z",
+  "updated": "2026-03-11T01:02:48.947Z",
   "days": [
-    {
-      "date": "10.03.2026.",
-      "items": [
-        {
-          "time": "14:00",
-          "title": "SUPER MENI LISTA (r)",
-          "host": "Ceca Đolović"
-        },
-        {
-          "time": "18:00",
-          "title": "BEOPOLIS IZ RADIOAPARATA",
-          "host": "Aleksandar Nikolić Kafka"
-        }
-      ]
-    },
     {
       "date": "11.03.2026.",
       "items": [
@@ -158,6 +143,26 @@
           "time": "22:00",
           "title": "PODZEMLJE",
           "host": "Radoš M."
+        }
+      ]
+    },
+    {
+      "date": "17.03.2026.",
+      "items": [
+        {
+          "time": "14:00",
+          "title": "SUPER MENI LISTA (r)",
+          "host": "Ceca Đolović"
+        },
+        {
+          "time": "18:00",
+          "title": "BEOPOLIS IZ RADIOAPARATA",
+          "host": "Aleksandar Nikolić Kafka"
+        },
+        {
+          "time": "20:00",
+          "title": "ŠIZOANALIZA",
+          "host": "Anđelija Rudnjanin"
         }
       ]
     }

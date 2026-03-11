@@ -192,6 +192,7 @@ function togglePlay() {
     setPlayUI(true);
     startRingForCurrentShow();
     fetchNow();
+    setTimeout(fetchNow, 2000); // brzi retry — stream možda još bufferuje pri prvom pozivu
     showToast('Pokrećem stream...');
   }
   updateMiniPlayer();
@@ -281,7 +282,7 @@ function fetchNow() {
     setTimeout(function(){
       if (document.getElementById('history-sheet').classList.contains('open')) renderHistory();
     }, 600);
-    if (playing) setTimeout(fetchNow, 8000); // skraćeno sa 12s na 8s
+    if (playing) setTimeout(fetchNow, 5000); // polling svakih 5s
   }
 
   function tryWithRace(endpoints) {
@@ -380,13 +381,16 @@ function fetchArtwork(artist, title) {
 
   dbg('art', '🔍 iTunes: ' + key);
   var q = encodeURIComponent(artist + ' ' + title);
-  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US')
-    .then(function(r){ return r.json(); })
+  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var artTimer = controller ? setTimeout(function(){ controller.abort(); }, 6000) : null;
+  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US',
+        controller ? { signal: controller.signal } : {})
+    .then(function(r){ if (artTimer) clearTimeout(artTimer); return r.json(); })
     .then(function(d){
       if (d.results && d.results.length > 0) {
         var art = d.results[0].artworkUrl100;
         if (art) {
-          art = art.replace('100x100bb', '512x512bb');
+          art = art.replace('100x100bb', '600x600bb');
           _artworkCache[key] = art; // sačuvaj u keš
           dbg('art', '✅ setAlbumArt + keš: ' + art);
           setAlbumArt(art);
@@ -396,7 +400,7 @@ function fetchArtwork(artist, title) {
       dbg('art', '❌ nema result');
       clearAlbumArt();
     })
-    .catch(function(e){ dbg('art', '❌ fetch err: ' + e); clearAlbumArt(); });
+    .catch(function(e){ if (artTimer) clearTimeout(artTimer); dbg('art', '❌ fetch err: ' + e); clearAlbumArt(); });
 }
 
 function setAlbumArt(url) {
@@ -1714,69 +1718,21 @@ function fetchShowEpisodes(showId, mixcloudLink, cb) {
 /* ═══ REPLAY ═══ */
 function loadReplay(){
   buildDatePills();
+  fetch('https://api.mixcloud.com/'+MC_USER+'/cloudcasts/?limit=100')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      // Fix timezone: koristimo lokalni datum, ne UTC (toISOString vraća UTC)
+      var cutDate = new Date(); cutDate.setDate(cutDate.getDate()-7);
+      var y = cutDate.getFullYear();
+      var m = String(cutDate.getMonth()+1).padStart(2,'0');
+      var day = String(cutDate.getDate()).padStart(2,'0');
+      var cutStr = y+'-'+m+'-'+day;
 
-  // Prikupljamo spoljne Mixcloud naloge iz SHOWS (npr. MarkoBlazic za Piratski satelit)
-  var externalUsers = [];
-  SHOWS.forEach(function(s) {
-    var mc = s.links && s.links.mixcloud;
-    if (!mc) return;
-    var m = mc.match(/mixcloud\.com\/([^\/]+)\/?$/i);
-    if (m && m[1].toUpperCase() !== 'RADIO_APARAT') {
-      var user = m[1];
-      if (externalUsers.indexOf(user) === -1) externalUsers.push(user);
-    }
-  });
+      var data = d.data || [];
+      // Fix empty response: ako API vrati prazan niz, idi na demo
+      if (!data.length) { replayLoaded = false; loadDemoEpisodes(); return; }
 
-  // Fetch sa RADIO_APARAT + svi spoljni nalozi paralelno
-  var fetchUrls = ['RADIO_APARAT'].concat(externalUsers).map(function(user) {
-    return fetch('https://api.mixcloud.com/' + user + '/cloudcasts/?limit=100')
-      .then(function(r){ return r.json(); })
-      .then(function(d){ return d.data || []; })
-      .catch(function(){ return []; });
-  });
-
-  Promise.all(fetchUrls).then(function(results) {
-    // Spajamo sve epizode u jedan niz
-    var combined = [];
-    results.forEach(function(data) { combined = combined.concat(data); });
-
-    if (!combined.length) { replayLoaded = false; loadDemoEpisodes(); return; }
-
-    // Sortiramo po datumu — najnovije prvo
-    combined.sort(function(a, b) {
-      return (b.created_time || '').localeCompare(a.created_time || '');
-    });
-
-    // Uklanjamo duplikate po key-u
-    var seen = {};
-    combined = combined.filter(function(e) {
-      if (seen[e.key]) return false;
-      seen[e.key] = true;
-      return true;
-    });
-
-    var cutDate = new Date(); cutDate.setDate(cutDate.getDate()-7);
-    var y = cutDate.getFullYear();
-    var mo = String(cutDate.getMonth()+1).padStart(2,'0');
-    var day = String(cutDate.getDate()).padStart(2,'0');
-    var cutStr = y+'-'+mo+'-'+day;
-
-    allEpisodes = combined.map(function(e){
-      var pics = e.pictures || {};
-      var thumb = pics['640wx640h'] || pics['320wx320h'] || pics.medium_mobile || pics.medium || pics.small || null;
-      return {
-        key: e.key,
-        name: e.name,
-        show: (e.tags && e.tags[0] && e.tags[0].name) || 'radioAPARAT',
-        date: (e.created_time||'').slice(0,10),
-        dur: e.audio_length || 0,
-        thumb: thumb
-      };
-    }).filter(function(e){ return e.date && e.date >= cutStr; });
-
-    // Ako nema ništa u poslednjih 7 dana, prikaži 20 najnovijih
-    if (!allEpisodes.length) {
-      allEpisodes = combined.map(function(e){
+      allEpisodes = data.map(function(e){
         var pics = e.pictures || {};
         var thumb = pics['640wx640h'] || pics['320wx320h'] || pics.medium_mobile || pics.medium || pics.small || null;
         return {
@@ -1787,14 +1743,29 @@ function loadReplay(){
           dur: e.audio_length || 0,
           thumb: thumb
         };
-      }).slice(0, 20);
-    }
-    filterEpisodes();
-  })
-  .catch(function(){
-    replayLoaded = false;
-    loadDemoEpisodes();
-  });
+      }).filter(function(e){ return e.date && e.date >= cutStr; });
+
+      // Fix empty after filter: ako nema emisija u poslednjih 7 dana, prikaži sve
+      if (!allEpisodes.length) {
+        allEpisodes = data.map(function(e){
+          var pics = e.pictures || {};
+          var thumb = pics['640wx640h'] || pics['320wx320h'] || pics.medium_mobile || pics.medium || pics.small || null;
+          return {
+            key: e.key,
+            name: e.name,
+            show: (e.tags && e.tags[0] && e.tags[0].name) || 'radioAPARAT',
+            date: (e.created_time||'').slice(0,10),
+            dur: e.audio_length || 0,
+            thumb: thumb
+          };
+        }).slice(0, 20);
+      }
+      filterEpisodes();
+    })
+    .catch(function(){
+      replayLoaded = false; // Dozvoli ponovni pokušaj
+      loadDemoEpisodes();
+    });
 }
 
 // Pull-to-refresh — zajednička logika za više ekrana

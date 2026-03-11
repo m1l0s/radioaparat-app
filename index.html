@@ -2605,7 +2605,14 @@ function _renderShowsGrid(){
   }).join('');
 }
 
+var detailOrigin = 'shows'; // 'shows' | 'raspored'
+
 function openDetail(id){
+  detailOrigin = 'shows';
+  _openDetailById(id);
+}
+
+function _openDetailById(id){
   var s=SHOWS.find(function(x){return x.id===id;});
   if(!s)return;
   var cats={muzika:'Muzika',kultura:'Kultura',drustvo:'Društvo',zabava:'Zabava'};
@@ -2674,7 +2681,12 @@ function openDetail(id){
   document.getElementById('show-detail').classList.add('open');
   document.getElementById('show-detail').scrollTop=0;
 }
-function closeDetail(){document.getElementById('show-detail').classList.remove('open');}
+function closeDetail(){
+  document.getElementById('show-detail').classList.remove('open');
+  if (detailOrigin === 'raspored') {
+    openMore('raspored');
+  }
+}
 
 /* Keš za epizode */
 var _epCache = {};
@@ -3178,8 +3190,9 @@ function openDetailFromRaspored(el) {
   // 100 = egzaktno poklapanje, 80 = substring, 30 = bar jedna zajednička reč (3+ chars)
   var MATCH_THRESHOLD = 30;
   if (best && bestScore >= MATCH_THRESHOLD) {
+    detailOrigin = 'raspored';
     openMore('shows');
-    setTimeout(function(){ openDetail(best.id); }, 60);
+    setTimeout(function(){ _openDetailById(best.id); }, 60);
   } else {
     showToast('Emisija nije u katalogu');
   }

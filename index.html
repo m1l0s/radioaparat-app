@@ -2891,17 +2891,19 @@ function _openDetailById(id){
   if(src){
     imgEl.innerHTML='<img src="'+src+'" alt="'+esc(s.name)+'">';
     imgEl.style.background='';
+    imgEl.style.color='';
   } else {
-    imgEl.style.background=s.grad;
-    imgEl.innerHTML=
-      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;position:relative;overflow:hidden;">'+
-        '<span style="font-size:80px;font-weight:800;color:rgba(255,255,255,0.13);letter-spacing:-4px;z-index:1">'+esc(s.name.slice(0,2).toUpperCase())+'</span>'+
-        '<div style="position:absolute;bottom:20px;left:20px;right:20px;display:flex;flex-direction:column;gap:6px;opacity:0.2">'+
-          '<div style="height:3px;width:70%;background:#fff;border-radius:2px"></div>'+
-          '<div style="height:3px;width:50%;background:#fff;border-radius:2px"></div>'+
-          '<div style="height:3px;width:35%;background:#fff;border-radius:2px"></div>'+
-        '</div>'+
-      '</div>';
+    // Nema slike — prikaži šahovnicu kao u gridu
+    var showIdx = SHOWS.findIndex(function(x){ return x.id === s.id; });
+    var row = Math.floor(showIdx / 2), col = showIdx % 2;
+    var isWhite = (row + col) % 2 === 0;
+    var bg = isWhite ? 'var(--chess-light)' : 'var(--chess-dark)';
+    var fg = isWhite ? 'var(--chess-dark)'  : 'var(--chess-light)';
+    imgEl.style.background = bg;
+    imgEl.style.color = fg;
+    imgEl.innerHTML = '<div class="show-card-chess" style="background:'+bg+';color:'+fg+'">'+
+      '<span class="show-card-chess-name" style="font-size:24px;">'+esc(s.name)+'</span>'+
+    '</div>';
   }
   var LINK_LABELS = {web:'Web',mixcloud:'Mixcloud',soundcloud:'SoundCloud',instagram:'Instagram',facebook:'Facebook',youtube:'YouTube',patreon:'Patreon'};
   var linksHTML = '';
@@ -2927,7 +2929,7 @@ function _openDetailById(id){
     .replace(/[šś]/g,'s').replace(/[đ]/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z')
     .replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
 
-  fetchShowEpisodes(showSlug, function(eps){
+  fetchShowEpisodes(showSlug, (s.links && s.links.mixcloud) || null, function(eps){
     if (!eps || !eps.length) {
       epList.innerHTML = '<div style="padding:12px 0;color:var(--text3);font-size:13px;">Nema dostupnih epizoda.</div>';
       return;
@@ -2987,38 +2989,57 @@ function getMixcloudCasts(cb) {
 
 /* Keš za epizode */
 var _epCache = {};
-function fetchShowEpisodes(showId, cb) {
+function fetchShowEpisodes(showId, mixcloudLink, cb) {
+  // mixcloudLink može biti URL naloga (mixcloud.com/USER/) ili specifičan cloudcast
   if (_epCache[showId]) { cb(_epCache[showId]); return; }
 
-  // Normalizacija za poređenje naziva
   function norm(s) {
     return s.toLowerCase()
-      .replace(/[šś]/g,'s').replace(/[đ]/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z')
+      .replace(/[šśŝ]/g,'s').replace(/[đ]/g,'dj').replace(/[čćĉ]/g,'c').replace(/[žź]/g,'z')
       .replace(/[^a-z0-9\s]/g,'').trim();
   }
 
-  getMixcloudCasts(function(casts) {
-    // showId je slug npr. "pop-depresija" — pretvaramo u reči za matching
-    var showWords = norm(showId.replace(/-/g,' ')).split(/\s+/).filter(function(w){ return w.length > 2; });
-
-    var eps = casts.filter(function(c) {
-      var cNorm = norm(c.name);
-      // Tačno poklapanje slugova ili svi ključni termini prisutni u naslovu
-      if (cNorm.replace(/\s+/g,'-').indexOf(showId) >= 0) return true;
-      var matches = showWords.filter(function(w){ return cNorm.indexOf(w) >= 0; }).length;
-      return matches >= Math.min(showWords.length, 2);
-    }).map(function(c){
-      return {
-        url: 'https://www.mixcloud.com' + c.key,
-        title: c.name,
-        mcKey: c.key,
-        date: (c.created_time || '').slice(0,10)
-      };
-    });
-
+  function done(eps) {
     _epCache[showId] = eps;
     cb(eps);
-  });
+  }
+
+  // Pokušaj 1: Ako emisija ima sopstveni Mixcloud nalog (ne RADIO_APARAT)
+  // Prepoznajemo po: mixcloud.com/NESTO/ (nije RADIO_APARAT, nije direktan cloudcast)
+  if (mixcloudLink) {
+    var mcUserMatch = mixcloudLink.match(/mixcloud\.com\/([^\/]+)\/?$/i);
+    if (mcUserMatch && mcUserMatch[1].toUpperCase() !== 'RADIO_APARAT') {
+      var mcUser = mcUserMatch[1];
+      fetch('https://api.mixcloud.com/' + mcUser + '/cloudcasts/?limit=20')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var eps = (d.data || []).map(function(c){
+            return { url: 'https://www.mixcloud.com'+c.key, title: c.name, mcKey: c.key, date: (c.created_time||'').slice(0,10) };
+          });
+          if (eps.length) { done(eps); return; }
+          fetchFromRadioAparat(); // fallback
+        })
+        .catch(fetchFromRadioAparat);
+      return;
+    }
+  }
+
+  fetchFromRadioAparat();
+
+  function fetchFromRadioAparat() {
+    getMixcloudCasts(function(casts) {
+      var showWords = norm(showId.replace(/-/g,' ')).split(/\s+/).filter(function(w){ return w.length > 2; });
+      var eps = casts.filter(function(c) {
+        var cNorm = norm(c.name);
+        if (showWords.length === 0) return false;
+        var matches = showWords.filter(function(w){ return cNorm.indexOf(w) >= 0; }).length;
+        return matches >= Math.min(showWords.length, 2);
+      }).map(function(c){
+        return { url: 'https://www.mixcloud.com'+c.key, title: c.name, mcKey: c.key, date: (c.created_time||'').slice(0,10) };
+      });
+      done(eps);
+    });
+  }
 }
 
 /* ═══ REPLAY ═══ */

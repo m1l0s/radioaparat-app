@@ -3049,17 +3049,16 @@ var MINI_CIRC = 113.1; // 2 * PI * 18
 function updateMiniPlayer() {
   var isPlayerTab = document.getElementById('screen-player').classList.contains('active');
   var isChatTab   = document.getElementById('screen-chat').classList.contains('active');
-  var mp = document.getElementById('mini-player');
+  var isReplayTab = document.getElementById('screen-replay').classList.contains('active');
+  var mp     = document.getElementById('mini-player');
   var mcMini = document.getElementById('mc-mini-player');
+  var mcActive = mcMini && mcMini.style.display !== 'none';
 
-  // If Mixcloud episode is playing, hide regular mini player
-  if (mcMini && mcMini.style.display !== 'none') {
-    mp.style.display = 'none';
-    return;
-  }
+  // Mixcloud mini — vidljiv SAMO na Replay tabu dok je aktivan
+  if (mcMini) mcMini.style.display = (mcActive && isReplayTab) ? '' : 'none';
 
-  // Show only when NOT on player tab or chat tab
-  if (isPlayerTab || isChatTab) {
+  // Standardni mini — skriven na: Player, Chat, Replay (samo ako Mixcloud aktivan), i dok Mixcloud svira na bilo kom tabu
+  if (isPlayerTab || isChatTab || mcActive) {
     mp.style.display = 'none';
     return;
   }

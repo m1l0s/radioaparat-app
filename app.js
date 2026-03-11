@@ -1395,24 +1395,8 @@ function closeMapsSheet() {
 }
 
 /* ═══ EMISIJE ═══ */
-var SHOWS=[
-  {id:'after-hours',name:'After Hours',cat:'muzika',schedule:'Subotom 21–23h',desc:'Dvočasovni miks set legendarnog beogradskog DJ Aćima. Aktuelni trendovi u house, progressive i organic house pravcima.',img:null,color:'#0d0d1a',grad:'linear-gradient(135deg,#1a1a3e 0%,#0d0d1a 100%)'},
-  {id:'arcadia',name:'Arcadia',cat:'muzika',schedule:'Četvrtkom uveče',desc:'Emisija posvećena eksperimentalnoj elektronskoj muzici, ambijentu i zvučnim pejzažima.',img:null,color:'#0a1a0a',grad:'linear-gradient(135deg,#0a2a1a 0%,#051005 100%)'},
-  {id:'arheofonija',name:'Arheofonija',cat:'muzika',schedule:'Nedeljom',desc:'Putovanje kroz zvučnu arhivu — stara i zaboravljena muzika iz svih krajeva sveta.',img:null,color:'#1a0f00',grad:'linear-gradient(135deg,#2a1a00 0%,#0f0800 100%)'},
-  {id:'disko-buvljak',name:'Disko buvljak',cat:'muzika',schedule:'Petkom',desc:'Najzanimljiviji nalaz sa globalnih muzičkih buvljaka — retke ploče, neočekivane pesme.',img:null,color:'#1a001a',grad:'linear-gradient(135deg,#2d0030 0%,#0d000f 100%)'},
-  {id:'groove-variations',name:'Groove Variations',cat:'muzika',schedule:'Sredom',desc:'Varijacije na temu groovea — od funka i soula do savremenih ritmičkih eksperimenata.',img:null,color:'#001a0a',grad:'linear-gradient(135deg,#003320 0%,#000d08 100%)'},
-  {id:'podzemlje',name:'Podzemlje',cat:'muzika',schedule:'Utorkom',desc:'Emisija posvećena undergroundu — punk, metal, industrial.',img:null,color:'#111',grad:'linear-gradient(135deg,#222 0%,#080808 100%)'},
-  {id:'mono',name:'Mono',cat:'muzika',schedule:'Ponedeljkom',desc:'Jedna tema, jedna priča, jedna muzička nit.',img:null,color:'#0a0a1a',grad:'linear-gradient(135deg,#16162e 0%,#050510 100%)'},
-  {id:'reggae-fever',name:'Reggae Fever',cat:'muzika',schedule:'Subotom posle podne',desc:'Sve što dišu reggae, dub i roots muzika.',img:null,color:'#001500',grad:'linear-gradient(135deg,#002800 0%,#001000 100%)'},
-  {id:'mansarda',name:'Mansarda',cat:'muzika',schedule:'Nedeljom uveče',desc:'Intimna atmosfera, pažljivo odabrana muzika.',img:null,color:'#1a0800',grad:'linear-gradient(135deg,#2e1200 0%,#0f0500 100%)'},
-  {id:'desk-kultura',name:'Desk Kultura',cat:'kultura',schedule:'Sredom',desc:'Kritički osvrt na aktuelna dešavanja u kulturi — knjige, film, pozorište.',img:null,color:'#0d0a1a',grad:'linear-gradient(135deg,#1e1830 0%,#08060f 100%)'},
-  {id:'sceniranje',name:'Sceniranje',cat:'kultura',schedule:'Četvrtkom',desc:'Pozorišna scena pod lupom.',img:null,color:'#1a0505',grad:'linear-gradient(135deg,#2e0a0a 0%,#0f0303 100%)'},
-  {id:'grad-u-prolazu',name:'Grad u prolazu',cat:'kultura',schedule:'Petkom',desc:'Beograd i njegovi stanovnici.',img:null,color:'#001520',grad:'linear-gradient(135deg,#002535 0%,#000c15 100%)'},
-  {id:'zenergija',name:'Ženergija',cat:'drustvo',schedule:'Sredom',desc:'Emisija koja daje glas ženskim pričama.',img:null,color:'#1a0015',grad:'linear-gradient(135deg,#300028 0%,#0f0010 100%)'},
-  {id:'eureka',name:'Eureka',cat:'drustvo',schedule:'Utorkom',desc:'Nauka, tehnologija i inovacije objašnjeni na razumljiv način.',img:null,color:'#001a1a',grad:'linear-gradient(135deg,#003030 0%,#000f0f 100%)'},
-  {id:'nevergrin',name:'Nevergrin',cat:'zabava',schedule:'Petkom uveče',desc:'Evergreen koji nikada neće ostariti.',img:null,color:'#1a1500',grad:'linear-gradient(135deg,#2e2500 0%,#0f0e00 100%)'},
-  {id:'pop-kujna',name:'Pop kujna',cat:'zabava',schedule:'Subotom',desc:'Pop kultura servirana kao obrok.',img:null,color:'#1a0500',grad:'linear-gradient(135deg,#2e0e00 0%,#0f0300 100%)'}
-];
+// SHOWS se učitava iz radioaparat_linkovi.xlsx (via loadShowsFromExcel)
+var SHOWS = [];
 
 function filterShows(cat,el){
   document.querySelectorAll('.cat-pill').forEach(function(p){p.classList.remove('active');});

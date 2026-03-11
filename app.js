@@ -723,41 +723,7 @@ function exportFavs() {
 function delFav(i) { favorites.splice(i,1); saveFavs(); renderFavs(); checkFav(); }
 
 /* ═══ RASPORED ═══ */
-var rasporedData = [
-  {"date":"03.03.2026.","items":[
-    {"time":"14:00","title":"SUPER MENI LISTA (r)","host":"Ceca Đolović"},
-    {"time":"18:00","title":"BEOPOLIS IZ RADIOAPARATA","host":"Aleksandar Nikolić Kafka"},
-    {"time":"20:00","title":"ŠIZOANALIZA","host":"Anđelija Rudnjanin"}]},
-  {"date":"04.03.2026.","items":[
-    {"time":"11:00","title":"DJ SATARAŠ - Uncool","host":"Ceca"},
-    {"time":"14:00","title":"POP DEPRESIJA","host":"Ivan Lončarević"},
-    {"time":"17:00","title":"REGGAE FEVER","host":"Nenad Pekez"},
-    {"time":"18:00","title":"KAMILICA","host":"Milica Joksimović"},
-    {"time":"20:00","title":"VEČE SA TEGLINIM POPODNEVOM","host":"tegla.rs"}]},
-  {"date":"05.03.2026.","items":[
-    {"time":"16:00","title":"ARCADIA","host":"Gordan Paunović, Slobodan Brkić"},
-    {"time":"19:00","title":"EUREKA","host":"Jovana Nikolić Živković"},
-    {"time":"20:00","title":"LANČANI SUDAR","host":"Bojan Marjanović"}]},
-  {"date":"06.03.2026.","items":[
-    {"time":"10:30","title":"DJ SATARAŠ - Soundtrack time!","host":"Ceca"},
-    {"time":"15:00","title":"REALITY CHECK","host":"Dubravko Jagatić"},
-    {"time":"17:00","title":"LICE ULICE FM","host":"Nikoleta Kosovac, Bojan Marjanović"},
-    {"time":"19:00","title":"PIRATSKI SATELIT","host":"Marko Blažić"}]},
-  {"date":"07.03.2026.","items":[
-    {"time":"11:00","title":"MANSARDA","host":"Jovana Nikolić Živković i Pavle Živković"},
-    {"time":"12:00","title":"SUPER MENI","host":"Svetlana Đolović"},
-    {"time":"21:00","title":"AFTER HOURS","host":"Aćim"}]},
-  {"date":"08.03.2026.","items":[
-    {"time":"10:00","title":"ARHEOFONIJA","host":"Ivan Čkonjević"},
-    {"time":"12:00","title":"POVRATAK LOPOVA","host":"Mimi, Moma i Denča"},
-    {"time":"15:00","title":"GISTRO FM","host":"Skoča"},
-    {"time":"18:00","title":"ZELENI KAČKET","host":""}]},
-  {"date":"09.03.2026.","items":[
-    {"time":"10:30","title":"DJ SATARAŠ - Noviteti","host":"Ceca"},
-    {"time":"14:00","title":"EKSPEDICIJA","host":"Knower"},
-    {"time":"20:00","title":"NEDALEKO ODAVDE","host":"Bobe Vujanović Fridom"},
-    {"time":"22:00","title":"PODZEMLJE","host":"Radoš M."}]}
-];
+var rasporedData = []; // prazno — popunjava se iz schedule.json
 var activeDayIdx = 0;
 var rasporedInited = false;
 
@@ -924,9 +890,16 @@ function initProgram() {
     return;
   }
 
-  // Podaci su zastareli ili nema cache-a — prikaži šta imamo i tiho fetchuj u pozadini
-  buildDayTabs();
-  renderRasporedDay(0);
+  // Ako ima podataka (zastareli cache) — prikaži ih dok fetchujemo
+  // Ako nema ničega — prikaži loading state
+  if (rasporedData.length > 0) {
+    buildDayTabs();
+    renderRasporedDay(0);
+  } else {
+    document.getElementById('day-tabs').innerHTML = '';
+    document.getElementById('raspored-list').innerHTML =
+      '<div class="ep-loading"><div class="ep-spinner"></div>Učitavam raspored...</div>';
+  }
 
   var sub = document.getElementById('raspored-sub');
   if (sub) sub.textContent = 'Ažuriram...';
@@ -935,19 +908,24 @@ function initProgram() {
 
   fetchRasporedDirect(
     function(data) {
-      // Uspeh — primeni i sačuvaj
       rasporedApplyData(data, 'direct');
       if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
     },
     function() {
-      // Direct fetch nije uspeo — pokušaj Anthropic API ako je ključ dostupan
       if (ANTHROPIC_API_KEY) {
         _refreshRasporedViaAPI(btn);
       } else {
-        // Prikaži poslednje poznate podatke sa napomenom
-        if (sub) sub.textContent = 'Prikazujem poslednji raspored';
         if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
-        _updateRasporedSub(true);
+        if (rasporedData.length > 0) {
+          // Ima zastareli cache — prikaži ga sa napomenom
+          _updateRasporedSub(true);
+        } else {
+          // Nema apsolutno ničega — prikaži empty state
+          if (sub) sub.textContent = 'Raspored nije dostupan';
+          document.getElementById('day-tabs').innerHTML = '';
+          document.getElementById('raspored-list').innerHTML =
+            '<div class="ep-loading" style="color:var(--text3)">Raspored trenutno nije dostupan.<br>Pokušaj ponovo za koji minut.</div>';
+        }
       }
     }
   );

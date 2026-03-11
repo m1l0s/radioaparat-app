@@ -1765,37 +1765,108 @@ function shareTrack() {
 }
 
 function fetchPlayedHistory(callback) {
-  // Try rcast played endpoint via CORS proxy
-  var url = 'https://api.allorigins.win/get?url=' + encodeURIComponent('http://live4.rcast.net:8268/played.html?sid=1');
-  fetch(url)
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var html = d.contents || '';
-      var rows = [];
-      // Parse <tr> rows from the table
-      var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-      var trM;
-      while ((trM = trRe.exec(html)) !== null) {
-        var cells = [];
-        var tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-        var tdM;
-        while ((tdM = tdRe.exec(trM[1])) !== null) {
-          cells.push(tdM[1].replace(/<[^>]+>/g,'').trim());
-        }
-        // Row format: time | artist - title (or just title)
-        var trackStr = (cells[1] || cells[0] || '').replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim();
-        if (trackStr && trackStr.length > 1 && !/artist|pesma|title/i.test(trackStr)) {
-          var parts = trackStr.split(' - ');
-          rows.push({
-            artist: parts.length > 1 ? parts[0].trim() : '',
-            title: parts.length > 1 ? parts.slice(1).join(' - ').trim() : trackStr,
-            time: new Date()
-          });
+  var RCAST_PLAYED = 'http://live4.rcast.net:8268/played.html?sid=1';
+  var RCAST_STATS  = 'http://live4.rcast.net:8268/stats?sid=1&json=1';
+
+  var proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(RCAST_PLAYED),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(RCAST_PLAYED),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(RCAST_PLAYED),
+    'https://corsproxy.io/?' + encodeURIComponent(RCAST_STATS),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(RCAST_STATS),
+  ];
+
+  function parseHtml(html) {
+    var rows = [];
+    // Format 1: <tr><td> table
+    var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi, trM;
+    while ((trM = trRe.exec(html)) !== null) {
+      var cells = [], tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi, tdM;
+      while ((tdM = tdRe.exec(trM[1])) !== null)
+        cells.push(tdM[1].replace(/<[^>]+>/g,'').trim());
+      var trackStr = (cells[1] || cells[0] || '').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim();
+      if (trackStr && trackStr.length > 1 && !/artist|pesma|title|song/i.test(trackStr)) {
+        var parts = trackStr.split(' - ');
+        rows.push({ artist: parts.length>1?parts[0].trim():'', title: parts.length>1?parts.slice(1).join(' - ').trim():trackStr });
+      }
+    }
+    if (rows.length) return rows;
+
+    // Format 2: <li> or <p> lines
+    var lineRe = /<(?:li|p|div)[^>]*>([\s\S]*?)<\/(?:li|p|div)>/gi, lM;
+    while ((lM = lineRe.exec(html)) !== null) {
+      var txt = lM[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim();
+      if (txt && txt.length > 2 && txt.indexOf(' - ') > 0 && !/script|style/i.test(txt)) {
+        var parts = txt.split(' - ');
+        rows.push({ artist: parts[0].trim(), title: parts.slice(1).join(' - ').trim() });
+      }
+    }
+    if (rows.length) return rows;
+
+    // Format 3: plain text lines "Artist - Title"
+    html.replace(/<[^>]+>/g,'').split(/\n|\r/).forEach(function(line){
+      line = line.replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim();
+      if (line.length > 2 && line.indexOf(' - ') > 0) {
+        var parts = line.split(' - ');
+        rows.push({ artist: parts[0].trim(), title: parts.slice(1).join(' - ').trim() });
+      }
+    });
+    return rows;
+  }
+
+  function parseStats(json) {
+    // rcast stats JSON may contain songtitle or song history
+    var rows = [];
+    try {
+      var data = (typeof json === 'string') ? JSON.parse(json) : json;
+      var icestats = data.icestats || data;
+      var src = icestats.source || (Array.isArray(icestats.sources) ? icestats.sources[0] : null);
+      if (src) {
+        // Current song
+        var song = src.songtitle || src.title || '';
+        if (song && song.indexOf(' - ') > 0) {
+          var p = song.split(' - ');
+          rows.push({ artist: p[0].trim(), title: p.slice(1).join(' - ').trim() });
         }
       }
-      if (rows.length > 0 && callback) callback(rows.slice(0,10));
-    })
-    .catch(function(e){ console.warn('History fetch failed:', e); });
+    } catch(e){}
+    return rows;
+  }
+
+  function tryProxy(i) {
+    if (i >= proxies.length) return;
+    var url = proxies[i];
+    var isStats = url.indexOf('stats') > -1;
+
+    fetch(url, { signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined })
+      .then(function(r){ return r.text(); })
+      .then(function(text){
+        var rows = [];
+        // allorigins wraps in JSON
+        if (text.trim().startsWith('{')) {
+          try {
+            var d = JSON.parse(text);
+            var inner = d.contents || d;
+            if (isStats) {
+              rows = parseStats(inner);
+            } else {
+              rows = typeof inner === 'string' ? parseHtml(inner) : [];
+            }
+          } catch(e){ rows = isStats ? parseStats(text) : parseHtml(text); }
+        } else {
+          rows = isStats ? parseStats(text) : parseHtml(text);
+        }
+
+        if (rows.length > 0) {
+          if (callback) callback(rows.slice(0, 10));
+        } else {
+          tryProxy(i + 1);
+        }
+      })
+      .catch(function(){ tryProxy(i + 1); });
+  }
+
+  tryProxy(0);
 }
 
 function toggleHistory() {
@@ -1810,6 +1881,11 @@ function toggleHistory() {
     document.getElementById('history-backdrop').classList.add('open');
     document.getElementById('history-sheet').classList.add('open');
     btn.classList.add('active');
+    // Show loading indicator then fetch
+    var listEl = document.getElementById('history-list');
+    if (listEl && !trackHistory.length) {
+      listEl.innerHTML = '<div style="padding:16px 0;color:var(--text2);font-size:14px;text-align:center;">Učitavam...</div>';
+    }
     // Fetch from rcast and update if we get more/better data
     fetchPlayedHistory(function(rows){
       // Merge rcast rows with local history

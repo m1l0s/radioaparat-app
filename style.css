@@ -140,6 +140,9 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .notch { width:126px; height:34px; background:var(--notch-bg); border-radius:0 0 22px 22px; position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:10; border:1.5px solid #222; border-top:none; }
 .statusbar { display:flex; justify-content:space-between; align-items:center; padding:14px 28px 0; font-size:12px; font-weight:600; flex-shrink:0; color:var(--text2); position:relative; z-index:1; }
 .statusbar-time { font-size:13px; font-weight:700; color:var(--statusbar-time); }
+.statusbar-icons { display:flex; align-items:center; gap:5px; color:var(--statusbar-time); }
+.statusbar-net { font-size:11px; font-weight:700; color:var(--statusbar-time); letter-spacing:-.2px; }
+.statusbar-battery { display:flex; align-items:center; }
 
 /* NAV */
 .nav-tabs {

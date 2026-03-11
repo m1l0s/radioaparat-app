@@ -1,0 +1,557 @@
+{
+  "updated": "2026-03-11T18:57:47.981Z",
+  "shows": [
+    {
+      "id": "after-hours",
+      "name": "after hours",
+      "cat": "muzika",
+      "schedule": "subotom od 21 do 23h",
+      "desc": "U ovom dvočasovnom miks setu legendarnog beogradskog DJ Aćima u slušamo aktuelne trendove u house, progressive i organic house pravcima. Vaše subotnje “zagrevanje“ za izlazak – from beach to dancefloor.",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/after-hours-radio-aparat-1-1200x1800.jpg",
+      "links": null
+    },
+    {
+      "id": "arcadia",
+      "name": "arcadia",
+      "cat": "muzika",
+      "schedule": "četvrtkom od 16 do 18h",
+      "desc": "Jedno moguće putovanje do muzičke utopije.\r\nPripremaju i vode: Gordan Paunović i Slobodan Brkić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/03/arcadia-radio-aparat.jpg",
+      "links": {
+        "soundcloud": "https://soundcloud.com/gordan-paunovic-173280004",
+        "facebook": "https://www.facebook.com/ArcadiaRadioShow/"
+      }
+    },
+    {
+      "id": "arheofonija",
+      "name": "arheofonija",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "disko-buvljak",
+      "name": "disko buvljak",
+      "cat": "muzika",
+      "schedule": "svake druge subote od 18 do 19h",
+      "desc": "Kopanje po zabačenim pijacama Srbije, sveta i interneta. Muzika za svadbe i ispraćaje sa svih meridijana. Nije world music.\r\nPripremaju i vode: Miloš Dašić i Nikola Denčić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/disko-buvljak-radio-aparat-1.jpg",
+      "links": null
+    },
+    {
+      "id": "podzemlje",
+      "name": "podzemlje",
+      "cat": "muzika",
+      "schedule": "понедељком од 22 до 23ч",
+      "desc": "Емисија Подземље се бави тврдокорним хип хоп звуком. Преслушавамо албуме и говоримо о мање познатим и андерграунд извођачима интернационалне сцене.\r\nАутор и водитељ: Радош Митровић",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/podzemlje-radio-aparat.jpg",
+      "links": null
+    },
+    {
+      "id": "mono",
+      "name": "mono",
+      "cat": "muzika",
+      "schedule": "svake druge srede od 22h",
+      "desc": "dva sata post-rocka i graničnih žanrova, kao i druge instrumentalne muzike (jazz & electro) (pevanje – zabranjeno, spoken word – dozvoljeno) plejliste su tematski sastavljane, a izbor bendova ima za cilj da se predstavi što veći dijapazon izvođača, (opskurno – bizarno – dozvoljeno, esperimentalno – čak poželjno) povremeno se vraćajući pionirima i/ili herojima post-rock bendovima kao što su Mono, Mogwai, Godspeed You! Black Emperor…\r\nPriprema: Horhe Akimov",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/mono-radio-aparat.jpg",
+      "links": null
+    },
+    {
+      "id": "reggae-fever",
+      "name": "reggae fever",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "mansarda",
+      "name": "mansarda",
+      "cat": "muzika",
+      "schedule": "svake druge subote od 11 do 12h",
+      "desc": "Prisećamo se pop-kulture iz 50-ih, 60-ih, 70-ih godina dvadesetog veka. Spajamo godine, jezike i ritmove, filmove i emisije, traperice iz Trsta i igračke iz Diznilenda…\r\nPripremaju i vode: Jovana Nikolić i Pavle Živković",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/03/mansarda-radio-aparat.jpg",
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/Dani_radija/",
+        "instagram": "https://www.instagram.com/mansarda_radio/",
+        "facebook": "https://www.facebook.com/Daniradija/",
+        "patreon": "https://www.patreon.com/Mansarda259/"
+      }
+    },
+    {
+      "id": "super-meni",
+      "name": "super meni",
+      "cat": "muzika",
+      "schedule": "subotom od 12 do 14h",
+      "desc": "Zato što pesme ponekad spašavaju živote. Zato što od ponuđenog uvek možete da izaberete nešto za sebe. Zato što ispred ukusa mase uvek stoji ukus pojedinca. Super meni je zvanična top-lista Radio Aparata.\r\n\r\nUređuje i vodi: Svetlana Đolović",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/super-meni-radio-aparat.png",
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/SUPER_MENI/",
+        "facebook": "https://www.facebook.com/supermeniRAj/"
+      }
+    },
+    {
+      "id": "balkan-world-music-chart",
+      "name": "balkan world music chart",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "dirizabl",
+      "name": "dirižabl",
+      "cat": "muzika",
+      "schedule": "svake druge nedelje od 17 do 18h",
+      "desc": "dirižabl (fr. dirigeable) – vazdušni brod, cepelin, letelica lakša od vazduha.\r\nDvonedeljna muzička emisija o putovanju lakih i teških nota u vazdušnoj lađi.\r\nPriprema i vodi: Ana Dajić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/dirizabl-radio-aparat.jpg",
+      "links": {
+        "instagram": "https://www.instagram.com/dirizabl/",
+        "facebook": "https://www.facebook.com/people/Dirižabl/100040186128166/"
+      }
+    },
+    {
+      "id": "ekspedicija",
+      "name": "ekspedicija",
+      "cat": "muzika",
+      "schedule": "ponedeljkom od 14 do 15h",
+      "desc": "Muzički program koji obrađuje različite koncepte iz različitih smerova – žanr, instrument, zemlja, omaži, situacije.\r\nTvorac ove emisije je Veljko Bojković – Knower, široki DJ i radoznali muzički producent.",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/ekspedicija-radio-aparat.png",
+      "links": {
+        "soundcloud": "https://soundcloud.com/knwr/sets/ekspedicija-radio-aparat"
+      }
+    },
+    {
+      "id": "gistro-fm",
+      "name": "gistro fm",
+      "cat": "muzika",
+      "schedule": "nedeljom od 15 do 17h",
+      "desc": "Gistro FM predstavlja nove i stare albume najrazličitijih žanrova: od indi-roka, popa, džeza, soula, panka, amerikane, akustičnog folka, sve do ambijentalne i klasične muzike.\r\nOno što povezuje sve pesme koje čujete u ovoj emisiji su iskrenost, entuzijazam i ljubav prema muzici.\r\nPriprema i vodi: Vladimir Skočajić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/gistro-fm-radio-aparat.jpg",
+      "links": {
+        "facebook": "https://www.facebook.com/GistroFM/"
+      }
+    },
+    {
+      "id": "groove-variations",
+      "name": "groove variations",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "intervjui",
+      "name": "intervjui",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "lancani-sudar",
+      "name": "lančani sudar",
+      "cat": "muzika",
+      "schedule": "svakog četvrtka od 20:00 do 22:00",
+      "desc": "Ako vas zanima koja je pesma Elvisa Kostela iz 1973. inspirisana Springstinom, ili imate dilemu da li je „Candy“ Igija Popa bolja u duetu sa Kejt Pirson ili Krisi Hajnd, na pravom ste mestu. Ovo je „Lančani sudar“ u kom se sudaraju pesme i priče o pesmama.\r\nUređuje i vodi: Bojan Marjanović",
+      "img": "https://thumbnailer.mixcloud.com/unsafe/272x272/profile/9/d/c/5/3c4e-3ddf-48ec-8034-1ffc948e5f86",
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/LancaniSudar/"
+      }
+    },
+    {
+      "id": "mikstejp",
+      "name": "mikstejp",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "mimilenijum",
+      "name": "mimilenijum",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "mmmmarije-na-aparatu",
+      "name": "mmm.marije na aparatu",
+      "cat": "muzika",
+      "schedule": "svakog drugog utorka od 19:00 do 20:00",
+      "desc": "Uređuju i vode: Marija Todorović i Marija Milić",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "muzicki-specijali",
+      "name": "muzički specijali",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "nastupi-uzivo-video-snimci",
+      "name": "nastupi uživo (video snimci)",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "nedaleko-odavde",
+      "name": "nedaleko odavde",
+      "cat": "muzika",
+      "schedule": "svakog ponedeljka osim prvog u mesecu od 20:00 do 22:00",
+      "desc": "Uređuje i vodi: Slobodan Vujanović",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "night-waves-sessions",
+      "name": "night waves sessions",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "off",
+      "name": "off",
+      "cat": "muzika",
+      "schedule": "povremeno petkom od 14:00 do 15:30",
+      "desc": "Priprema: Miloš Ivanović Kepa",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "orfejeva-kutija",
+      "name": "orfejeva kutija",
+      "cat": "muzika",
+      "schedule": "svake treće nedelje u mesecu od 12 do 14h",
+      "desc": "Orfejeva kutija je fenomenološka eklektična edukativna muzička emisija u kojoj autorka pokušava da sebi odgovori na pitanja koja joj se vrzmaju po glavi, a uglavnom imaju veze sa muzikom.\r\nUređuje i vodi: Marija Babić Milovanović",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/orfejeva-kutija-radio-aparat-1200x762.jpg",
+      "links": null
+    },
+    {
+      "id": "piratski-satelit",
+      "name": "piratski satelit",
+      "cat": "muzika",
+      "schedule": "svakog petka od 19:00 do 21:00",
+      "desc": "Piratski satelit je počeo kao muzički podkast, a u septembru 2025. postao je radio-emisija koja se emituje uživo iz Radio Aparata, petkom od 19:00 do 21:00. Na nedeljnom nivou vam donosimo najlepše pesme iz vasione, a usput pokupimo i nekog putnika da putuje sa nama.\r\nUređuje i vodi: Marko Blažić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/piratski-satelit-radio-aparat.jpg",
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/MarkoBlazic/",
+        "instagram": "https://www.instagram.com/piratski_satelit",
+        "facebook": "https://www.facebook.com/PiratskiSatelit"
+      }
+    },
+    {
+      "id": "pop-depresija",
+      "name": "pop depresija",
+      "cat": "muzika",
+      "schedule": "sredom od 14 do 16h",
+      "desc": "Eklektični miks gitarske muzike i elektronike, „patosa“ i indi himni. Između melanholije i euforije, Pop Depresija je ideja koja provocira znatiželjne, odbija površne i zbunjuje isključive. Preko 20 godina u etru, sada i kao koncertna agencija i izdavačka kuća, PD je institucija za sebe i značajan partner radioAparata u promociji domaće muzike.\r\nPriprema i vodi: Ivan Lončarević",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/pop-depresija-radio-aparat-1200x1199.png",
+      "links": null
+    },
+    {
+      "id": "preslicavanje",
+      "name": "prešlicavanje",
+      "cat": "muzika",
+      "schedule": "svake druge nedelje od 20 do 22h",
+      "desc": "Eklektična muzička putovanja, dva puta mesečno.\r\nAutor: Nebojša Krivokuća,\r\nnekada sekao FM talase, sada secka i montira radio program iz kuhinje sa pogledom na grad.",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/Preslicavanje-radio-aparat.jpg",
+      "links": null
+    },
+    {
+      "id": "reality-check",
+      "name": "reality check",
+      "cat": "muzika",
+      "schedule": "svakog petka od 15:00 do 16:00",
+      "desc": "Reality Check je vrsta infotainment programa koji je nastao iz želje i potrebe da se što veći broj hrvatskih muzičara probije do publike, ali i da se publika, putem radio-stanica i raznih platforma i društvenih mreža, upozna s njihovom muzikom.\r\nUređuje i vodi: Dubravko Jagatić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/reality-check-radio-aparat.jpg",
+      "links": {
+        "facebook": "https://www.facebook.com/profile.php?id=61550922030370",
+        "youtube": "https://www.youtube.com/@RealityCheck-xv8wg"
+      }
+    },
+    {
+      "id": "sredinom-ulice",
+      "name": "sredinom ulice",
+      "cat": "muzika",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "beopolis-iz-radio-aparata",
+      "name": "beopolis iz radio aparata",
+      "cat": "kultura",
+      "schedule": "utorkom od 18.00 do 20.00",
+      "desc": "Beopolis je kultna beogradska knjižara osnovana krajem 1999. godine, u saradnji sa Domom omladine Begrada. Uprkos izazovima i teškim periodima, knjižara je opstala i danas je mesto koje ima značajnu društvenu i kulturnu ulogu u Beogradu, Srbiji i regionu bivše Jugoslavije. Ključni programi Beopolisa obuhvataju pažljivu selekciju nekomercijalne i komercijalne književnosti, promociju relevantnih naslova iz oblasti humanistike, umetnosti, stripa i regionalne književnosti. Beopolis programski pruža podršku nezavisnim i malim izdavačima, učestvuje u organizovanju književnih promocija, tribina, diskusija, festivala. Prepoznat kao prostor okrenut alternativnom i kritičkom, odnos Beopolisa i zajednice je izrazito interaktivan i zasnovan na uzajamnom poverenju. Beopolis je svojim angažmanom i ponekad čak subverzirvnim stavom prema rigidnim i zatvorenim umetničkim i društvenim politikama i praksama, stvorio generacije angažovanih čitalaca i podsticao otvorene diskusije o važnim društvenim i kulturnim pitanjima kroz promociju umetničkih i svih drugih sloboda.\r\nKnjižara Beopolis od 2016. godine sarađuje sa RadioAparatom. Emisija „Beopolis iz RadioAparata“ emituje se utorkom od 18 do 20 časova i ovim programom knjižara proširuje komunikaciju sa publikom, obrađujući teme iz kulture, književnosti, obrazovanja, politike i sporta. Ova saradnja omogućava Beopolisu da svoje ideje i stavove komunicira putem savremenih medija, jačajući svoju povezanost sa lokalnom i regionalnom zajednicom.\r\nEmisiju uređuje i vodi Aleksandar (Kafka) Nikolić, osnivač Beopolisa",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/beopolis-iz-radio-aparata-radio-aparat-1200x525.jpg",
+      "links": null
+    },
+    {
+      "id": "grad-u-prolazu",
+      "name": "grad u prolazu",
+      "cat": "kultura",
+      "schedule": "svakog drugog petka od 14:00 do 15:00",
+      "desc": "Individualistički, kritički model kulture rađao se i razvijao sa rađanjem i razvojem grada. Kompleksnost urbane forme predložak je za strukturu emisije. Kao što je grad centar kulture i razmene, tako je i emisija Grad u prolazu otvorena za komunikaciju kultura i razlika. Otvaranje pitanja, definisanje problema, sučeljavanje različitih mišljenja, stavova i ideologija… Emisija se u dijaloškoj formi, razgovori su problemski, sa insistiranjem na živosti i provokativnosti.\r\nAutori emisije: Snežana Ristić i Radonja Leposavić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/grad-u-prolazu-radio-aparat-1200x800.jpg",
+      "links": null
+    },
+    {
+      "id": "desk-kultura",
+      "name": "desk kultura",
+      "cat": "kultura",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "kamilica",
+      "name": "kamilica",
+      "cat": "kultura",
+      "schedule": "svake srede od 18.00",
+      "desc": "Uz šolju čaja i drage goste, Kamilica analizira savremene pejzaže (pop) kulture, fangirluje za omiljenim klasicima i ponekad povezuje naizgled nepovezano.\r\nPriprema i vodi: Milica Joksimović",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/kamilica-radio-aparat.png",
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/kamilicakamilica/",
+        "instagram": "https://www.instagram.com/kamilicakamilica/",
+        "facebook": "https://www.facebook.com/people/Kamilica/100083194787785/"
+      }
+    },
+    {
+      "id": "kulturkajgana",
+      "name": "kultur!kajgana",
+      "cat": "kultura",
+      "schedule": "svakog poslednjeg utorka u mesecu od 20 do 22h",
+      "desc": "Sastojci !Kajgane se menjaju svakog meseca, pa će se u njoj naći: zanimljivi književnici i književnice, muzika (na dva načina: posprdni i malo ozbiljniji), pozorište, džez, film i strip. Naravno, uz dašak histerije.\r\nPripremaju i vode: Pavle Pavičić i Milica Joksimović",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/03/kultur-kajgana-radio-aparat.jpg",
+      "links": null
+    },
+    {
+      "id": "rpkcb",
+      "name": "rpkcb",
+      "cat": "kultura",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "sceniranje",
+      "name": "sceniranje",
+      "cat": "kultura",
+      "schedule": "svakog drugog četvrtka od 18.00 do 20.00",
+      "desc": "Emisija Sceniranje posvećena je dešavanjima, ljudima i prostorima nezavisne kulturne scene i aktuelnim pitanjima produkcije, uslovima, problemima, mogućnostima, u svim oblastima savremene umetnosti i kulture, pre svega u Beogradu, ali i u Srbiji i regionu.\r\nEmisiju vodi i uređuje tim Asocijacije NKSS",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/sceniranje-radio-aparat.jpg",
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/Sceniranje/",
+        "instagram": "https://www.instagram.com/sceniranje",
+        "facebook": "https://www.facebook.com/sceniranje/"
+      }
+    },
+    {
+      "id": "specijali",
+      "name": "specijali",
+      "cat": "kultura",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "u-svojoj-basi",
+      "name": "u svojoj bašti",
+      "cat": "kultura",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "afrikanac-u-beogradu",
+      "name": "afrikanac u beogradu",
+      "cat": "drustvo",
+      "schedule": "",
+      "desc": "Afrikanac u Beogradu je serijal radio-emisija koji se bavi migracijama u Srbiji i njihovim posledicama na živote stvarnih ljudi, kako samih migranata tako i lokalnog stanovništva.\r\nEmisiju priprema Stevan Tatalović, a vodi Gordan Paunović.\r\nIzvršna produkcija: Radio Aparat i Info park.\r\n\r\nSnimanje ove emisije omogućeno je uz finansijsku podršku Evropske unije upravljanju migracijama u Srbiji i promovisanju integracije izbeglica i migranata, koje sprovodi Međunarodna organizacija za migracije u partnerstvu sa UNHCR i KIRS.\r\nAutor emisije je iskljucivo odgovoran za sadržaj, koji nužno ne odražava stavove EU.\r\nIzvršna produkcija: Radio Aparat i Info park.",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "antroposestvije",
+      "name": "antropošestvije",
+      "cat": "drustvo",
+      "schedule": "svakog poslednjeg ponedeljka u mesecu od 17 do 18h",
+      "desc": "Vodimo vas na virtuelno putovanje kroz različite kulture i običaje. Pričamo o fenomenima, o tome šta na putovanjima učimo i kako nas ona menjaju. Zajedno i sa gostima pokušavamo da bolje razumemo svet i nas u njemu.\r\nAntropošestvije su Aleksandar Obradović i Žarka Radoja.",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/antroposestvije-radio-aparat.jpg",
+      "links": null
+    },
+    {
+      "id": "eureka",
+      "name": "eureka",
+      "cat": "drustvo",
+      "schedule": "",
+      "desc": "Za sve one koji traže odgovore na pitanja o svetu oko sebe, emisija Eureka pruža mogućnost da uzviknu „Pronašao sam!“ ili da nastave da preispituju na nove načine, obogaćeni novim pitanjima i saznanjima.\r\nPriprema i vodi: Jovana Nikolić",
+      "img": null,
+      "links": {
+        "facebook": "https://www.facebook.com/EmisijaEureka/"
+      }
+    },
+    {
+      "id": "lice-ulice-fm",
+      "name": "lice ulice fm",
+      "cat": "drustvo",
+      "schedule": "svakog poslednjeg petka u mesecu od 17:00 do 18:30",
+      "desc": "Liceulice FM otvara važne teme kojima prilazimo na sličan način na koji im prilazimo i u našem uličnom magazinu Liceulice – zanimaju nas uzroci problema, ali i potencijalna rešenja, zanima nas drugačija perspektiva, zanima nas rad na pravednijem društvu, zanima nas borba za sve ono što nam se sugeriše kao nepovratno izgubljeno ili kao da ga je nemoguće izboriti.\r\n\r\nVažno je da se šire prostori borbe i prostori zajedništva – važno je da se čuju drugi glasovi!\r\nAutori: Nikoleta Kosovac i Bojan Marjanović",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/Liceulice-FM-radio-aparat.jpg",
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/liceulice_fm/",
+        "youtube": "https://www.youtube.com/liceulice"
+      }
+    },
+    {
+      "id": "radio-galaksija",
+      "name": "radio galaksija",
+      "cat": "drustvo",
+      "schedule": "utorkom 22 do 24h",
+      "desc": "Radio Galaksija je popularno naučni internet portal koji kroz formu radio emisije promoviše nauku i naučni metod, naučno obrazovanje, naučnu i filozofsku pismenost i kritičko mišljenje.\r\nUređuje i vodi: Dušan Pavlović. Redakciju čine i dr Milan M. Ćirković i Lana Konstantinović.",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/Radio-galaksija-radio-aparat.jpg",
+      "links": null
+    },
+    {
+      "id": "sizoanaliza",
+      "name": "šizoanaliza",
+      "cat": "drustvo",
+      "schedule": "svakog drugog utorka od 20:00 do 22:00",
+      "desc": "Internet kulture, teorije zavere, mimovi, filmovi, muzika, inceli, moda, antropologija, hrana – realno, sve može da bude šizoanalizirano. I, da, sve uvek jeste nekako povezano.\r\nIma manje veze sa Delezom nego što naslov implicira.\r\nPriprema i vodi: Anđelija Rudnjanin",
+      "img": "https://radioaparat.rs/h-content/uploads/2025/09/Sizoanaliza-radio-aparat-1200x1200.png",
+      "links": {
+        "instagram": "https://www.instagram.com/sizoanaliza.fm"
+      }
+    },
+    {
+      "id": "u-raljama-osecanja",
+      "name": "u raljama osećanja",
+      "cat": "drustvo",
+      "schedule": "",
+      "desc": "Prostor za pitanja o našim strahovima, patnjama, žudnjama, konfliktima i dilemama. Odgovore tražimo sa sjajnim ljudima i sjajnim psihoterapeutima, psiholozima i psihijatrima.\r\nAutorka i voditeljka je psihološkinja Đurđa Timotijević.",
+      "img": null,
+      "links": {
+        "mixcloud": "https://www.mixcloud.com/U_raljama_osećanja/",
+        "instagram": "https://www.instagram.com/u_raljama_osecanja/",
+        "facebook": "https://www.facebook.com/people/U-raljama-osećanja/100057095064115/"
+      }
+    },
+    {
+      "id": "zenergija",
+      "name": "ženergija",
+      "cat": "drustvo",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "zvucna-etnografija",
+      "name": "zvučna etnografija",
+      "cat": "drustvo",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "fama-o-nebiciklistima-3",
+      "name": "fama o nebiciklistima 3",
+      "cat": "zabava",
+      "schedule": "svake prve nedelje u mesecu od 12 do 15h",
+      "desc": "Presek aktuelne filmske i televizijske produkcije od striminga do bioskopa i nazad.\r\nPripremaju i vode: Ceca i Mimi",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "nevergrin",
+      "name": "nevergrin",
+      "cat": "zabava",
+      "schedule": "poslednja nedelja u mesecu od 12 do 14h",
+      "desc": "Nevergrin je kolažna radio emisija zabavnog karaktera koju od decembra 2016. godine uređuju i vode Milan Vukelić i Magdalena Belić.\r\nRock’n’roll, soul i country su najčešće podloga za inspirativne priče sa zanimljivim gostima uglavnom iz oblasti umetnosti i kulture. Talk show s akcentom na manama, nesavršenost na najvišem nivou. Nevergrin, najveći luzer na mreži!",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/Nevergrin-radio-aparat.jpg",
+      "links": null
+    },
+    {
+      "id": "pop-kujna",
+      "name": "pop kujna",
+      "cat": "zabava",
+      "schedule": "svake druge nedelje od 17:00 do 18:00",
+      "desc": "Muzički meni za sladokusce, gastronomske trivije i povremeni razgovori u kuhinji.\r\nPriprema i vodi: Jelena Maksimović\r\nAutorka ilustracije: Ksenija Pantelić",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/Pop-Kujna-radio-aparat.jpg",
+      "links": {
+        "facebook": "https://www.facebook.com/popkujna/"
+      }
+    },
+    {
+      "id": "povratak-lopova",
+      "name": "povratak lopova",
+      "cat": "zabava",
+      "schedule": "svake druge nedelje u mesecu od 12.00 do 14.00",
+      "desc": "Priča o domaćim filmovima koje ste gledali milion puta. Analiza, trivije, sumanute teorije. Malo liči na legendarni podkast Rewatchables, uopšte nije isto, ne, ne, ovo naše je na srpskom.\r\nPripremaju i vode: Moma, Denča i Mimi",
+      "img": "https://radioaparat.rs/h-content/uploads/2022/01/povratak-lopova-radio-aparat-1200x675.png",
+      "links": null
+    },
+    {
+      "id": "vece-sa-teglinim-popodnevom",
+      "name": "veče sa teglinim popodnevom",
+      "cat": "zabava",
+      "schedule": "sredom od 20 do 22h",
+      "desc": "Najbolji late night show sa ove strane Drinčićeve ulice. Vikanje, rasprave, diskutabilni stavovi. Gosti odlični!\r\nNe pripremaju i vode: Fakaš, Marko, Moma, Mimi i ponekad Denča (tegla.rs)",
+      "img": "https://thumbnailer.mixcloud.com/unsafe/272x272/profile/e/3/f/5/9f57-2f86-4281-9bb4-0e8cedf3782c.jpg",
+      "links": null
+    },
+    {
+      "id": "viz-fm",
+      "name": "viz fm",
+      "cat": "zabava",
+      "schedule": "svakog ponedeljka od 18:00 do 21:00",
+      "desc": "Uređuju i vode: Aleksa Nedić i Pavle Petrović iz benda Vizelj",
+      "img": null,
+      "links": null
+    },
+    {
+      "id": "yugowav",
+      "name": "yugo.wav",
+      "cat": "zabava",
+      "schedule": "svakog drugog utorka od 19:00 do 20:00",
+      "desc": "Pripremaju i vode: Rade Končar, Stefan Vujanić i Marko Karadžić",
+      "img": "https://thumbnailer.mixcloud.com/unsafe/272x272/profile/c/0/c/a/7240-9d16-4534-b6d3-43e094edfd1b",
+      "links": null
+    },
+    {
+      "id": "zeleni-kacket",
+      "name": "zeleni kačket",
+      "cat": "zabava",
+      "schedule": "",
+      "desc": "",
+      "img": null,
+      "links": null
+    }
+  ]
+}

@@ -284,8 +284,8 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   display:flex; flex-direction:column; gap:14px;
 }
 .album-art-wrap { position:relative; flex-shrink:0; }
-.album-glow { position:absolute; inset:-20px; border-radius:40px; opacity:0; transition:opacity .5s; pointer-events:none; background-size:cover; background-position:center; filter:blur(16px) saturate(1.4); }
-.album-glow.on { opacity:1; animation:glowPulse 3s ease-in-out infinite; }
+.album-glow { display:none; }
+.album-glow.on { display:none; }
 @keyframes glowPulse { 0%,100%{box-shadow:var(--glow-min)} 50%{box-shadow:var(--glow-max)} }
 .album-pin-img {
   width: 72%; height: auto; object-fit: contain; display: block;
@@ -352,7 +352,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .track-info { text-align:center; width:100%; padding:0 8px; }
 .track-title { font-size:17px; font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.3px; transition:opacity .2s; }
 .track-artist { font-size:13px; color:var(--text2); font-weight:500; }
-.now-stream-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; }
+.now-stream-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; align-self:stretch; }
 .now-stream-btn {
   display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 0;
   border-radius:20px; border:1px solid var(--border2); background:var(--surface);

@@ -2275,8 +2275,15 @@ function openDetailFromRaspored(el) {
   var MATCH_THRESHOLD = 30;
   if (best && bestScore >= MATCH_THRESHOLD) {
     detailOrigin = 'raspored';
-    openMore('shows');
-    setTimeout(function(){ _openDetailById(best.id); }, 60);
+    // Aktiviramo shows screen bez renderovanja grida — odmah otvaramo detail
+    closeMore();
+    closeAllSheets();
+    activeMoreTab = 'shows';
+    document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('nav-more').classList.add('active');
+    document.getElementById('screen-shows').classList.add('active');
+    _openDetailById(best.id);
   } else {
     showToast('Emisija nije u katalogu');
   }

@@ -1883,10 +1883,10 @@ function renderFavs() {
         '<button class="fav-del" onclick="delFav('+i+')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'+
       '</div>'+
       '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
-        '<a href="https://open.spotify.com/search/'+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">Spotify</a>'+
-        '<a href="https://music.apple.com/search?term='+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">Apple Music</a>'+
-        '<a href="https://music.youtube.com/search?q='+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">YouTube</a>'+
-        '<a href="https://www.deezer.com/search/'+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;">Deezer</a>'+
+        '<a href="https://music.apple.com/search?term='+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;justify-content:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;display:flex;align-items:center;">Apple Music</a>'+
+        '<a href="https://www.deezer.com/search/'+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;justify-content:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;display:flex;align-items:center;">Deezer</a>'+
+        '<a href="https://open.spotify.com/search/'+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;justify-content:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;display:flex;align-items:center;">Spotify</a>'+
+        '<a href="https://music.youtube.com/search?q='+rawQ+'" target="_blank" style="flex:1;min-width:70px;text-align:center;justify-content:center;padding:7px 8px;border-radius:10px;border:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2);text-decoration:none;display:flex;align-items:center;">YouTube Music</a>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -2794,6 +2794,7 @@ function stopEp() {
   document.getElementById('mc-iframe').src = '';
   filterEpisodes();
   updateMiniPlayer();
+  setTimeout(updateMiniPlayer, 100); // safety net after DOM re-render
 }
 
 function playEp(key, title){
@@ -2816,9 +2817,8 @@ function playEp(key, title){
   document.getElementById('mc-iframe').src = 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&feed='+encodeURIComponent(key)+'&dark=1';
   mcp.style.display = 'block';
   mixcloudActive = true;
-  // Hide regular mini player while mc-mini is shown
-  document.getElementById('mini-player').style.display = 'none';
   filterEpisodes();
+  updateMiniPlayer();
 }
 
 /* ═══ PROGRESS RING ═══ */
@@ -3132,6 +3132,7 @@ var _origOpenMore = openMore;
 openMore = function(tabName) {
   _origOpenMore(tabName);
   updateMiniPlayer();
+  setTimeout(updateMiniPlayer, 50); // after screen transition
 };
 
 // Patch togglePlay to sync mini player

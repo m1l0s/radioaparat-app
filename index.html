@@ -2599,8 +2599,12 @@ function smPreslusaj() {
   var mcMatch = url.match(/mixcloud\.com(\/[^?#]+\/?)/i);
   if (mcMatch) {
     var key = mcMatch[1].replace(/\/$/, '') + '/';
-    // Ime emisije iz _smData.date ili generic
     var title = (_smData.date || 'Super Meni').replace(/^SUPER MENI\s*[–-]\s*/i, 'Super Meni ');
+    // Ako već svira ista epizoda — samo idi na Replay, ne diraj player
+    if (mixcloudActive && playingKey === key) {
+      openMore('replay');
+      return;
+    }
     openMore('replay');
     setTimeout(function(){ playEp(key, title); }, 250);
     return;

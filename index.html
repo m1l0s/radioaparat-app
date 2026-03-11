@@ -2471,35 +2471,47 @@ function _autoRefreshSuperMeni(){
     return m ? m[1].trim() : '';
   }
   function fetchPreslusaj(cb) {
-    var p2 = [
-      'https://corsproxy.io/?' + encodeURIComponent(SHOWS_PAGE),
-      'https://api.allorigins.win/get?url=' + encodeURIComponent(SHOWS_PAGE),
-      'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(SHOWS_PAGE),
-    ];
-    function t(i) {
-      if (i >= p2.length) { cb(null); return; }
-      fetch(p2[i]).then(function(r){ return r.text(); }).then(function(text){
-        var html = text.trim().startsWith('{') ? ((JSON.parse(text).contents) || '') : text;
-        // Traži EPIZODE sekciju, pa prvi Mixcloud link odmah posle
-        var epIdx = html.search(/EPIZODE/i);
-        var area = epIdx >= 0 ? html.slice(epIdx) : html;
-        // Pokušaj 1: direktan href na mixcloud
-        var m = area.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"'\s>]+)["']/i);
-        // Pokušaj 2: data-src ili src atribut sa mixcloud
-        if (!m) m = area.match(/(?:data-src|src)=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"'\s>]+)["']/i);
-        // Pokušaj 3: bilo koji tekst koji sadrži mixcloud.com link
-        if (!m) m = area.match(/(https?:\/\/(?:www\.)?mixcloud\.com\/[^\s"'<>]+)/i);
-        if (m) {
-          var url = m[1].replace(/\/$/, '') + '/'; // normalizuj trailing slash
-          dbg('sm', '✅ Preslusaj Mixcloud: ' + url);
+    // Super Meni ima sopstveni Mixcloud nalog: mixcloud.com/SUPER_MENI/
+    // Uzimamo najnoviju epizodu direktno iz API-ja
+    fetch('https://api.mixcloud.com/SUPER_MENI/cloudcasts/?limit=1')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var casts = d.data || [];
+        if (casts.length && casts[0].key) {
+          var url = 'https://www.mixcloud.com' + casts[0].key;
+          dbg('sm', '✅ Preslusaj via Mixcloud API: ' + url);
           cb(url);
         } else {
-          dbg('sm', '❌ proxy['+i+'] nema Mixcloud linka posle EPIZODE');
-          t(i + 1);
+          fallbackScrape();
         }
-      }).catch(function(e){ dbg('sm', '❌ proxy['+i+'] err: '+e); t(i + 1); });
+      })
+      .catch(function(){ fallbackScrape(); });
+
+    function fallbackScrape() {
+      var p2 = [
+        'https://corsproxy.io/?' + encodeURIComponent(SHOWS_PAGE),
+        'https://api.allorigins.win/get?url=' + encodeURIComponent(SHOWS_PAGE),
+        'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(SHOWS_PAGE),
+      ];
+      function t(i) {
+        if (i >= p2.length) { cb(null); return; }
+        fetch(p2[i]).then(function(r){ return r.text(); }).then(function(text){
+          var html = text.trim().startsWith('{') ? ((JSON.parse(text).contents) || '') : text;
+          var epIdx = html.search(/EPIZODE/i);
+          var area = epIdx >= 0 ? html.slice(epIdx) : html;
+          var m = area.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"'\s>]+)["']/i)
+               || area.match(/(https?:\/\/(?:www\.)?mixcloud\.com\/[^\s"'<>]+)/i);
+          if (m) {
+            var url = m[1].replace(/\/$/, '') + '/';
+            dbg('sm', '✅ Preslusaj via scrape: ' + url);
+            cb(url);
+          } else {
+            t(i + 1);
+          }
+        }).catch(function(){ t(i + 1); });
+      }
+      t(0);
     }
-    t(0);
   }
 
   function tryProxy(i) {
@@ -2565,16 +2577,15 @@ function refreshSuperMeni(){
         }
         if(!tracks.length){tryProxy(i+1);return;}
         var dm=html.match(/SUPER MENI[^<–-]*[–-]\s*([^<"]{5,40})/i),dateStr=dm?dm[1].trim():_smData.date||'';
-        var p2=['https://corsproxy.io/?'+encodeURIComponent(SHOWS_PAGE),'https://api.allorigins.win/get?url='+encodeURIComponent(SHOWS_PAGE),'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(SHOWS_PAGE)];
-        function tryP(j){if(j>=p2.length){finish(null);return;}
-          fetch(p2[j]).then(function(r){return r.text();}).then(function(t2){
-            var h2=t2.trim().startsWith('{')?((JSON.parse(t2).contents)||''):t2;
-            var ei=h2.search(/EPIZODE/i),area=ei>=0?h2.slice(ei):h2;
-            var m=area.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"'\s>]+)["']/i)
-              ||area.match(/(https?:\/\/(?:www\.)?mixcloud\.com\/[^\s"'<>]+)/i);
-            if(m){var url=m[1].replace(/\/$/,'')+'/';finish(url);}else tryP(j+1);
-          }).catch(function(){tryP(j+1);});
-        }
+        // Koristi Mixcloud API za SUPER_MENI nalog — najpouzdaniji izvor
+        fetch('https://api.mixcloud.com/SUPER_MENI/cloudcasts/?limit=1')
+          .then(function(r){return r.json();})
+          .then(function(d){
+            var casts=d.data||[];
+            var url=casts.length&&casts[0].key?'https://www.mixcloud.com'+casts[0].key:(_smData['preslušaj']||'');
+            finish(url);
+          })
+          .catch(function(){finish(_smData['preslušaj']||'');});
         function finish(url){
           _smData={date:dateStr,tracks:tracks,'preslušaj':url||_smData['preslušaj']||''};
           if(dateStr)document.getElementById('sm-sub').textContent=dateStr.replace(/^SUPER MENI\s*[–-]\s*/i,'');
@@ -2582,7 +2593,6 @@ function refreshSuperMeni(){
           var t2=tracks.map(function(t){var p=t.posNum,pn=parseInt(t.pn)||0;t.trend=pn===0?'new':p<pn?'up':p>pn?'down':'same';return t;});
           smAllTracks=t2;renderSMList(t2);done(true);
         }
-        tryP(0);
       })
       .catch(function(){tryProxy(i+1);});
   }
@@ -2926,91 +2936,64 @@ function closeDetail(){
   }
 }
 
+/* ═══ MIXCLOUD CLOUDCAST CACHE ═══
+   Jedan fetch za sve emisije — keširamo 100 najnovijih cloudcastova RADIO_APARAT.
+   fetchShowEpisodes i Super Meni preslusaj koriste isti keš. */
+var _mcCache = null;        // null = nije učitano, [] = učitano (može biti prazno)
+var _mcCacheCallbacks = []; // čekaju dok se keš puni
+
+function getMixcloudCasts(cb) {
+  if (_mcCache) { cb(_mcCache); return; }
+  _mcCacheCallbacks.push(cb);
+  if (_mcCacheCallbacks.length > 1) return; // već se učitava
+  fetch('https://api.mixcloud.com/' + MC_USER + '/cloudcasts/?limit=100')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      _mcCache = d.data || [];
+      _mcCacheCallbacks.forEach(function(fn){ fn(_mcCache); });
+      _mcCacheCallbacks = [];
+    })
+    .catch(function(){
+      _mcCache = [];
+      _mcCacheCallbacks.forEach(function(fn){ fn([]); });
+      _mcCacheCallbacks = [];
+    });
+}
+
 /* Keš za epizode */
 var _epCache = {};
 function fetchShowEpisodes(showId, cb) {
   if (_epCache[showId]) { cb(_epCache[showId]); return; }
-  var showUrl = 'https://radioaparat.rs/shows/' + showId + '/';
-  var proxies = [
-    'https://corsproxy.io/?' + encodeURIComponent(showUrl),
-    'https://api.allorigins.win/get?url=' + encodeURIComponent(showUrl),
-  ];
-  function extractMixcloudKey(url) {
-    var m = url.match(/mixcloud\.com(\/[A-Za-z0-9_\-]+\/[A-Za-z0-9_\-]+\/?)/);
-    return m ? m[1] : null;
+
+  // Normalizacija za poređenje naziva
+  function norm(s) {
+    return s.toLowerCase()
+      .replace(/[šś]/g,'s').replace(/[đ]/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z')
+      .replace(/[^a-z0-9\s]/g,'').trim();
   }
-  function tryProxy(i) {
-    if (i >= proxies.length) { cb([]); return; }
-    fetch(proxies[i])
-      .then(function(r){ return r.text(); })
-      .then(function(text){
-        var html = text.trim().startsWith('{') ? (JSON.parse(text).contents || '') : text;
-        var eps = [];
-        // Seci od EPIZODE sekcije nadalje
-        var epIdx = html.search(/EPIZODE/i);
-        var chunk = epIdx >= 0 ? html.slice(epIdx) : html;
 
-        // Strategija 1: <iframe src="https://www.mixcloud.com/widget/...?feed=...">
-        var iframeRe = /<iframe[^>]+src=["']([^"']*mixcloud[^"']+)["'][^>]*>/gi;
-        var m;
-        while ((m = iframeRe.exec(chunk)) !== null && eps.length < 20) {
-          var src = m[1];
-          // Widget URL: ?feed=%2FRADIO_APARAT%2Fepisode-slug%2F
-          var feedM = src.match(/[?&]feed=([^&"'\s]+)/i);
-          var mcKey = null, url = null;
-          if (feedM) {
-            mcKey = decodeURIComponent(feedM[1]);
-            url = 'https://www.mixcloud.com' + mcKey;
-          } else {
-            mcKey = extractMixcloudKey(src);
-            url = mcKey ? 'https://www.mixcloud.com' + mcKey : src;
-          }
-          if (!mcKey) continue;
-          // Pokušaj da izvučemo naslov iz okolnog HTML-a
-          var context = chunk.slice(Math.max(0, m.index - 300), m.index + 300);
-          var titleM = context.match(/class=["'][^"']*title[^"']*["'][^>]*>([^<]{3,100})</i)
-                    || context.match(/<strong[^>]*>([^<]{3,100})<\/strong>/i)
-                    || context.match(/<h\d[^>]*>([^<]{3,100})<\/h\d>/i);
-          var title = titleM ? titleM[1].replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim() : mcKey.split('/').filter(Boolean).pop().replace(/-/g,' ');
-          eps.push({ url: url, title: title, mcKey: mcKey });
-        }
+  getMixcloudCasts(function(casts) {
+    // showId je slug npr. "pop-depresija" — pretvaramo u reči za matching
+    var showWords = norm(showId.replace(/-/g,' ')).split(/\s+/).filter(function(w){ return w.length > 2; });
 
-        // Strategija 2: <a href="https://www.mixcloud.com/...">Title</a>
-        if (!eps.length) {
-          var linkRe = /<a[^>]+href=["']([^"']*mixcloud\.com\/[^"'\s>]+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-          while ((m = linkRe.exec(chunk)) !== null && eps.length < 20) {
-            var url2 = m[1];
-            var title2 = m[2].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').trim();
-            if (!title2 || title2.length < 3) continue;
-            var mcKey2 = extractMixcloudKey(url2);
-            eps.push({ url: url2, title: title2, mcKey: mcKey2 });
-          }
-        }
+    var eps = casts.filter(function(c) {
+      var cNorm = norm(c.name);
+      // Tačno poklapanje slugova ili svi ključni termini prisutni u naslovu
+      if (cNorm.replace(/\s+/g,'-').indexOf(showId) >= 0) return true;
+      var matches = showWords.filter(function(w){ return cNorm.indexOf(w) >= 0; }).length;
+      return matches >= Math.min(showWords.length, 2);
+    }).map(function(c){
+      return {
+        url: 'https://www.mixcloud.com' + c.key,
+        title: c.name,
+        mcKey: c.key,
+        date: (c.created_time || '').slice(0,10)
+      };
+    });
 
-        // Strategija 3: bilo koji Mixcloud URL u HTML-u (accordion, data atributi, itd.)
-        if (!eps.length) {
-          var anyRe = /(?:href|src|data-url|data-src)=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"'\s>?]+)["']/gi;
-          while ((m = anyRe.exec(chunk)) !== null && eps.length < 20) {
-            var url3 = m[1];
-            var mcKey3 = extractMixcloudKey(url3);
-            if (!mcKey3) continue;
-            var slug = mcKey3.split('/').filter(Boolean).pop().replace(/-/g,' ');
-            // Deduplikacija
-            if (eps.some(function(e){ return e.mcKey === mcKey3; })) continue;
-            eps.push({ url: url3, title: slug, mcKey: mcKey3 });
-          }
-        }
-
-        if (eps.length) {
-          _epCache[showId] = eps;
-          cb(eps);
-        } else {
-          tryProxy(i + 1);
-        }
-      })
-      .catch(function(){ tryProxy(i + 1); });
-  }
-  tryProxy(0);
+    _epCache[showId] = eps;
+    cb(eps);
+  });
 }
 
 /* ═══ REPLAY ═══ */

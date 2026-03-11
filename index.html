@@ -2425,8 +2425,10 @@ var _smData={
 
 function initSuperMeni(){
   if(smInited)return; smInited=true;
-  // Odmah prikaži keširane podatke kao placeholder dok se učitavaju novi
+  // Odmah prikaži keširane podatke
   applySMData(_smData);
+  // Pokaži da se ažurira
+  document.getElementById('sm-sub').textContent = 'Ažuriram...';
   // U pozadini uvek povuci najsvežije podatke sa sajta
   _autoRefreshSuperMeni();
 }
@@ -2515,17 +2517,45 @@ function _autoRefreshSuperMeni(){
   }
 
   function tryProxy(i) {
-    if (i >= proxies.length) return; // tiho ne radi — korisnik vidi keš
+    if (i >= proxies.length) {
+      // Svi proxiji za /super-meni/ pali — pokušaj /shows/super-meni/ kao fallback
+      dbg('sm', '⚠️ /super-meni/ pao, probam /shows/super-meni/');
+      var fallbackUrl = 'https://radioaparat.rs/shows/super-meni/';
+      var fp = [
+        'https://corsproxy.io/?' + encodeURIComponent(fallbackUrl),
+        'https://api.allorigins.win/get?url=' + encodeURIComponent(fallbackUrl),
+      ];
+      function tryFB(j) {
+        if (j >= fp.length) {
+          // Sve palo — vrati keširani datum
+          document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+          return;
+        }
+        fetch(fp[j]).then(function(r){ return r.text(); }).then(function(text){
+          var html = text.trim().startsWith('{') ? (JSON.parse(text).contents||'') : text;
+          var tracks = parseSMPage(html);
+          if (!tracks.length) { tryFB(j+1); return; }
+          var dateStr = extractDate(html) || _smData.date || '';
+          fetchPreslusaj(function(url){
+            _smData = { date: dateStr, tracks: tracks, 'preslušaj': url || _smData['preslušaj'] || '' };
+            if (dateStr) document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[–-]\s*/i,'');
+            if (_smData['preslušaj']) document.getElementById('sm-preslušaj').href = _smData['preslušaj'];
+            smAllTracks = tracks; renderSMList(tracks);
+          });
+        }).catch(function(){ tryFB(j+1); });
+      }
+      tryFB(0);
+      return;
+    }
     fetch(proxies[i])
       .then(function(r){ return r.text(); })
       .then(function(text){
         var html = text.trim().startsWith('{') ? (JSON.parse(text).contents || '') : text;
         var tracks = parseSMPage(html);
-        if (!tracks.length) { tryProxy(i+1); return; }
+        if (!tracks.length) { dbg('sm', '⚠️ proxy['+i+'] nema tabele'); tryProxy(i+1); return; }
         var dateStr = extractDate(html) || _smData.date || '';
         fetchPreslusaj(function(url){
           _smData = { date: dateStr, tracks: tracks, 'preslušaj': url || _smData['preslušaj'] || '' };
-          // Tiho ažuriraj UI
           if (dateStr) document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[–-]\s*/i,'');
           if (_smData['preslušaj']) document.getElementById('sm-preslušaj').href = _smData['preslušaj'];
           var t2 = tracks.map(function(t){ var p=t.posNum,pn=parseInt(t.pn)||0; t.trend=pn===0?'new':p<pn?'up':p>pn?'down':'same'; return t; });
@@ -2536,7 +2566,6 @@ function _autoRefreshSuperMeni(){
       .catch(function(){ tryProxy(i+1); });
   }
   tryProxy(0);
-}
 
 function refreshSuperMeni(){
   var btn = document.getElementById('sm-refresh-btn');

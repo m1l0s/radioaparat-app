@@ -147,9 +147,9 @@ function openMore(tabName) {
 function tryStream() {
   audio.onerror = null;
   var src = STREAMS[streamIndex];
-  if (audio.src !== src) audio.src = src;
+  // Uvek resetuj src na live streamu — sprečava resume od stale pozicije
+  audio.src = src;
   audio.onerror = function(e) {
-    // Ignorisi greske dok je pauzirano
     if (!playing) return;
     if (streamIndex < STREAMS.length - 1) {
       streamIndex++;
@@ -1434,6 +1434,7 @@ function closeMapsSheet() {
 /* ═══ EMISIJE ═══ */
 // SHOWS se učitava iz shows.json (generisan GitHub Actions iz Excel-a)
 var SHOWS = [];
+var showsReady = false; // true kada loadShowsFromExcel završi
 var SHOWS_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/shows.json';
 
 function filterShows(cat,el){
@@ -2251,6 +2252,20 @@ setInterval(function(){
 /* ═══ RASPORED → SHOW DETAIL ═══ */
 function openDetailFromRaspored(el) {
   var title = el.getAttribute('data-show-title') || '';
+  if (!showsReady) {
+    // SHOWS još nije učitan — čekaj max 3s u intervalima od 100ms
+    var attempts = 0;
+    var wait = setInterval(function() {
+      attempts++;
+      if (showsReady) { clearInterval(wait); _doOpenFromRaspored(title); }
+      else if (attempts >= 30) { clearInterval(wait); showToast('Emisije se još učitavaju, pokušaj ponovo'); }
+    }, 100);
+    return;
+  }
+  _doOpenFromRaspored(title);
+}
+
+function _doOpenFromRaspored(title) {
   function norm(s) {
     return s.toLowerCase()
       .replace(/\(r\)/g,'').replace(/\s+#?\d+$/,'')
@@ -2270,20 +2285,23 @@ function openDetailFromRaspored(el) {
     }
     if (score > bestScore) { bestScore = score; best = s; }
   });
-  // Minimalni score da bi se emisija smatrala pronađenom:
-  // 100 = egzaktno poklapanje, 80 = substring, 30 = bar jedna zajednička reč (3+ chars)
   var MATCH_THRESHOLD = 30;
   if (best && bestScore >= MATCH_THRESHOLD) {
     detailOrigin = 'raspored';
-    // Aktiviramo shows screen bez renderovanja grida — odmah otvaramo detail
     closeMore();
     closeAllSheets();
     activeMoreTab = 'shows';
     document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('nav-more').classList.add('active');
+    // Privremeno isključi tranziciju da show-detail ne bljesne kroz grid
+    var det = document.getElementById('show-detail');
+    det.style.transition = 'none';
+    det.classList.add('open');
     document.getElementById('screen-shows').classList.add('active');
     _openDetailById(best.id);
+    // Vrati tranziciju nakon jednog frame-a
+    requestAnimationFrame(function(){ det.style.transition = ''; });
   } else {
     showToast('Emisija nije u katalogu');
   }
@@ -2343,6 +2361,7 @@ function loadShowsFromExcel() {
       if (!Array.isArray(list) || !list.length) throw new Error('Prazan shows.json');
       SHOWS.length = 0;
       list.forEach(function(s) { SHOWS.push(s); });
+      showsReady = true;
       showImgFetched = false;
       _epCache = {};
       renderShows();

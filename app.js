@@ -18,7 +18,7 @@ var ANTHROPIC_API_KEY = '';
 var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/schedule.json';
 
 var playing      = false;
-var favorites    = [];
+var favorites    = JSON.parse(localStorage.getItem('ra_favorites') || '[]');
 var current      = { title: '', artist: 'radioAPARAT' };
 var trackHistory = [];
 
@@ -192,6 +192,7 @@ function togglePlay() {
     setPlayUI(true);
     startRingForCurrentShow();
     fetchNow();
+    setTimeout(fetchNow, 2000); // brzi retry — stream možda još bufferuje
     showToast('Pokrećem stream...');
   }
   updateMiniPlayer();
@@ -251,20 +252,36 @@ function applyTrack(t) {
   var newTrack = p.length > 1
     ? { artist: p[0].trim(), title: p.slice(1).join(' - ').trim() }
     : { title: t, artist: 'radioAPARAT' };
-  if (newTrack.title !== current.title && current.title !== '') {
+  var trackChanged = newTrack.title !== current.title;
+  if (trackChanged && current.title !== '') {
     trackHistory.unshift({ title: current.title, artist: current.artist, time: new Date() });
     if (trackHistory.length > 10) trackHistory.pop();
     renderHistory();
   }
   current = newTrack;
-  var titleEl = document.getElementById('track-title');
-  var artistEl = document.getElementById('track-artist');
-  titleEl.style.opacity = '0';
-  setTimeout(function(){ titleEl.textContent = current.title; titleEl.style.opacity = '1'; }, 200);
-  artistEl.textContent = current.artist;
-  artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
-  if (SHOW_STREAM_LINKS) document.getElementById('now-stream-links').style.display = 'grid';
-  fetchStreamLinks(current.artist, current.title);
+  if (trackChanged) {
+    var titleEl = document.getElementById('track-title');
+    var artistEl = document.getElementById('track-artist');
+    titleEl.style.opacity = '0';
+    setTimeout(function(){
+      titleEl.textContent = current.title;
+      titleEl.style.opacity = '1';
+      // Marquee na Player ekranu
+      requestAnimationFrame(function() {
+        titleEl.classList.remove('marquee-player');
+        if (titleEl.scrollWidth > titleEl.clientWidth) {
+          var dur = Math.max(6, titleEl.scrollWidth / 35);
+          var dist = -(titleEl.scrollWidth + 40);
+          titleEl.style.setProperty('--marquee-dur', dur + 's');
+          titleEl.style.setProperty('--marquee-dist', dist + 'px');
+          titleEl.classList.add('marquee-player');
+        }
+      });
+    }, 200);
+    artistEl.textContent = current.artist;
+    artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
+    fetchStreamLinks(current.artist, current.title);
+  }
   updateMiniPlayer();
   checkFav();
 }
@@ -281,7 +298,7 @@ function fetchNow() {
     setTimeout(function(){
       if (document.getElementById('history-sheet').classList.contains('open')) renderHistory();
     }, 600);
-    if (playing) setTimeout(fetchNow, 8000); // skraćeno sa 12s na 8s
+    if (playing) setTimeout(fetchNow, 5000); // polling svakih 5s
   }
 
   function tryWithRace(endpoints) {
@@ -379,24 +396,38 @@ function fetchArtwork(artist, title) {
   }
 
   dbg('art', '🔍 iTunes: ' + key);
-  var q = encodeURIComponent(artist + ' ' + title);
-  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US')
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if (d.results && d.results.length > 0) {
-        var art = d.results[0].artworkUrl100;
-        if (art) {
-          art = art.replace('100x100bb', '512x512bb');
-          _artworkCache[key] = art; // sačuvaj u keš
-          dbg('art', '✅ setAlbumArt + keš: ' + art);
-          setAlbumArt(art);
-          return;
-        }
-      }
-      dbg('art', '❌ nema result');
-      clearAlbumArt();
-    })
-    .catch(function(e){ dbg('art', '❌ fetch err: ' + e); clearAlbumArt(); });
+  var q1 = encodeURIComponent(artist + ' ' + title);
+  var q2 = encodeURIComponent(title);
+
+  function makeArtFetch(q) {
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function(){ controller.abort(); }, 6000) : null;
+    return fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US',
+                 controller ? { signal: controller.signal } : {})
+      .then(function(r){ if (timer) clearTimeout(timer); return r.json(); })
+      .then(function(d){
+        if (d.results && d.results.length > 0 && d.results[0].artworkUrl100)
+          return d.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+        throw new Error('no result');
+      })
+      .catch(function(e){ if (timer) clearTimeout(timer); throw e; });
+  }
+
+  var resolved = false;
+  function tryResult(art) {
+    if (resolved) return;
+    resolved = true;
+    _artworkCache[key] = art;
+    dbg('art', '✅ setAlbumArt: ' + art);
+    setAlbumArt(art);
+  }
+  var p1 = makeArtFetch(q1);
+  var p2 = makeArtFetch(q2);
+  p1.then(tryResult).catch(function(){});
+  p2.then(tryResult).catch(function(){});
+  Promise.all([p1.catch(function(){}), p2.catch(function(){})]).then(function(){
+    if (!resolved) { dbg('art', '❌ nema result'); clearAlbumArt(); }
+  });
 }
 
 function setAlbumArt(url) {
@@ -446,11 +477,14 @@ function checkFav() {
   btn.querySelector('svg').setAttribute('fill', exists ? 'currentColor' : 'none');
 }
 
+function saveFavs() { localStorage.setItem('ra_favorites', JSON.stringify(favorites)); }
+
 function toggleFav() {
   if (!current.title) return;
   var exists = favorites.some(function(f){ return f.title === current.title; });
   if (exists) { favorites = favorites.filter(function(f){ return f.title !== current.title; }); showToast('Uklonjeno iz favorita'); }
   else { favorites.unshift({ title:current.title, artist:current.artist }); showToast('♥ Dodato u favorite'); }
+  saveFavs();
   checkFav(); renderFavs();
   updateMiniPlayer();
 }
@@ -686,7 +720,7 @@ function exportFavs() {
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
-function delFav(i) { favorites.splice(i,1); renderFavs(); checkFav(); }
+function delFav(i) { favorites.splice(i,1); saveFavs(); renderFavs(); checkFav(); }
 
 /* ═══ RASPORED ═══ */
 var rasporedData = [
@@ -1714,54 +1748,36 @@ function fetchShowEpisodes(showId, mixcloudLink, cb) {
 /* ═══ REPLAY ═══ */
 function loadReplay(){
   buildDatePills();
-  fetch('https://api.mixcloud.com/'+MC_USER+'/cloudcasts/?limit=100')
-    .then(function(r){return r.json();})
-    .then(function(d){
-      // Fix timezone: koristimo lokalni datum, ne UTC (toISOString vraća UTC)
-      var cutDate = new Date(); cutDate.setDate(cutDate.getDate()-7);
-      var y = cutDate.getFullYear();
-      var m = String(cutDate.getMonth()+1).padStart(2,'0');
-      var day = String(cutDate.getDate()).padStart(2,'0');
-      var cutStr = y+'-'+m+'-'+day;
-
-      var data = d.data || [];
-      // Fix empty response: ako API vrati prazan niz, idi na demo
-      if (!data.length) { replayLoaded = false; loadDemoEpisodes(); return; }
-
-      allEpisodes = data.map(function(e){
-        var pics = e.pictures || {};
-        var thumb = pics['640wx640h'] || pics['320wx320h'] || pics.medium_mobile || pics.medium || pics.small || null;
-        return {
-          key: e.key,
-          name: e.name,
-          show: (e.tags && e.tags[0] && e.tags[0].name) || 'radioAPARAT',
-          date: (e.created_time||'').slice(0,10),
-          dur: e.audio_length || 0,
-          thumb: thumb
-        };
-      }).filter(function(e){ return e.date && e.date >= cutStr; });
-
-      // Fix empty after filter: ako nema emisija u poslednjih 7 dana, prikaži sve
-      if (!allEpisodes.length) {
-        allEpisodes = data.map(function(e){
-          var pics = e.pictures || {};
-          var thumb = pics['640wx640h'] || pics['320wx320h'] || pics.medium_mobile || pics.medium || pics.small || null;
-          return {
-            key: e.key,
-            name: e.name,
-            show: (e.tags && e.tags[0] && e.tags[0].name) || 'radioAPARAT',
-            date: (e.created_time||'').slice(0,10),
-            dur: e.audio_length || 0,
-            thumb: thumb
-          };
-        }).slice(0, 20);
-      }
-      filterEpisodes();
-    })
-    .catch(function(){
-      replayLoaded = false; // Dozvoli ponovni pokušaj
-      loadDemoEpisodes();
-    });
+  var externalUsers = [];
+  SHOWS.forEach(function(s) {
+    var mc = s.links && s.links.mixcloud;
+    if (!mc) return;
+    var m = mc.match(/mixcloud\.com\/([^\/]+)\/?$/i);
+    if (m && m[1].toUpperCase() !== 'RADIO_APARAT') {
+      var user = m[1];
+      if (externalUsers.indexOf(user) === -1) externalUsers.push(user);
+    }
+  });
+  var fetchUrls = ['RADIO_APARAT'].concat(externalUsers).map(function(user) {
+    return fetch('https://api.mixcloud.com/' + user + '/cloudcasts/?limit=100')
+      .then(function(r){ return r.json(); })
+      .then(function(d){ return d.data || []; })
+      .catch(function(){ return []; });
+  });
+  Promise.all(fetchUrls).then(function(results) {
+    var combined = [];
+    results.forEach(function(data) { combined = combined.concat(data); });
+    if (!combined.length) { replayLoaded = false; loadDemoEpisodes(); return; }
+    combined.sort(function(a, b) { return (b.created_time||'').localeCompare(a.created_time||''); });
+    var seen = {};
+    combined = combined.filter(function(e) { if (seen[e.key]) return false; seen[e.key]=true; return true; });
+    var cutDate = new Date(); cutDate.setDate(cutDate.getDate()-7);
+    var cutStr = cutDate.getFullYear()+'-'+String(cutDate.getMonth()+1).padStart(2,'0')+'-'+String(cutDate.getDate()).padStart(2,'0');
+    function mapEp(e){ var pics=e.pictures||{}; var thumb=pics['640wx640h']||pics['320wx320h']||pics.medium_mobile||pics.medium||pics.small||null; return {key:e.key,name:e.name,show:(e.tags&&e.tags[0]&&e.tags[0].name)||'radioAPARAT',date:(e.created_time||'').slice(0,10),dur:e.audio_length||0,thumb:thumb}; }
+    allEpisodes = combined.map(mapEp).filter(function(e){ return e.date && e.date >= cutStr; });
+    if (!allEpisodes.length) allEpisodes = combined.map(mapEp).slice(0,20);
+    filterEpisodes();
+  }).catch(function(){ replayLoaded = false; loadDemoEpisodes(); });
 }
 
 // Pull-to-refresh — zajednička logika za više ekrana
@@ -1979,11 +1995,16 @@ function _sleepStartCountdown(endTimestamp) {
     var remaining = Math.round((sleepEndTimestamp - Date.now()) / 60000);
     if (remaining <= 0) {
       clearInterval(sleepCountdownInterval);
+      sleepCountdownInterval = null;
+      if (sleepTimer) { clearTimeout(sleepTimer); sleepTimer = null; }
+      sleepEndTimestamp = null;
+      if (playing) togglePlay();
       updateSleepLabel(null);
+      showToast('😴 Stream zaustavljen');
     } else {
       updateSleepLabel(remaining);
     }
-  }, 30000); // osvežava svakih 30s
+  }, 30000);
 }
 
 function openSleepTimer() {
@@ -2170,7 +2191,8 @@ function updateMiniPlayer() {
   requestAnimationFrame(function() {
     var el = document.getElementById('mini-title');
     el.classList.remove('marquee');
-    if (el.scrollWidth > el.parentElement.clientWidth) {
+    var wrap = el.parentElement;
+    if (wrap && el.scrollWidth > wrap.clientWidth) {
       var dur = Math.max(5, el.scrollWidth / 40);
       var dist = -(el.scrollWidth + 40);
       el.style.setProperty('--marquee-dur', dur + 's');

@@ -304,11 +304,10 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .eq-bar:nth-child(2){height:14px;animation-duration:.6s;animation-delay:.1s}
 .eq-bar:nth-child(3){height:9px;animation-duration:.5s;animation-delay:.2s}
 @keyframes eqBar { from{transform:scaleY(.3)} to{transform:scaleY(1)} }
-.track-info { text-align:center; width:100%; padding:0 8px; min-height:44px; }
-.track-title { font-size:17px; font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.3px; transition:opacity .2s; min-height:22px; }
-.track-artist { font-size:13px; color:var(--text2); font-weight:500; min-height:18px; }
-.now-stream-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; align-self:stretch; min-height:0; visibility:hidden; }
-.now-stream-links.visible { visibility:visible; }
+.track-info { text-align:center; width:100%; padding:0 8px; }
+.track-title { font-size:17px; font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.3px; transition:opacity .2s; }
+.track-artist { font-size:13px; color:var(--text2); font-weight:500; }
+.now-stream-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; align-self:stretch; }
 .now-stream-btn {
   display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 0;
   border-radius:20px; border:1px solid var(--border2); background:var(--surface);
@@ -586,7 +585,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
   box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
-.mini-info { flex:1; min-width:0; }
+.mini-info { flex:1; min-width:0; padding-right:36px; }
 .mini-title { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mini-artist { font-size:11px; color:var(--text2); margin-top:1px; font-weight:500; }
 .mini-controls { position:relative; display:flex; align-items:center; flex-shrink:0; width:44px; height:44px; overflow:visible; }

@@ -1140,10 +1140,10 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
         </button>
       </div>
       <div class="sm-sub" id="sm-sub"></div>
-      <a class="sm-preslušaj" id="sm-preslušaj" href="https://radioaparat.rs/shows/super-meni/" target="_blank">
+      <button class="sm-preslušaj" id="sm-preslušaj" onclick="smPreslusaj()">
         <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="6,3 20,12 6,21"/></svg>
         Preslušaj emisiju
-      </a>
+      </button>
     </div>
     <div id="sm-list" class="sm-list">
       <div class="ep-loading"><div class="ep-spinner"></div>Učitavam listu...</div>
@@ -2591,8 +2591,26 @@ function _smFetchPreslusajScrape(cb) {
   tryProxy(0);
 }
 
+function smPreslusaj() {
+  var url = _smData['preslušaj'] || '';
+  if (!url) { window.open('https://radioaparat.rs/shows/super-meni/', '_blank'); return; }
+
+  // Ako je Mixcloud URL — izvuci key i pusti kroz MMP unutar Replay taba
+  var mcMatch = url.match(/mixcloud\.com(\/[^?#]+\/?)/i);
+  if (mcMatch) {
+    var key = mcMatch[1].replace(/\/$/, '') + '/';
+    // Ime emisije iz _smData.date ili generic
+    var title = (_smData.date || 'Super Meni').replace(/^SUPER MENI\s*[–-]\s*/i, 'Super Meni ');
+    openMore('replay');
+    setTimeout(function(){ playEp(key, title); }, 250);
+    return;
+  }
+
+  // Inače (sajt link) — otvori u browseru
+  window.open(url, '_blank');
+}
+
 function _smApplyFetched(tracks, dateStr) {
-  // Odmah prikaži tabelu i datum — ne cekaj preslusaj
   _smData.tracks = tracks;
   if (dateStr) { _smData.date = dateStr; document.getElementById('sm-sub').textContent = dateStr; }
   smAllTracks = tracks;
@@ -2604,7 +2622,7 @@ function _smApplyFetched(tracks, dateStr) {
     done = true;
     // Timeout — postavi fallback ako nemamo ništa bolje
     if (!_smData['preslušaj'] || _smData['preslušaj'] === FALLBACK_URL) {
-      document.getElementById('sm-preslušaj').href = FALLBACK_URL;
+      _smData['preslušaj'] = FALLBACK_URL; /* button uses smPreslusaj() */
     }
   }, 8000);
   _smFetchPreslusaj(function(url){
@@ -2612,7 +2630,6 @@ function _smApplyFetched(tracks, dateStr) {
     clearTimeout(t);
     var finalUrl = url || FALLBACK_URL;
     _smData['preslušaj'] = finalUrl;
-    document.getElementById('sm-preslušaj').href = finalUrl;
   });
 }
 
@@ -2646,7 +2663,7 @@ function refreshSuperMeni(){
 
 function applySMData(data){
   if(data.date) document.getElementById('sm-sub').textContent=data.date.replace(/^SUPER MENI\s*[–-]\s*/i,'');
-  if(data['preslušaj']) document.getElementById('sm-preslušaj').href=data['preslušaj'];
+  if(data['preslušaj']) _smData['preslušaj']=data['preslušaj']; /* button uses smPreslusaj() */
   var tracks=(data.tracks||[]).map(function(t){
     var p=parseInt(t.pos)||0,pn=parseInt(t.pn)||0;
     t.posNum=p; t.trend=pn===0?'new':p<pn?'up':p>pn?'down':'same'; return t;

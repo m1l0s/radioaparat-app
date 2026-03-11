@@ -809,8 +809,11 @@ function rasporedApplyData(data, source) {
     var h = now.getHours(), m = now.getMinutes();
     sub.textContent = 'Ažurirano ' + h + ':' + (m<10?'0':'')+m;
   }
-  rasporedInited = false;
-  initProgram();
+  // Direktno re-renderujemo umesto da zovemo initProgram() — sprečava beskonačnu petlju
+  // kada format datuma u JSON-u ne odgovara tačno formatu rasporedIsStale()
+  rasporedInited = true;
+  buildDayTabs();
+  renderRasporedDay(activeDayIdx || 0);
 }
 
 /* ── HTML parser za radioaparat.rs/raspored/ ── */
@@ -2186,20 +2189,25 @@ function updateMiniPlayer() {
   var liveArtist = !playing
     ? 'Pauzirano'
     : (hasTrack ? current.artist : 'Uživo');
-  document.getElementById('mini-title').textContent = liveTitle;
-  document.getElementById('mini-artist').textContent = liveArtist;
-  requestAnimationFrame(function() {
-    var el = document.getElementById('mini-title');
+  var el = document.getElementById('mini-title');
+  var elArtist = document.getElementById('mini-artist');
+  var prevTitle = el.textContent;
+  el.textContent = liveTitle;
+  elArtist.textContent = liveArtist;
+  // Marquee samo ako se naslov promenio — sprečava restart animacije pri svakom updateMiniPlayer
+  if (prevTitle !== liveTitle) {
     el.classList.remove('marquee');
-    var wrap = el.parentElement;
-    if (wrap && el.scrollWidth > wrap.clientWidth) {
-      var dur = Math.max(5, el.scrollWidth / 40);
-      var dist = -(el.scrollWidth + 40);
-      el.style.setProperty('--marquee-dur', dur + 's');
-      el.style.setProperty('--marquee-dist', dist + 'px');
-      el.classList.add('marquee');
-    }
-  });
+    requestAnimationFrame(function() {
+      var wrap = el.parentElement;
+      if (wrap && el.scrollWidth > wrap.clientWidth) {
+        var dur = Math.max(5, el.scrollWidth / 40);
+        var dist = -(el.scrollWidth + 40);
+        el.style.setProperty('--marquee-dur', dur + 's');
+        el.style.setProperty('--marquee-dist', dist + 'px');
+        el.classList.add('marquee');
+      }
+    });
+  }
 
   // Sync play/pause icon
   var miniIcon = document.getElementById('mini-play-icon');

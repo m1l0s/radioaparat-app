@@ -263,7 +263,7 @@ function applyTrack(t) {
   setTimeout(function(){ titleEl.textContent = current.title; titleEl.style.opacity = '1'; }, 200);
   artistEl.textContent = current.artist;
   artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
-  if (SHOW_STREAM_LINKS) document.getElementById('now-stream-links').classList.add('visible');
+  if (SHOW_STREAM_LINKS) document.getElementById('now-stream-links').style.display = 'grid';
   fetchStreamLinks(current.artist, current.title);
   updateMiniPlayer();
   checkFav();
@@ -2167,6 +2167,19 @@ function updateMiniPlayer() {
     : (hasTrack ? current.artist : 'Uživo');
   document.getElementById('mini-title').textContent = liveTitle;
   document.getElementById('mini-artist').textContent = liveArtist;
+  // Marquee — aktivira se samo kada tekst prelazi dostupnu širinu
+  requestAnimationFrame(function() {
+    var el = document.getElementById('mini-title');
+    el.classList.remove('marquee');
+    if (el.scrollWidth > el.clientWidth) {
+      // Trajanje proporcionalno dužini teksta — kraći tekst ide sporije
+      var dur = Math.max(5, el.scrollWidth / 40);
+      var dist = -(el.scrollWidth + 40); // pikselno pomeranje
+      el.style.setProperty('--marquee-dur', dur + 's');
+      el.style.setProperty('--marquee-dist', dist + 'px');
+      el.classList.add('marquee');
+    }
+  });
 
   // Sync play/pause icon
   var miniIcon = document.getElementById('mini-play-icon');

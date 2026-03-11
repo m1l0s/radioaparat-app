@@ -585,8 +585,24 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
   box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
-.mini-info { flex:1; min-width:0; padding-right:36px; }
-.mini-title { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mini-info { flex:1; min-width:0; padding-right:36px; overflow:hidden; }
+.mini-title {
+  font-size:13px; font-weight:700; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.mini-title.marquee {
+  text-overflow:clip;
+  animation: marqueeScroll linear infinite;
+  animation-duration: var(--marquee-dur, 8s);
+  display:inline-block;
+  padding-right:40px; /* razmak između kraja i početka novog ciklusa */
+}
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(0); }        /* pauza na početku */
+  85%  { transform: translateX(var(--marquee-dist, -50%)); }
+  100% { transform: translateX(var(--marquee-dist, -50%)); } /* pauza na kraju */
+}
 .mini-artist { font-size:11px; color:var(--text2); margin-top:1px; font-weight:500; }
 .mini-controls { position:relative; display:flex; align-items:center; flex-shrink:0; width:44px; height:44px; overflow:visible; }
 .mini-ring-wrap { position:relative; display:flex; align-items:center; justify-content:center; width:44px; height:44px; }

@@ -284,17 +284,31 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
   display:flex; flex-direction:column; gap:14px;
 }
 .album-art-wrap { position:relative; flex-shrink:0; }
-.album-glow { position:absolute; inset:-20px; border-radius:40px; opacity:0; transition:opacity .5s; pointer-events:none; }
+.album-glow { position:absolute; inset:-20px; border-radius:40px; opacity:0; transition:opacity .5s; pointer-events:none; background-size:cover; background-position:center; filter:blur(16px) saturate(1.4); }
 .album-glow.on { opacity:1; animation:glowPulse 3s ease-in-out infinite; }
 @keyframes glowPulse { 0%,100%{box-shadow:var(--glow-min)} 50%{box-shadow:var(--glow-max)} }
 .album-pin-img {
   width: 72%; height: auto; object-fit: contain; display: block;
   filter: var(--album-pin-filter);
   mix-blend-mode: var(--album-pin-blend);
+  transition: all .3s ease;
+}
+/* Kad se učita pravo artwork — popuni ceo kvadrat */
+.album-pin-img.has-artwork {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: none;
+  mix-blend-mode: normal;
 }
 .mini-pin-img {
   width: 78%; height: 78%; object-fit: contain;
   filter: var(--mini-pin-filter);
+  transition: all .3s ease;
+}
+.mini-pin-img.has-artwork {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: none;
 }
 .album-logo-img {
   width: 75%; height: auto; object-fit: contain; display: block;
@@ -1654,8 +1668,14 @@ function setAlbumArt(url) {
   // Preload
   var img = new Image();
   img.onload = function() {
-    if (pinImg)  { pinImg.src  = url; }
-    if (miniPin) { miniPin.src = url; }
+    if (pinImg)  {
+      pinImg.src = url;
+      pinImg.classList.add('has-artwork');
+    }
+    if (miniPin) {
+      miniPin.src = url;
+      miniPin.classList.add('has-artwork');
+    }
     if (logoImg) { logoImg.style.display = 'none'; }
     if (glowEl)  {
       glowEl.style.backgroundImage = 'url(' + url + ')';
@@ -1667,7 +1687,14 @@ function setAlbumArt(url) {
 }
 
 function clearAlbumArt() {
-  // Ostavi logo kao fallback, nista ne menjaj
+  var pinImg  = document.querySelector('.album-pin-img');
+  var miniPin = document.querySelector('.mini-pin-img');
+  var logoImg = document.querySelector('.album-logo-img');
+  var glowEl  = document.querySelector('.album-glow');
+  if (pinImg)  { pinImg.classList.remove('has-artwork'); }
+  if (miniPin) { miniPin.classList.remove('has-artwork'); }
+  if (logoImg) { logoImg.style.display = ''; }
+  if (glowEl)  { glowEl.classList.remove('on'); glowEl.style.backgroundImage = ''; }
 }
 
 function checkFav() {

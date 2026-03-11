@@ -1328,6 +1328,8 @@ var trackHistory = [];
 
 // DEBUG helper — ukloniti pre produkcije
 var DBG = false; // postavi na true da ukljucis debug panel
+
+var SHOW_STREAM_LINKS = false; // postavi na true da prikažeš striming tastere
 function dbg(type, msg) {
   if (!DBG) return;
   var panel = document.getElementById('debug-panel');
@@ -1558,7 +1560,7 @@ function applyTrack(t) {
   setTimeout(function(){ titleEl.textContent = current.title; titleEl.style.opacity = '1'; }, 200);
   artistEl.textContent = current.artist;
   artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
-  document.getElementById('now-stream-links').style.display = 'flex';
+  if (SHOW_STREAM_LINKS) document.getElementById('now-stream-links').style.display = 'grid';
   fetchStreamLinks(current.artist, current.title);
   updateMiniPlayer();
   checkFav();

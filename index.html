@@ -2549,7 +2549,7 @@ function _smExtractDate(html) {
 }
 
 function _smFetchPreslusaj(cb) {
-  // Direktno Mixcloud API — najbrže i najpouzdanije
+  // Pokušaj 1: Mixcloud API — direktan link na audio
   fetch('https://api.mixcloud.com/SUPER_MENI/cloudcasts/?limit=1')
     .then(function(r){ return r.json(); })
     .then(function(d){
@@ -2561,23 +2561,34 @@ function _smFetchPreslusaj(cb) {
 }
 
 function _smFetchPreslusajScrape(cb) {
+  // Pokušaj 2: Scrape shows/super-meni/ — uzmi prvi /episodes/ link (= najnovija epizoda)
   var SHOWS_PAGE = 'https://radioaparat.rs/shows/super-meni/';
   var proxies = [
     'https://corsproxy.io/?' + encodeURIComponent(SHOWS_PAGE),
     'https://api.allorigins.win/get?url=' + encodeURIComponent(SHOWS_PAGE),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(SHOWS_PAGE),
   ];
-  function t(i) {
+  function tryProxy(i) {
     if (i >= proxies.length) { cb(null); return; }
     fetch(proxies[i]).then(function(r){ return r.text(); }).then(function(text){
-      var html = (text.trim().charAt(0) === '{') ? (JSON.parse(text).contents || '') : text;
-      var epIdx = html.search(/EPIZODE/i);
-      var area = epIdx >= 0 ? html.slice(epIdx) : html;
-      var m = area.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"'\s>]+)["']/i)
-           || area.match(/(https?:\/\/(?:www\.)?mixcloud\.com\/[^\s"'<>]+)/i);
-      if (m) cb(m[1].replace(/\/$/, '') + '/'); else t(i+1);
-    }).catch(function(){ t(i+1); });
+      var html = '';
+      try { html = (text.trim().charAt(0) === '{') ? (JSON.parse(text).contents || '') : text; }
+      catch(e) { html = text; }
+      // Traži prvi href koji vodi na /episodes/ stranicu
+      var m = html.match(/href=["'](https?:\/\/radioaparat\.rs\/episodes\/[^"'\s>]+)["']/i)
+             || html.match(/href=["'](\/episodes\/[^"'\s>]+)["']/i);
+      if (m) {
+        var url = m[1].startsWith('/') ? 'https://radioaparat.rs' + m[1] : m[1];
+        // Ukloni trailing slash i vrati čist URL
+        url = url.replace(/\/$/, '') + '/';
+        console.log('SM preslusaj via scrape:', url);
+        cb(url);
+      } else {
+        tryProxy(i + 1);
+      }
+    }).catch(function(){ tryProxy(i + 1); });
   }
-  t(0);
+  tryProxy(0);
 }
 
 function _smApplyFetched(tracks, dateStr) {
@@ -2588,11 +2599,20 @@ function _smApplyFetched(tracks, dateStr) {
   renderSMList(tracks);
   // Preslusaj URL u pozadini, sa timeoutom od 8s
   var done = false;
-  var t = setTimeout(function(){ done = true; }, 8000);
+  var FALLBACK_URL = 'https://radioaparat.rs/shows/super-meni/';
+  var t = setTimeout(function(){
+    done = true;
+    // Timeout — postavi fallback ako nemamo ništa bolje
+    if (!_smData['preslušaj'] || _smData['preslušaj'] === FALLBACK_URL) {
+      document.getElementById('sm-preslušaj').href = FALLBACK_URL;
+    }
+  }, 8000);
   _smFetchPreslusaj(function(url){
     if (done) return;
     clearTimeout(t);
-    if (url) { _smData['preslušaj'] = url; document.getElementById('sm-preslušaj').href = url; }
+    var finalUrl = url || FALLBACK_URL;
+    _smData['preslušaj'] = finalUrl;
+    document.getElementById('sm-preslušaj').href = finalUrl;
   });
 }
 

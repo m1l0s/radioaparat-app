@@ -17,31 +17,7 @@
   <div class="statusbar">
     <span class="statusbar-time" id="statusbar-time">9:41</span>
     <span style="width:126px"></span>
-    <span class="statusbar-icons">
-      <!-- Cellular signal: 4 bars rastuće visine, iOS stil -->
-      <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor">
-        <rect x="0"  y="8"  width="3" height="4"  rx="0.8" opacity="1"/>
-        <rect x="4.5" y="5.5" width="3" height="6.5" rx="0.8" opacity="1"/>
-        <rect x="9"  y="3"  width="3" height="9"  rx="0.8" opacity="1"/>
-        <rect x="13.5" y="0" width="3" height="12" rx="0.8" opacity="1"/>
-      </svg>
-      <!-- 5G oznaka -->
-      <span class="statusbar-net">5G</span>
-      <!-- WiFi: 3 luka, iOS stil -->
-      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
-        <path d="M8 9.5 C8.55 9.5 9 9.95 9 10.5 C9 11.05 8.55 11.5 8 11.5 C7.45 11.5 7 11.05 7 10.5 C7 9.95 7.45 9.5 8 9.5Z"/>
-        <path d="M4.5 7 C5.5 5.9 6.67 5.2 8 5.2 C9.33 5.2 10.5 5.9 11.5 7" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-        <path d="M2 4.5 C3.5 2.8 5.6 1.7 8 1.7 C10.4 1.7 12.5 2.8 14 4.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-      </svg>
-      <!-- Baterija: iOS stil sa nivoom punjenja -->
-      <span class="statusbar-battery">
-        <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
-          <rect x="0.5" y="0.5" width="21" height="11" rx="3.3" stroke="currentColor" stroke-width="1"/>
-          <rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"/>
-          <path d="M22.5 4 L22.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </span>
-    </span>
+    <span style="font-size:11px">●●● 5G ▮▮▮</span>
   </div>
 
   <!-- MORE MENU -->
@@ -306,6 +282,7 @@
   <div class="screen player-screen active" id="screen-player">
     <!-- TOP: album art + track info + stream links -->
     <div class="player-top">
+      <div class="player-top-spacer"></div>
       <div class="album-art-wrap">
         <div class="album-glow" id="album-glow"></div>
         <div class="album-art" id="album-art">

@@ -3086,17 +3086,118 @@ function fetchShowEpisodes(showId, mixcloudLink, cb) {
 /* ═══ REPLAY ═══ */
 function loadReplay(){
   buildDatePills();
-  fetch('https://api.mixcloud.com/'+MC_USER+'/cloudcasts/?limit=50')
+  fetch('https://api.mixcloud.com/'+MC_USER+'/cloudcasts/?limit=100')
     .then(function(r){return r.json();})
     .then(function(d){
-      var cut=new Date(); cut.setDate(cut.getDate()-7);
-      allEpisodes=(d.data||[]).map(function(e){
-        return{key:e.key,name:e.name,show:(e.tags&&e.tags[0]&&e.tags[0].name)||'radioAPARAT',date:(e.created_time||'').slice(0,10),dur:e.audio_length||0,thumb:(e.pictures&&e.pictures.medium)||null};
-      }).filter(function(e){return e.date&&new Date(e.date)>=cut;});
+      // Fix timezone: koristimo lokalni datum, ne UTC (toISOString vraća UTC)
+      var cutDate = new Date(); cutDate.setDate(cutDate.getDate()-7);
+      var y = cutDate.getFullYear();
+      var m = String(cutDate.getMonth()+1).padStart(2,'0');
+      var day = String(cutDate.getDate()).padStart(2,'0');
+      var cutStr = y+'-'+m+'-'+day;
+
+      var data = d.data || [];
+      // Fix empty response: ako API vrati prazan niz, idi na demo
+      if (!data.length) { replayLoaded = false; loadDemoEpisodes(); return; }
+
+      allEpisodes = data.map(function(e){
+        var pics = e.pictures || {};
+        var thumb = pics['640wx640h'] || pics['320wx320h'] || pics.medium_mobile || pics.medium || pics.small || null;
+        return {
+          key: e.key,
+          name: e.name,
+          show: (e.tags && e.tags[0] && e.tags[0].name) || 'radioAPARAT',
+          date: (e.created_time||'').slice(0,10),
+          dur: e.audio_length || 0,
+          thumb: thumb
+        };
+      }).filter(function(e){ return e.date && e.date >= cutStr; });
+
+      // Fix empty after filter: ako nema emisija u poslednjih 7 dana, prikaži sve
+      if (!allEpisodes.length) {
+        allEpisodes = data.map(function(e){
+          var pics = e.pictures || {};
+          var thumb = pics['640wx640h'] || pics['320wx320h'] || pics.medium_mobile || pics.medium || pics.small || null;
+          return {
+            key: e.key,
+            name: e.name,
+            show: (e.tags && e.tags[0] && e.tags[0].name) || 'radioAPARAT',
+            date: (e.created_time||'').slice(0,10),
+            dur: e.audio_length || 0,
+            thumb: thumb
+          };
+        }).slice(0, 20);
+      }
       filterEpisodes();
     })
-    .catch(loadDemoEpisodes);
+    .catch(function(){
+      replayLoaded = false; // Dozvoli ponovni pokušaj
+      loadDemoEpisodes();
+    });
 }
+
+// Pull-to-refresh — zajednička logika za više ekrana
+(function(){
+  var threshold = 60;
+
+  function makePTR(screenId, getScrollEl, onRefresh) {
+    var startY = 0, pulling = false;
+    function onTouchStart(e){ startY = e.touches[0].clientY; pulling = true; }
+    function onTouchEnd(e){
+      if (!pulling) return;
+      var dy = e.changedTouches[0].clientY - startY;
+      pulling = false;
+      var scrollEl = getScrollEl();
+      if (dy > threshold && (!scrollEl || scrollEl.scrollTop === 0)) {
+        onRefresh();
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+      var screen = document.getElementById(screenId);
+      if (screen) {
+        screen.addEventListener('touchstart', onTouchStart, {passive:true});
+        screen.addEventListener('touchend',   onTouchEnd,   {passive:true});
+      }
+    });
+  }
+
+  // REPLAY
+  makePTR('screen-replay',
+    function(){ return document.getElementById('episodes-list'); },
+    function(){
+      replayLoaded = false;
+      allEpisodes = [];
+      var list = document.getElementById('episodes-list');
+      if (list) list.innerHTML = '<div class="ep-loading"><div class="ep-spinner"></div>Učitavam emisije...</div>';
+      loadReplay();
+    }
+  );
+
+  // EMISIJE
+  makePTR('screen-shows',
+    function(){ return document.getElementById('shows-grid'); },
+    function(){
+      var grid = document.getElementById('shows-grid');
+      if (grid) grid.innerHTML = '<div class="ep-loading"><div class="ep-spinner"></div>Učitavam emisije...</div>';
+      loadShowsFromExcel();
+    }
+  );
+
+  // FAVORITI — lokalni state, samo re-render
+  makePTR('screen-favs',
+    function(){ return document.getElementById('fav-list'); },
+    function(){ renderFavs(); }
+  );
+
+  // CHAT — reload iframe
+  makePTR('screen-chat',
+    function(){ return null; }, // iframe nema scrollTop; uvek dozvoli refresh
+    function(){
+      var iframe = document.querySelector('#screen-chat iframe');
+      if (iframe) { var s = iframe.src; iframe.src = ''; iframe.src = s; }
+    }
+  );
+})();
 
 function today(n){var d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
 function loadDemoEpisodes(){

@@ -3022,11 +3022,12 @@ function updateMiniPlayer() {
   }
   mp.style.display = 'flex';
 
-  // Sync title/artist — show RDS track when available
-  var liveTitle = (current.title && current.title !== 'radioAPARAT') ? current.title : 'radioAPARAT';
-  var liveArtist = playing
-    ? (current.artist && current.artist !== 'radioAPARAT' ? current.artist : 'Uživo')
-    : 'Pauzirano';
+  // Sync title/artist
+  var hasTrack = playing && current.title && current.title !== 'radioAPARAT';
+  var liveTitle  = hasTrack ? current.title  : 'radioAPARAT';
+  var liveArtist = !playing
+    ? 'Pauzirano'
+    : (hasTrack ? current.artist : 'Uživo');
   document.getElementById('mini-title').textContent = liveTitle;
   document.getElementById('mini-artist').textContent = liveArtist;
 

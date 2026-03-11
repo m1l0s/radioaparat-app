@@ -18,7 +18,7 @@ var ANTHROPIC_API_KEY = '';
 var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/schedule.json';
 
 var playing      = false;
-var favorites    = JSON.parse(localStorage.getItem('ra_favorites') || '[]');
+var favorites    = [];
 var current      = { title: '', artist: 'radioAPARAT' };
 var trackHistory = [];
 
@@ -446,16 +446,11 @@ function checkFav() {
   btn.querySelector('svg').setAttribute('fill', exists ? 'currentColor' : 'none');
 }
 
-function saveFavs() {
-  localStorage.setItem('ra_favorites', JSON.stringify(favorites));
-}
-
 function toggleFav() {
   if (!current.title) return;
   var exists = favorites.some(function(f){ return f.title === current.title; });
   if (exists) { favorites = favorites.filter(function(f){ return f.title !== current.title; }); showToast('Uklonjeno iz favorita'); }
   else { favorites.unshift({ title:current.title, artist:current.artist }); showToast('♥ Dodato u favorite'); }
-  saveFavs();
   checkFav(); renderFavs();
   updateMiniPlayer();
 }
@@ -691,7 +686,7 @@ function exportFavs() {
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
-function delFav(i) { favorites.splice(i,1); saveFavs(); renderFavs(); checkFav(); }
+function delFav(i) { favorites.splice(i,1); renderFavs(); checkFav(); }
 
 /* ═══ RASPORED ═══ */
 var rasporedData = [
@@ -1984,7 +1979,13 @@ function _sleepStartCountdown(endTimestamp) {
     var remaining = Math.round((sleepEndTimestamp - Date.now()) / 60000);
     if (remaining <= 0) {
       clearInterval(sleepCountdownInterval);
+      sleepCountdownInterval = null;
+      // Direktno zaustavi — fallback za Safari koji throttluje setTimeout u pozadini
+      if (sleepTimer) { clearTimeout(sleepTimer); sleepTimer = null; }
+      sleepEndTimestamp = null;
+      if (playing) togglePlay();
       updateSleepLabel(null);
+      showToast('😴 Stream zaustavljen');
     } else {
       updateSleepLabel(remaining);
     }

@@ -1887,24 +1887,16 @@ function toggleHistory() {
     btn.classList.remove('active');
   } else {
     closeAllSheets();
-    renderHistory();
     document.getElementById('history-backdrop').classList.add('open');
     document.getElementById('history-sheet').classList.add('open');
     btn.classList.add('active');
-    // Show loading indicator then fetch
+    // Always show loading and fetch fresh
     var listEl = document.getElementById('history-list');
-    if (listEl && !trackHistory.length) {
-      listEl.innerHTML = '<div style="padding:16px 0;color:var(--text2);font-size:14px;text-align:center;">Učitavam...</div>';
-    }
-    // Fetch from rcast and update if we get more/better data
+    if (listEl) listEl.innerHTML = '<div style="padding:16px 0;color:var(--text2);font-size:14px;text-align:center;">Učitavam...</div>';
     fetchPlayedHistory(function(rows){
-      // Merge rcast rows with local history
-      rows.forEach(function(r){
-        if (!trackHistory.some(function(t){ return t.title === r.title; })) {
-          trackHistory.push(r);
-        }
-      });
-      trackHistory = trackHistory.slice(0,10);
+      // rows[0] is current song on rcast — skip it, take next 3
+      var history = rows.slice(1, 4);
+      trackHistory = history;
       renderHistory();
     });
   }
@@ -1925,8 +1917,6 @@ function renderHistory() {
   }
   el.innerHTML = trackHistory.slice(0, 3).map(function(t, i) {
     var isFav = favorites.some(function(f){ return f.title === t.title; });
-    var mins = t.time instanceof Date && !isNaN(t.time) ? Math.floor((new Date() - t.time) / 60000) : NaN;
-    var timeStr = isNaN(mins) ? '' : mins < 1 ? 'upravo' : mins < 60 ? mins + ' min' : Math.floor(mins/60) + 'h';
     var rawQ = t.artist + ' ' + t.title;
     var safeArtist = esc(t.artist).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var safeTitle  = esc(t.title).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -1935,7 +1925,7 @@ function renderHistory() {
       '<div class="history-num">' + (i+1) + '</div>' +
       '<div class="history-info">' +
         '<div class="history-title">' + esc(t.title) + '</div>' +
-        '<div class="history-artist">' + (t.artist ? esc(t.artist) : '') + (t.artist && timeStr ? ' · ' : '') + timeStr + '</div>' +
+        '<div class="history-artist">' + (t.artist ? esc(t.artist) : '') + '</div>' +
       '</div>' +
       '<button class="history-fav' + (isFav ? ' active' : '') + '" onclick="event.stopPropagation();toggleHistFav(' + i + ')">' +
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="' + (isFav ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +

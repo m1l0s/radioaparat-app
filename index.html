@@ -2549,69 +2549,45 @@ function _smExtractDate(html) {
 }
 
 function _smFetchPreslusaj(cb) {
-  // Pokušaj 1: Mixcloud API — direktan link na audio
+  // Mixcloud API — najnoviji cloudcast SUPER_MENI naloga
   fetch('https://api.mixcloud.com/SUPER_MENI/cloudcasts/?limit=1')
     .then(function(r){ return r.json(); })
     .then(function(d){
       var key = d.data && d.data[0] && d.data[0].key;
-      if (key) { cb('https://www.mixcloud.com' + key); return; }
-      _smFetchPreslusajScrape(cb);
+      cb(key ? 'https://www.mixcloud.com' + key : null);
     })
-    .catch(function(){ _smFetchPreslusajScrape(cb); });
+    .catch(function(){ cb(null); });
 }
 
-function _smFetchPreslusajScrape(cb) {
-  // Pokušaj 2: Scrape shows/super-meni/ — uzmi prvi /episodes/ link (= najnovija epizoda)
-  var SHOWS_PAGE = 'https://radioaparat.rs/shows/super-meni/';
-  var proxies = [
-    'https://corsproxy.io/?' + encodeURIComponent(SHOWS_PAGE),
-    'https://api.allorigins.win/get?url=' + encodeURIComponent(SHOWS_PAGE),
-    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(SHOWS_PAGE),
-  ];
-  function tryProxy(i) {
-    if (i >= proxies.length) { cb(null); return; }
-    fetch(proxies[i]).then(function(r){ return r.text(); }).then(function(text){
-      var html = '';
-      try { html = (text.trim().charAt(0) === '{') ? (JSON.parse(text).contents || '') : text; }
-      catch(e) { html = text; }
-      // Traži prvi href koji vodi na /episodes/ stranicu
-      var m = html.match(/href=["'](https?:\/\/radioaparat\.rs\/episodes\/[^"'\s>]+)["']/i)
-             || html.match(/href=["'](\/episodes\/[^"'\s>]+)["']/i);
-      if (m) {
-        var url = m[1].startsWith('/') ? 'https://radioaparat.rs' + m[1] : m[1];
-        // Ukloni trailing slash i vrati čist URL
-        url = url.replace(/\/$/, '') + '/';
-        console.log('SM preslusaj via scrape:', url);
-        cb(url);
-      } else {
-        tryProxy(i + 1);
-      }
-    }).catch(function(){ tryProxy(i + 1); });
-  }
-  tryProxy(0);
-}
+function _smFetchPreslusajScrape(cb) { cb(null); } // deprecated — samo Mixcloud API
 
 function smPreslusaj() {
   var url = _smData['preslušaj'] || '';
-  if (!url) { window.open('https://radioaparat.rs/shows/super-meni/', '_blank'); return; }
 
-  // Ako je Mixcloud URL — izvuci key i pusti kroz MMP unutar Replay taba
-  var mcMatch = url.match(/mixcloud\.com(\/[^?#]+\/?)/i);
-  if (mcMatch) {
-    var key = mcMatch[1].replace(/\/$/, '') + '/';
-    var title = (_smData.date || 'Super Meni').replace(/^SUPER MENI\s*[–-]\s*/i, 'Super Meni ');
-    // Ako već svira ista epizoda — samo idi na Replay, ne diraj player
-    if (mixcloudActive && playingKey === key) {
+  function _play(mcUrl) {
+    var mcMatch = mcUrl && mcUrl.match(/mixcloud\.com(\/[^?#]+\/?)/i);
+    if (mcMatch) {
+      var key = mcMatch[1].replace(/\/$/, '') + '/';
+      var title = (_smData.date || 'Super Meni').replace(/^SUPER MENI\s*[–-]\s*/i, 'Super Meni ');
+      if (mixcloudActive && playingKey === key) { openMore('replay'); return; }
       openMore('replay');
-      return;
+      setTimeout(function(){ playEp(key, title); }, 250);
+    } else {
+      window.open('https://radioaparat.rs/shows/super-meni/', '_blank');
     }
-    openMore('replay');
-    setTimeout(function(){ playEp(key, title); }, 250);
-    return;
   }
 
-  // Inače (sajt link) — otvori u browseru
-  window.open(url, '_blank');
+  // Ako već imamo Mixcloud URL — odmah pusti
+  if (url && /mixcloud\.com/i.test(url)) { _play(url); return; }
+
+  // Nemamo ili imamo sajt URL — fetchuj Mixcloud key on-demand
+  var btn = document.getElementById('sm-preslušaj');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Učitavam...'; }
+  _smFetchPreslusaj(function(mcUrl) {
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Preslušaj emisiju'; }
+    if (mcUrl) { _smData['preslušaj'] = mcUrl; _play(mcUrl); }
+    else { window.open('https://radioaparat.rs/shows/super-meni/', '_blank'); }
+  });
 }
 
 function _smApplyFetched(tracks, dateStr) {

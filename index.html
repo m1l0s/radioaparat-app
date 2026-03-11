@@ -1140,7 +1140,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
         </button>
       </div>
       <div class="sm-sub" id="sm-sub"></div>
-      <a class="sm-preslušaj" id="sm-preslušaj" href="#" target="_blank">
+      <a class="sm-preslušaj" id="sm-preslušaj" href="https://radioaparat.rs/shows/super-meni/" target="_blank">
         <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="6,3 20,12 6,21"/></svg>
         Preslušaj emisiju
       </a>
@@ -2429,11 +2429,23 @@ function initSuperMeni(){
   applySMData(_smData);
   // Pokaži da se ažurira
   document.getElementById('sm-sub').textContent = 'Ažuriram...';
+  // Timeout: ako za 12s nema odgovora, vrati keširani datum
+  var refreshDone = false;
+  var refreshTimer = setTimeout(function(){
+    if (!refreshDone) {
+      refreshDone = true;
+      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+    }
+  }, 12000);
   // U pozadini uvek povuci najsvežije podatke sa sajta
-  _autoRefreshSuperMeni();
+  _autoRefreshSuperMeni(function(){
+    refreshDone = true;
+    clearTimeout(refreshTimer);
+  });
 }
 
-function _autoRefreshSuperMeni(){
+function _autoRefreshSuperMeni(doneCb){
+  doneCb = doneCb || function(){};
   var SM_PAGE    = 'https://radioaparat.rs/super-meni/';
   var SHOWS_PAGE = 'https://radioaparat.rs/shows/super-meni/';
   var proxies = [
@@ -2529,6 +2541,7 @@ function _autoRefreshSuperMeni(){
         if (j >= fp.length) {
           // Sve palo — vrati keširani datum
           document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+          doneCb();
           return;
         }
         fetch(fp[j]).then(function(r){ return r.text(); }).then(function(text){
@@ -2541,6 +2554,7 @@ function _autoRefreshSuperMeni(){
             if (dateStr) document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[–-]\s*/i,'');
             if (_smData['preslušaj']) document.getElementById('sm-preslušaj').href = _smData['preslušaj'];
             smAllTracks = tracks; renderSMList(tracks);
+            doneCb();
           });
         }).catch(function(){ tryFB(j+1); });
       }
@@ -2561,6 +2575,7 @@ function _autoRefreshSuperMeni(){
           var t2 = tracks.map(function(t){ var p=t.posNum,pn=parseInt(t.pn)||0; t.trend=pn===0?'new':p<pn?'up':p>pn?'down':'same'; return t; });
           smAllTracks = t2;
           renderSMList(t2);
+          doneCb();
         });
       })
       .catch(function(){ tryProxy(i+1); });

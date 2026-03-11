@@ -1524,7 +1524,8 @@ function togglePlay() {
     clearRing();
     setPlayUI(false);
   } else {
-    // PLAY
+    // PLAY — zaustavi MMP ako svira
+    if (mixcloudActive) stopEp();
     playing = true;
     streamIndex = (location.protocol === 'https:') ? 1 : 0;
     tryStream();
@@ -2800,15 +2801,13 @@ function stopEp() {
 function playEp(key, title){
   if(playingKey===key){ stopEp(); return; }
   playingKey=key;
-  // Stop live stream if playing
+  // Zaustavi live strim ako svira
   if(playing){
-    audio.pause(); audio.src=''; playing=false;
-    document.getElementById('live-badge').style.display='none';
-    document.getElementById('play-icon').innerHTML='<polygon points="6,3 20,12 6,21"/>';
-    document.getElementById('play-btn').classList.remove('playing-state');
-    document.getElementById('album-art').classList.remove('playing');
-    document.getElementById('album-glow').classList.remove('on');
-    document.getElementById('eq-bars').classList.remove('on');
+    playing = false;
+    audio.pause(); audio.src='';
+    audio.onerror = null;
+    clearRing();
+    setPlayUI(false);
   }
   // Show Mixcloud mini player
   var mcp = document.getElementById('mc-mini-player');

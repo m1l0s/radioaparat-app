@@ -2424,29 +2424,30 @@ var _smData={
 };
 
 function initSuperMeni(){
-  if(smInited)return; smInited=true;
-  // Odmah prikaži keširane podatke
+  // Uvek prikaži keširane podatke odmah
   applySMData(_smData);
-  // Pokaži da se ažurira
+  // Ne radi refresh ako je već u toku ili ako je pre manje od 60s
+  var now = Date.now();
+  if (window._smRefreshing) return;
+  if (window._smLastRefresh && (now - window._smLastRefresh) < 60000) {
+    // Podaci su sveži — samo prikaži datum
+    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+    return;
+  }
+  window._smRefreshing = true;
   document.getElementById('sm-sub').textContent = 'Ažuriram...';
-  // Timeout: ako za 12s nema odgovora, vrati keširani datum
-  var refreshDone = false;
-  var refreshTimer = setTimeout(function(){
-    if (!refreshDone) {
-      refreshDone = true;
-      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
-    }
-  }, 12000);
-  // U pozadini uvek povuci najsvežije podatke sa sajta
+  var timer = setTimeout(function(){
+    window._smRefreshing = false;
+    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+  }, 15000);
   _autoRefreshSuperMeni(function(){
-    refreshDone = true;
-    clearTimeout(refreshTimer);
+    window._smRefreshing = false;
+    window._smLastRefresh = Date.now();
+    clearTimeout(timer);
   });
 }
 
 function _smFetchPage(cb) {
-  // Stranica https://radioaparat.rs/super-meni/ ima HTML tabelu
-  // Proveravamo stvarnu strukturu i koristimo 3 proxija
   var URL = 'https://radioaparat.rs/super-meni/';
   var proxies = [
     'https://corsproxy.io/?' + encodeURIComponent(URL),
@@ -2454,16 +2455,17 @@ function _smFetchPage(cb) {
     'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(URL),
   ];
   function tryProxy(i) {
-    if (i >= proxies.length) { cb(null); return; }
+    if (i >= proxies.length) { console.warn('SM: svi proxiji pali'); cb(null); return; }
+    console.log('SM: probam proxy', i, proxies[i].slice(0,40));
     fetch(proxies[i])
       .then(function(r){ return r.text(); })
       .then(function(text){
-        // allorigins vraca JSON wrapper
         var html = (text.trim().charAt(0) === '{') ? (JSON.parse(text).contents || '') : text;
-        if (!html || html.length < 500) { tryProxy(i+1); return; }
+        console.log('SM: proxy', i, 'vratio', html.length, 'chars, ima tabele:', /<table/i.test(html));
+        if (!html || !/<tr/i.test(html)) { tryProxy(i+1); return; }
         cb(html);
       })
-      .catch(function(){ tryProxy(i+1); });
+      .catch(function(e){ console.warn('SM: proxy', i, 'greška:', e); tryProxy(i+1); });
   }
   tryProxy(0);
 }
@@ -2503,6 +2505,7 @@ function _smParse(html) {
       trend: pn2 === 0 ? 'new' : posNum < pn2 ? 'up' : posNum > pn2 ? 'down' : 'same'
     });
   }
+  console.log('SM parse: pronađeno', tracks.length, 'pesama');
   return tracks;
 }
 

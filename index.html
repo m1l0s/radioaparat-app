@@ -1387,6 +1387,7 @@ var showImgCache  = {};
 var showImgFetched = false;
 var moreOpen      = false;
 var activeMoreTab = null;
+var mixcloudActive = false; // true dok MMP svira
 
 /* ═══ UTILS ═══ */
 function esc(s) {
@@ -2776,6 +2777,7 @@ function filterEpisodes(){
 function stopEp() {
   if (!playingKey) return;
   playingKey = null;
+  mixcloudActive = false;
   document.getElementById('mc-mini-player').style.display = 'none';
   document.getElementById('mc-iframe').src = '';
   filterEpisodes();
@@ -2801,6 +2803,7 @@ function playEp(key, title){
   document.getElementById('mc-mini-ext').href = 'https://www.mixcloud.com' + key;
   document.getElementById('mc-iframe').src = 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&feed='+encodeURIComponent(key)+'&dark=1';
   mcp.style.display = 'block';
+  mixcloudActive = true;
   // Hide regular mini player while mc-mini is shown
   document.getElementById('mini-player').style.display = 'none';
   filterEpisodes();
@@ -3052,13 +3055,12 @@ function updateMiniPlayer() {
   var isReplayTab = document.getElementById('screen-replay').classList.contains('active');
   var mp     = document.getElementById('mini-player');
   var mcMini = document.getElementById('mc-mini-player');
-  var mcActive = mcMini && mcMini.style.display !== 'none';
 
-  // Mixcloud mini — vidljiv SAMO na Replay tabu dok je aktivan
-  if (mcMini) mcMini.style.display = (mcActive && isReplayTab) ? '' : 'none';
+  // MMP vidljiv SAMO na Replay tabu dok mixcloudActive
+  if (mcMini) mcMini.style.display = (mixcloudActive && isReplayTab) ? 'block' : 'none';
 
-  // Standardni mini — skriven na: Player, Chat, Replay (samo ako Mixcloud aktivan), i dok Mixcloud svira na bilo kom tabu
-  if (isPlayerTab || isChatTab || mcActive) {
+  // Standardni mini — skriven na: Player, Chat, i dok Mixcloud svira
+  if (isPlayerTab || isChatTab || mixcloudActive) {
     mp.style.display = 'none';
     return;
   }

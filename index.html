@@ -2456,57 +2456,91 @@ function _smFetchPage(cb) {
   ];
   function tryProxy(i) {
     if (i >= proxies.length) { console.warn('SM: svi proxiji pali'); cb(null); return; }
-    console.log('SM: probam proxy', i, proxies[i].slice(0,40));
     fetch(proxies[i])
       .then(function(r){ return r.text(); })
       .then(function(text){
-        var html = (text.trim().charAt(0) === '{') ? (JSON.parse(text).contents || '') : text;
-        console.log('SM: proxy', i, 'vratio', html.length, 'chars, ima tabele:', /<table/i.test(html));
-        if (!html || !/<tr/i.test(html)) { tryProxy(i+1); return; }
-        cb(html);
+        var html = '';
+        try { html = (text.trim().charAt(0) === '{') ? (JSON.parse(text).contents || '') : text; }
+        catch(e) { html = text; }
+        console.log('SM proxy['+i+'] len='+html.length);
+        if (html.length > 100) { cb(html); return; }
+        tryProxy(i+1);
       })
-      .catch(function(e){ console.warn('SM: proxy', i, 'greška:', e); tryProxy(i+1); });
+      .catch(function(e){ console.warn('SM proxy['+i+'] err:', e.message); tryProxy(i+1); });
   }
   tryProxy(0);
 }
-
 function _smParse(html) {
-  // Stranica ima tabelu: Poz | PN | Naziv (Artist – Song) | Ned | Naj
   var tracks = [];
-  var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi, trM;
-  while ((trM = trRe.exec(html)) !== null) {
-    var cells = [], tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi, tdM;
-    while ((tdM = tdRe.exec(trM[1])) !== null) {
-      // Ukloni HTML tagove, dekodiraj entitete
-      cells.push(tdM[1].replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim());
+
+  // ── Strategija 1: HTML tabela <tr><td> ──
+  if (/<tr/i.test(html)) {
+    var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi, trM;
+    while ((trM = trRe.exec(html)) !== null) {
+      var cells = [], tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi, tdM;
+      while ((tdM = tdRe.exec(trM[1])) !== null)
+        cells.push(tdM[1].replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim());
+      if (cells.length < 3) continue;
+      var posNum = parseInt(cells[0]);
+      if (!posNum || isNaN(posNum)) continue;
+      var t = _smMakeTrack(cells);
+      if (t) tracks.push(t);
     }
-    if (cells.length < 3) continue;
-    var posNum = parseInt(cells[0]);
-    if (!posNum || isNaN(posNum)) continue;
-    var pn  = cells[1].replace(/\D/g,'').trim() || '0';
-    var raw = cells[2].trim();
-    var ned = (cells[3]||'').replace(/\D/g,'').trim() || '1';
-    var naj = (cells[4]||'').replace(/\D/g,'').trim() || String(posNum);
-    // Separator je uvek " – " (en-dash) ili " - "
-    var artist = '', song = raw;
-    var idx = raw.indexOf(' – '); // en-dash
-    if (idx < 0) idx = raw.indexOf(' - ');
-    if (idx > 0) { artist = raw.slice(0, idx).trim(); song = raw.slice(idx + 3).trim(); }
-    if (!song) continue;
-    var pn2 = parseInt(pn) || 0;
-    tracks.push({
-      pos: posNum < 10 ? '0'+posNum : ''+posNum,
-      posNum: posNum,
-      pn: pn,
-      ned: ned,
-      naj: naj,
-      artist: artist,
-      song: song,
-      trend: pn2 === 0 ? 'new' : posNum < pn2 ? 'up' : posNum > pn2 ? 'down' : 'same'
+  }
+
+  // ── Strategija 2: Markdown/text tabela "| 01 | 02 | LU – Song | 7 | 1 |" ──
+  if (!tracks.length) {
+    var lines = html.split(/\r?\n/);
+    lines.forEach(function(line) {
+      // Preskoči header/separator redove
+      if (/^\s*\|[\s\-:]+\|/.test(line)) return;
+      var cols = line.split('|').map(function(c){ return c.replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim(); });
+      // Ukloni prazne ivične ćelije od | ... |
+      if (cols[0] === '') cols.shift();
+      if (cols[cols.length-1] === '') cols.pop();
+      if (cols.length < 3) return;
+      var posNum = parseInt(cols[0]);
+      if (!posNum || isNaN(posNum)) return;
+      var t = _smMakeTrack(cols);
+      if (t) tracks.push(t);
     });
   }
+
   console.log('SM parse: pronađeno', tracks.length, 'pesama');
   return tracks;
+}
+
+function _smMakeTrack(cells) {
+  var posNum = parseInt(cells[0]);
+  if (!posNum || isNaN(posNum)) return null;
+  var pn  = (cells[1]||'').replace(/\D/g,'').trim() || '0';
+  // Dekodiraj HTML entitete u nazivu
+  var raw = (cells[2]||'').trim()
+    .replace(/&ndash;/gi, '\u2013')
+    .replace(/&mdash;/gi, '\u2014')
+    .replace(/&#8211;/g, '\u2013')
+    .replace(/&#8212;/g, '\u2014')
+    .replace(/&amp;/g, '&')
+    .replace(/&#039;/g, "'");
+  var ned = (cells[3]||'').replace(/\D/g,'').trim() || '1';
+  var naj = (cells[4]||'').replace(/\D/g,'').trim() || String(posNum);
+  var artist = '', song = raw;
+  // Probaj sve varijante separatora
+  var sepIdx = raw.indexOf(' \u2013 ');            // en-dash
+  if (sepIdx < 0) sepIdx = raw.indexOf(' \u2014 '); // em-dash
+  if (sepIdx < 0) sepIdx = raw.indexOf(' - ');       // crtica
+  if (sepIdx > 0) {
+    artist = raw.slice(0, sepIdx).trim();
+    song = raw.slice(sepIdx + 3).trim();
+  }
+  if (!song) return null;
+  var pn2 = parseInt(pn) || 0;
+  return {
+    pos: posNum < 10 ? '0'+posNum : ''+posNum,
+    posNum: posNum, pn: pn, ned: ned, naj: naj,
+    artist: artist, song: song,
+    trend: pn2 === 0 ? 'new' : posNum < pn2 ? 'up' : posNum > pn2 ? 'down' : 'same'
+  };
 }
 
 function _smExtractDate(html) {
@@ -2546,21 +2580,31 @@ function _smFetchPreslusajScrape(cb) {
   t(0);
 }
 
+function _smApplyFetched(tracks, dateStr) {
+  // Odmah prikaži tabelu i datum — ne cekaj preslusaj
+  _smData.tracks = tracks;
+  if (dateStr) { _smData.date = dateStr; document.getElementById('sm-sub').textContent = dateStr; }
+  smAllTracks = tracks;
+  renderSMList(tracks);
+  // Preslusaj URL u pozadini, sa timeoutom od 8s
+  var done = false;
+  var t = setTimeout(function(){ done = true; }, 8000);
+  _smFetchPreslusaj(function(url){
+    if (done) return;
+    clearTimeout(t);
+    if (url) { _smData['preslušaj'] = url; document.getElementById('sm-preslušaj').href = url; }
+  });
+}
+
 function _autoRefreshSuperMeni(doneCb){
   doneCb = doneCb || function(){};
   _smFetchPage(function(html){
     if (!html) { doneCb(); return; }
     var tracks = _smParse(html);
-    if (!tracks.length) { doneCb(); return; }
+    if (!tracks.length) { console.warn('SM: parse vratio 0 pesama'); doneCb(); return; }
     var dateStr = _smExtractDate(html);
-    _smFetchPreslusaj(function(url){
-      _smData = { date: dateStr, tracks: tracks, 'preslušaj': url || _smData['preslušaj'] || '' };
-      if (dateStr) document.getElementById('sm-sub').textContent = dateStr;
-      if (_smData['preslušaj']) document.getElementById('sm-preslušaj').href = _smData['preslušaj'];
-      var t2 = tracks.map(function(t){ return t; });
-      smAllTracks = t2; renderSMList(t2);
-      doneCb();
-    });
+    _smApplyFetched(tracks, dateStr);
+    doneCb();
   });
 }
 
@@ -2569,19 +2613,13 @@ function refreshSuperMeni(){
   btn.classList.add('spinning'); btn.disabled = true;
   document.getElementById('sm-sub').textContent = 'Osvežavam...';
   _smFetchPage(function(html){
-    function fail(msg){ btn.classList.remove('spinning'); btn.disabled=false; document.getElementById('sm-sub').textContent=msg||'Greška'; showToast('Ne mogu da dohvatim listu sa sajta'); }
-    if (!html) { fail((_smData.date||'').replace(/^SUPER MENI\s*[\u2013-]\s*/i,'')); return; }
+    btn.classList.remove('spinning'); btn.disabled = false;
+    if (!html) { showToast('Greška: ne mogu da dohvatim stranicu'); document.getElementById('sm-sub').textContent = (_smData.date||''); return; }
     var tracks = _smParse(html);
-    if (!tracks.length) { fail((_smData.date||'').replace(/^SUPER MENI\s*[\u2013-]\s*/i,'')); return; }
+    if (!tracks.length) { showToast('Greška: stranica se promenila'); document.getElementById('sm-sub').textContent = (_smData.date||''); return; }
     var dateStr = _smExtractDate(html);
-    _smFetchPreslusaj(function(url){
-      _smData = { date: dateStr, tracks: tracks, 'preslušaj': url || _smData['preslušaj'] || '' };
-      if (dateStr) document.getElementById('sm-sub').textContent = dateStr;
-      if (_smData['preslušaj']) document.getElementById('sm-preslušaj').href = _smData['preslušaj'];
-      smAllTracks = tracks; renderSMList(tracks);
-      btn.classList.remove('spinning'); btn.disabled = false;
-      showToast('Lista osvežena ✓');
-    });
+    _smApplyFetched(tracks, dateStr);
+    showToast('Lista osvežena ✓');
   });
 }
 

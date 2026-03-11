@@ -192,7 +192,6 @@ function togglePlay() {
     setPlayUI(true);
     startRingForCurrentShow();
     fetchNow();
-    setTimeout(fetchNow, 2000); // brzi retry — stream možda još bufferuje pri prvom pozivu
     showToast('Pokrećem stream...');
   }
   updateMiniPlayer();
@@ -252,7 +251,11 @@ function applyTrack(t) {
   var newTrack = p.length > 1
     ? { artist: p[0].trim(), title: p.slice(1).join(' - ').trim() }
     : { title: t, artist: 'radioAPARAT' };
-  if (newTrack.title !== current.title && current.title !== '') {
+
+  // Ako je ista pesma — bez animacije, samo ažuriraj UI state
+  var trackChanged = newTrack.title !== current.title;
+
+  if (trackChanged && current.title !== '') {
     trackHistory.unshift({ title: current.title, artist: current.artist, time: new Date() });
     if (trackHistory.length > 10) trackHistory.pop();
     renderHistory();
@@ -260,12 +263,16 @@ function applyTrack(t) {
   current = newTrack;
   var titleEl = document.getElementById('track-title');
   var artistEl = document.getElementById('track-artist');
-  titleEl.style.opacity = '0';
-  setTimeout(function(){ titleEl.textContent = current.title; titleEl.style.opacity = '1'; }, 200);
-  artistEl.textContent = current.artist;
-  artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
-  if (SHOW_STREAM_LINKS) document.getElementById('now-stream-links').style.display = 'grid';
-  fetchStreamLinks(current.artist, current.title);
+
+  if (trackChanged) {
+    // Nova pesma — fade animacija
+    titleEl.style.opacity = '0';
+    setTimeout(function(){ titleEl.textContent = current.title; titleEl.style.opacity = '1'; }, 200);
+    artistEl.textContent = current.artist;
+    artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
+    if (SHOW_STREAM_LINKS) document.getElementById('now-stream-links').style.display = 'grid';
+    fetchStreamLinks(current.artist, current.title);
+  }
   updateMiniPlayer();
   checkFav();
 }
@@ -282,7 +289,7 @@ function fetchNow() {
     setTimeout(function(){
       if (document.getElementById('history-sheet').classList.contains('open')) renderHistory();
     }, 600);
-    if (playing) setTimeout(fetchNow, 5000); // polling svakih 5s
+    if (playing) setTimeout(fetchNow, 8000); // skraćeno sa 12s na 8s
   }
 
   function tryWithRace(endpoints) {
@@ -380,27 +387,39 @@ function fetchArtwork(artist, title) {
   }
 
   dbg('art', '🔍 iTunes: ' + key);
-  var q = encodeURIComponent(artist + ' ' + title);
-  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  var artTimer = controller ? setTimeout(function(){ controller.abort(); }, 6000) : null;
-  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US',
-        controller ? { signal: controller.signal } : {})
-    .then(function(r){ if (artTimer) clearTimeout(artTimer); return r.json(); })
-    .then(function(d){
-      if (d.results && d.results.length > 0) {
-        var art = d.results[0].artworkUrl100;
-        if (art) {
-          art = art.replace('100x100bb', '600x600bb');
-          _artworkCache[key] = art; // sačuvaj u keš
-          dbg('art', '✅ setAlbumArt + keš: ' + art);
-          setAlbumArt(art);
-          return;
-        }
-      }
-      dbg('art', '❌ nema result');
-      clearAlbumArt();
-    })
-    .catch(function(e){ if (artTimer) clearTimeout(artTimer); dbg('art', '❌ fetch err: ' + e); clearAlbumArt(); });
+  var q1 = encodeURIComponent(artist + ' ' + title);
+  var q2 = encodeURIComponent(title);
+
+  function makeArtFetch(q) {
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function(){ controller.abort(); }, 6000) : null;
+    return fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US',
+                 controller ? { signal: controller.signal } : {})
+      .then(function(r){ if (timer) clearTimeout(timer); return r.json(); })
+      .then(function(d){
+        if (d.results && d.results.length > 0 && d.results[0].artworkUrl100)
+          return d.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+        throw new Error('no result');
+      })
+      .catch(function(e){ if (timer) clearTimeout(timer); throw e; });
+  }
+
+  // Race — artist+title i samo title paralelno, ko prvi odgovori
+  var resolved = false;
+  function tryResult(art) {
+    if (resolved) return;
+    resolved = true;
+    _artworkCache[key] = art;
+    dbg('art', '✅ setAlbumArt: ' + art);
+    setAlbumArt(art);
+  }
+  var p1 = makeArtFetch(q1);
+  var p2 = makeArtFetch(q2);
+  p1.then(tryResult).catch(function(){});
+  p2.then(tryResult).catch(function(){});
+  Promise.all([p1.catch(function(){}), p2.catch(function(){})]).then(function(){
+    if (!resolved) { dbg('art', '❌ nema result'); clearAlbumArt(); }
+  });
 }
 
 function setAlbumArt(url) {

@@ -1468,12 +1468,14 @@ function togglePlay() {
 var rdsWorkingIdx = -1; // -1 = jos trazimo
 
 var RDS_ENDPOINTS = [
-  // ICY metadata direktno iz streama via corsproxy
-  'https://corsproxy.io/?' + encodeURIComponent('http://live4.rcast.net:8268/status-json.xsl'),
+  // Direktni rcast stats JSON — najpouzdaniji (kroz proxy jer HTTP)
+  'https://api.allorigins.win/get?url=' + encodeURIComponent('http://live4.rcast.net:8268/stats?sid=1&json=1'),
+  // Icecast status-json.xsl
   'https://api.allorigins.win/get?url=' + encodeURIComponent('http://live4.rcast.net:8268/status-json.xsl'),
+  // corsproxy fallback
+  'https://corsproxy.io/?' + encodeURIComponent('http://live4.rcast.net:8268/stats?sid=1&json=1'),
   // rcast hosted API
   'https://rcast.net/api/nowplaying/72355',
-  'https://rcast.net/api/?id=72355',
 ];
 
 function parseRDSResponse(d) {
@@ -1486,6 +1488,8 @@ function parseRDSResponse(d) {
     if (m) return m[1];
     return null;
   }
+  // rcast stats?sid=1&json=1 format: {"songtitle":"Artist - Title", ...}
+  if (typeof d.songtitle === 'string' && d.songtitle.trim()) return d.songtitle.trim();
   // icecast status-json
   if (d.icestats) {
     var src = d.icestats.source;
@@ -1493,14 +1497,14 @@ function parseRDSResponse(d) {
     if (Array.isArray(src)) src = src[0];
     return src.title || src.server_name || null;
   }
-  // rcast nowplaying
+  // rcast nowplaying API
   if (d.now_playing && d.now_playing.song) {
     var s = d.now_playing.song;
     return [s.artist, s.title].filter(Boolean).join(' - ') || null;
   }
-  if (typeof d.nowplaying === 'string') return d.nowplaying;
-  if (typeof d.title === 'string') return d.title;
-  if (typeof d.song  === 'string') return d.song;
+  if (typeof d.nowplaying === 'string' && d.nowplaying.trim()) return d.nowplaying.trim();
+  if (typeof d.title  === 'string' && d.title.trim())  return d.title.trim();
+  if (typeof d.song   === 'string' && d.song.trim())   return d.song.trim();
   return null;
 }
 
@@ -1525,28 +1529,8 @@ function applyTrack(t) {
   artistEl.style.visibility = current.artist ? 'visible' : 'hidden';
   document.getElementById('now-stream-links').style.display = 'flex';
   fetchStreamLinks(current.artist, current.title);
-  fetchAlbumArt(current.artist, current.title);
   updateMiniPlayer();
   checkFav();
-}
-
-function fetchAlbumArt(artist, title) {
-  var q = encodeURIComponent(((artist||'') + ' ' + (title||'')).trim());
-  if (!q || q.length < 3) return;
-  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US')
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if (!d.results || !d.results.length) return;
-      var art = d.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
-      var artEl = document.getElementById('album-art');
-      if (artEl) {
-        // Clear existing content and show artwork
-        artEl.style.backgroundImage = 'url('+art+')';
-        artEl.style.backgroundSize = 'cover';
-        artEl.style.backgroundPosition = 'center';
-      }
-    })
-    .catch(function(){}); // Silently fail — not critical
 }
 
 function fetchNow() {
@@ -1613,14 +1597,14 @@ function fetchArtwork(artist, title) {
 
   // iTunes Search API — HTTPS, CORS OK, bez API kljuca
   var q = encodeURIComponent(artist + ' ' + title);
-  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1')
+  fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US')
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.results && d.results.length > 0) {
         var art = d.results[0].artworkUrl100;
         if (art) {
-          // 100x100 -> 600x600
-          art = art.replace('100x100bb', '600x600bb');
+          // 100x100 -> 512x512 (pouzdano dostupna velicina)
+          art = art.replace('100x100bb', '512x512bb');
           setAlbumArt(art);
           return;
         }
@@ -1656,8 +1640,10 @@ function clearAlbumArt() {
 }
 
 function checkFav() {
-  var exists = favorites.some(function(f){ return f.title === current.title; });
+  if (!current.title) return;
   var btn = document.getElementById('fav-btn');
+  if (!btn) return;
+  var exists = favorites.some(function(f){ return f.title === current.title; });
   btn.classList.toggle('active', exists);
   btn.querySelector('svg').setAttribute('fill', exists ? 'currentColor' : 'none');
 }

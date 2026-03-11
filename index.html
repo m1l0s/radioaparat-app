@@ -1894,8 +1894,11 @@ function toggleHistory() {
     var listEl = document.getElementById('history-list');
     if (listEl) listEl.innerHTML = '<div style="padding:16px 0;color:var(--text2);font-size:14px;text-align:center;">Učitavam...</div>';
     fetchPlayedHistory(function(rows){
-      // rows[0] is current song on rcast — skip it, take next 3
-      var history = rows.slice(1, 4);
+      // Ukloni current song (po naslovu) i uzmi naredne 3
+      var currentTitle = current.title || '';
+      var history = rows.filter(function(r){
+        return !currentTitle || r.title.toLowerCase() !== currentTitle.toLowerCase();
+      }).slice(0, 3);
       trackHistory = history;
       renderHistory();
     });

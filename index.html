@@ -440,7 +440,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .prog-time.now { color:var(--prog-now-color); }
 .prog-body { flex:1; }
 .prog-now-badge { display:inline-flex; align-items:center; gap:5px; font-size:9px; font-weight:800; color:var(--prog-now-badge-fg); letter-spacing:1.5px; margin-bottom:5px; background:var(--prog-now-badge-bg); border-radius:20px; padding:3px 8px; }
-.prog-cal-btn { flex-shrink:0; flex-grow:0; width:30px; height:30px; background:none; border:1px solid var(--border2); border-radius:8px; padding:0; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; margin-left:8px; transition:color .15s, border-color .15s; }
+.prog-cal-btn { flex-shrink:0; flex-grow:0; width:30px; height:30px; background:none; border:1px solid var(--border2); border-radius:8px; padding:0; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; margin-left:8px; transition:color .15s, border-color .15s; align-self:center; }
 .prog-cal-btn:active { color:var(--text); border-color:var(--text); }
 .prog-dot { width:5px; height:5px; background:var(--prog-dot-bg); border-radius:50%; animation:blink 1.2s ease-in-out infinite; flex-shrink:0; }
 .prog-title { font-size:14px; font-weight:700; line-height:1.3; }
@@ -2387,42 +2387,14 @@ var _smData={
 };
 
 function initSuperMeni(){
-  if(smInited)return; smInited=true; applySMData(_smData);
-  // Get latest Mixcloud episode link by scraping shows page
-  if (_smData['preslušaj']) {
-    document.getElementById('sm-preslušaj').href = _smData['preslušaj'];
-    return;
-  }
-  var SHOWS_PAGE = 'https://radioaparat.rs/shows/super-meni/';
-  var proxies = [
-    'https://corsproxy.io/?' + encodeURIComponent(SHOWS_PAGE),
-    'https://api.allorigins.win/get?url=' + encodeURIComponent(SHOWS_PAGE),
-  ];
-  function tryP(i) {
-    if (i >= proxies.length) return;
-    fetch(proxies[i])
-      .then(function(r){ return r.text(); })
-      .then(function(text){
-        var html = text.trim().startsWith('{') ? (JSON.parse(text).contents || '') : text;
-        var epIdx = html.search(/epizode/i);
-        var searchArea = epIdx >= 0 ? html.slice(epIdx) : html;
-        var m = searchArea.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"']+)["']/i);
-        if (m) {
-          document.getElementById('sm-preslušaj').href = m[1];
-        } else {
-          tryP(i+1);
-        }
-      })
-      .catch(function(){ tryP(i+1); });
-  }
-  tryP(0);
+  if(smInited)return; smInited=true;
+  // Odmah prikaži keširane podatke kao placeholder dok se učitavaju novi
+  applySMData(_smData);
+  // U pozadini uvek povuci najsvežije podatke sa sajta
+  _autoRefreshSuperMeni();
 }
 
-function refreshSuperMeni(){
-  var btn = document.getElementById('sm-refresh-btn');
-  btn.classList.add('spinning'); btn.disabled = true;
-  document.getElementById('sm-sub').textContent = 'Osvežavam...';
-
+function _autoRefreshSuperMeni(){
   var SM_PAGE    = 'https://radioaparat.rs/super-meni/';
   var SHOWS_PAGE = 'https://radioaparat.rs/shows/super-meni/';
   var proxies = [
@@ -2434,112 +2406,127 @@ function refreshSuperMeni(){
   function extractText(html) {
     return html.replace(/<[^>]+>/g, ' ').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
   }
-
   function parseSMPage(html) {
     var tracks = [];
-    // Find the main chart table — look for <tr> rows with <td> cells
-    // Table columns: Pos | PrevPos | Artist - Song | Ned | Naj
     var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi, trM;
     while ((trM = trRe.exec(html)) !== null) {
-      var cells = [];
-      var tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi, tdM;
-      while ((tdM = tdRe.exec(trM[1])) !== null) {
-        cells.push(extractText(tdM[1]));
-      }
+      var cells = [], tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi, tdM;
+      while ((tdM = tdRe.exec(trM[1])) !== null) cells.push(extractText(tdM[1]));
       if (cells.length >= 3) {
-        var pos  = cells[0].replace(/\D/g,'').trim();
-        var pn   = cells[1].replace(/\D/g,'').trim();
-        // cells[2] usually "Artist - Song" or just song
+        var pos = cells[0].replace(/\D/g,'').trim();
+        var pn  = cells[1].replace(/\D/g,'').trim();
         var trackRaw = cells[2].trim();
-        var ned  = (cells[3] || '').replace(/\D/g,'').trim();
-        var naj  = (cells[4] || '').replace(/\D/g,'').trim();
+        var ned = (cells[3] || '').replace(/\D/g,'').trim();
+        var naj = (cells[4] || '').replace(/\D/g,'').trim();
         if (!pos || isNaN(parseInt(pos))) continue;
         var artist = '', song = trackRaw;
-        if (trackRaw.indexOf(' - ') > 0) {
-          var parts = trackRaw.split(' - ');
-          artist = parts[0].trim();
-          song   = parts.slice(1).join(' - ').trim();
-        } else if (trackRaw.indexOf(' – ') > 0) {
-          var parts = trackRaw.split(' – ');
-          artist = parts[0].trim();
-          song   = parts.slice(1).join(' – ').trim();
-        }
+        var sep = trackRaw.indexOf(' - ') > 0 ? ' - ' : (trackRaw.indexOf(' – ') > 0 ? ' – ' : null);
+        if (sep) { var p = trackRaw.split(sep); artist = p[0].trim(); song = p.slice(1).join(sep).trim(); }
         if (!song) continue;
         var posNum = parseInt(pos);
-        tracks.push({
-          pos: posNum < 10 ? '0'+posNum : ''+posNum,
-          posNum: posNum,
-          pn: pn || '0',
-          ned: ned || '1',
-          naj: naj || pos,
-          artist: artist,
-          song: song,
-          trend: !pn || pn==='0' ? 'new' : posNum < parseInt(pn) ? 'up' : posNum > parseInt(pn) ? 'down' : 'same'
-        });
+        tracks.push({ pos: posNum<10?'0'+posNum:''+posNum, posNum:posNum, pn:pn||'0', ned:ned||'1', naj:naj||(''+posNum), artist:artist, song:song, trend:!pn||pn==='0'?'new':posNum<parseInt(pn)?'up':posNum>parseInt(pn)?'down':'same' });
       }
     }
     return tracks;
   }
-
   function extractDate(html) {
-    // Look for date pattern in page title or heading
     var m = html.match(/SUPER MENI[^<–-]*[–-]\s*([^<"]{5,40})/i);
     return m ? m[1].trim() : '';
   }
-
-  function fetchShowsPageForLink(cb) {
-    var proxies2 = [
-      'https://corsproxy.io/?' + encodeURIComponent(SHOWS_PAGE),
-      'https://api.allorigins.win/get?url=' + encodeURIComponent(SHOWS_PAGE),
-    ];
-    function tryP(i) {
-      if (i >= proxies2.length) { cb(null); return; }
-      fetch(proxies2[i])
-        .then(function(r){ return r.text(); })
-        .then(function(text){
-          var html = text.trim().startsWith('{') ? (JSON.parse(text).contents || '') : text;
-          // Find first Mixcloud link after "EPIZODE" heading
-          var epIdx = html.search(/epizode/i);
-          var searchArea = epIdx >= 0 ? html.slice(epIdx) : html;
-          var m = searchArea.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"']+)["']/i);
-          cb(m ? m[1] : null);
-        })
-        .catch(function(){ tryP(i+1); });
-    }
-    tryP(0);
+  function fetchPreslusaj(cb) {
+    var p2 = ['https://corsproxy.io/?'+encodeURIComponent(SHOWS_PAGE),'https://api.allorigins.win/get?url='+encodeURIComponent(SHOWS_PAGE)];
+    function t(i){ if(i>=p2.length){cb(null);return;}
+      fetch(p2[i]).then(function(r){return r.text();}).then(function(text){
+        var html=text.trim().startsWith('{')?((JSON.parse(text).contents)||''):text;
+        var epIdx=html.search(/epizode/i), area=epIdx>=0?html.slice(epIdx):html;
+        var m=area.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"']+)["']/i);
+        if(m)cb(m[1]); else t(i+1);
+      }).catch(function(){t(i+1);});
+    } t(0);
   }
 
   function tryProxy(i) {
-    if (i >= proxies.length) {
-      btn.classList.remove('spinning'); btn.disabled = false;
-      document.getElementById('sm-sub').textContent = 'Greška učitavanja';
-      showToast('Ne mogu da dohvatim listu sa sajta');
-      return;
-    }
+    if (i >= proxies.length) return; // tiho ne radi — korisnik vidi keš
     fetch(proxies[i])
       .then(function(r){ return r.text(); })
       .then(function(text){
         var html = text.trim().startsWith('{') ? (JSON.parse(text).contents || '') : text;
         var tracks = parseSMPage(html);
         if (!tracks.length) { tryProxy(i+1); return; }
-
         var dateStr = extractDate(html) || _smData.date || '';
-        _smData = { date: dateStr, tracks: tracks };
-        smInited = false;
-        initSuperMeni();
-        if (dateStr) document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[–-]\s*/i,'');
-
-        // Also fetch Preslusaj link from shows page
-        fetchShowsPageForLink(function(url){
-          if (url) {
-            document.getElementById('sm-preslušaj').href = url;
-            _smData['preslušaj'] = url;
-          }
-          btn.classList.remove('spinning'); btn.disabled = false;
-          showToast('Lista osvežena ✓');
+        fetchPreslusaj(function(url){
+          _smData = { date: dateStr, tracks: tracks, 'preslušaj': url || _smData['preslušaj'] || '' };
+          // Tiho ažuriraj UI
+          if (dateStr) document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[–-]\s*/i,'');
+          if (_smData['preslušaj']) document.getElementById('sm-preslušaj').href = _smData['preslušaj'];
+          var t2 = tracks.map(function(t){ var p=t.posNum,pn=parseInt(t.pn)||0; t.trend=pn===0?'new':p<pn?'up':p>pn?'down':'same'; return t; });
+          smAllTracks = t2;
+          renderSMList(t2);
         });
       })
       .catch(function(){ tryProxy(i+1); });
+  }
+  tryProxy(0);
+}
+
+function refreshSuperMeni(){
+  var btn = document.getElementById('sm-refresh-btn');
+  btn.classList.add('spinning'); btn.disabled = true;
+  document.getElementById('sm-sub').textContent = 'Osvežavam...';
+
+  // Koristimo isti auto-refresh mehanizam, ali sa vizuelnim feedbackom
+  var SM_PAGE = 'https://radioaparat.rs/super-meni/';
+  var SHOWS_PAGE = 'https://radioaparat.rs/shows/super-meni/';
+  var proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(SM_PAGE),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(SM_PAGE),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(SM_PAGE),
+  ];
+  function done(ok) {
+    btn.classList.remove('spinning'); btn.disabled = false;
+    if (ok) showToast('Lista osvežena ✓');
+    else { document.getElementById('sm-sub').textContent = 'Greška učitavanja'; showToast('Ne mogu da dohvatim listu sa sajta'); }
+  }
+  function tryProxy(i) {
+    if (i >= proxies.length) { done(false); return; }
+    fetch(proxies[i])
+      .then(function(r){ return r.text(); })
+      .then(function(text){
+        var html = text.trim().startsWith('{') ? (JSON.parse(text).contents||'') : text;
+        // reuse _autoRefreshSuperMeni parsers via inline parse
+        var trRe=/<tr[^>]*>([\s\S]*?)<\/tr>/gi,trM,tracks=[];
+        function et(s){return s.replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();}
+        while((trM=trRe.exec(html))!==null){
+          var cells=[],tdRe=/<td[^>]*>([\s\S]*?)<\/td>/gi,tdM;
+          while((tdM=tdRe.exec(trM[1]))!==null)cells.push(et(tdM[1]));
+          if(cells.length>=3){var pos=cells[0].replace(/\D/g,'').trim(),pn=cells[1].replace(/\D/g,'').trim(),raw=cells[2].trim(),ned=(cells[3]||'').replace(/\D/g,'').trim(),naj=(cells[4]||'').replace(/\D/g,'').trim();
+          if(!pos||isNaN(parseInt(pos)))continue;
+          var a='',s=raw,sep=raw.indexOf(' - ')>0?' - ':(raw.indexOf(' – ')>0?' – ':null);
+          if(sep){var p=raw.split(sep);a=p[0].trim();s=p.slice(1).join(sep).trim();}
+          if(!s)continue;var pn2=parseInt(pos);
+          tracks.push({pos:pn2<10?'0'+pn2:''+pn2,posNum:pn2,pn:pn||'0',ned:ned||'1',naj:naj||(''+pn2),artist:a,song:s,trend:!pn||pn==='0'?'new':pn2<parseInt(pn)?'up':pn2>parseInt(pn)?'down':'same'});}
+        }
+        if(!tracks.length){tryProxy(i+1);return;}
+        var dm=html.match(/SUPER MENI[^<–-]*[–-]\s*([^<"]{5,40})/i),dateStr=dm?dm[1].trim():_smData.date||'';
+        var p2=['https://corsproxy.io/?'+encodeURIComponent(SHOWS_PAGE),'https://api.allorigins.win/get?url='+encodeURIComponent(SHOWS_PAGE)];
+        function tryP(j){if(j>=p2.length){finish(null);return;}
+          fetch(p2[j]).then(function(r){return r.text();}).then(function(t2){
+            var h2=t2.trim().startsWith('{')?((JSON.parse(t2).contents)||''):t2;
+            var ei=h2.search(/epizode/i),area=ei>=0?h2.slice(ei):h2;
+            var m=area.match(/href=["'](https?:\/\/(?:www\.)?mixcloud\.com\/[^"']+)["']/i);
+            if(m)finish(m[1]);else tryP(j+1);
+          }).catch(function(){tryP(j+1);});
+        }
+        function finish(url){
+          _smData={date:dateStr,tracks:tracks,'preslušaj':url||_smData['preslušaj']||''};
+          if(dateStr)document.getElementById('sm-sub').textContent=dateStr.replace(/^SUPER MENI\s*[–-]\s*/i,'');
+          if(_smData['preslušaj'])document.getElementById('sm-preslušaj').href=_smData['preslušaj'];
+          var t2=tracks.map(function(t){var p=t.posNum,pn=parseInt(t.pn)||0;t.trend=pn===0?'new':p<pn?'up':p>pn?'down':'same';return t;});
+          smAllTracks=t2;renderSMList(t2);done(true);
+        }
+        tryP(0);
+      })
+      .catch(function(){tryProxy(i+1);});
   }
   tryProxy(0);
 }

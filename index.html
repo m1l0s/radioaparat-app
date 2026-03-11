@@ -352,9 +352,9 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .track-info { text-align:center; width:100%; padding:0 8px; }
 .track-title { font-size:17px; font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.3px; transition:opacity .2s; }
 .track-artist { font-size:13px; color:var(--text2); font-weight:500; }
-.now-stream-links { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; width:100%; }
+.now-stream-links { display:grid; grid-template-columns:1fr 1fr; gap:7px; width:100%; }
 .now-stream-btn {
-  display:inline-flex; align-items:center; gap:5px; padding:6px 11px;
+  display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:6px 11px;
   border-radius:20px; border:1px solid var(--border2); background:var(--surface);
   font-size:11px; font-weight:700; color:var(--text2); text-decoration:none; transition:border-color .15s,color .15s;
 }

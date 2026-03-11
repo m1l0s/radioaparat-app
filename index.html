@@ -996,6 +996,11 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
         <div class="track-title" id="track-title"></div>
         <div class="track-artist" id="track-artist" style="visibility:hidden"></div>
       </div>
+      <!-- DEBUG PANEL — privremeno, obrisati pre produkcije -->
+      <div id="debug-panel" style="background:rgba(0,0,0,0.7);color:#0f0;font-size:10px;font-family:monospace;padding:6px 8px;border-radius:8px;margin:4px 8px;word-break:break-all;max-height:120px;overflow-y:auto;display:none;">
+        <div id="dbg-rds">RDS: čekanje...</div>
+        <div id="dbg-art">ART: čekanje...</div>
+      </div>
 
       <div class="now-stream-links" id="now-stream-links" style="display:none;">
         <a class="now-stream-btn" id="lnk-spotify" target="_blank" rel="noopener">
@@ -1306,6 +1311,18 @@ var playing      = false;
 var favorites    = [];
 var current      = { title: '', artist: 'radioAPARAT' };
 var trackHistory = [];
+
+// DEBUG helper — ukloniti pre produkcije
+var DBG = true; // postavi na false da ugasis debug panel
+function dbg(type, msg) {
+  if (!DBG) return;
+  var panel = document.getElementById('debug-panel');
+  var el = document.getElementById('dbg-' + type);
+  if (!panel || !el) return;
+  panel.style.display = 'block';
+  el.textContent = (type === 'rds' ? 'RDS: ' : 'ART: ') + msg;
+  console.log('[' + type.toUpperCase() + ']', msg);
+}
 var allEpisodes  = [];
 var activeDate   = 'sve';
 var playingKey   = null;
@@ -1535,6 +1552,7 @@ function applyTrack(t) {
 
 function fetchNow() {
   if (!playing) return;
+  dbg('rds', '⏳ fetchNow start, idx=' + rdsWorkingIdx);
 
   // Ako vec znamo koji endpoint radi, koristi samo njega
   if (rdsWorkingIdx >= 0) {
@@ -1542,10 +1560,12 @@ function fetchNow() {
       .then(function(r){ return r.json(); })
       .then(function(d){
         var t = parseRDSResponse(d);
+        dbg('rds', '✅ EP[' + rdsWorkingIdx + '] → t=' + JSON.stringify(t) + ' raw=' + JSON.stringify(d).slice(0,120));
         if (t) { applyTrack(t); }
         if (playing) setTimeout(fetchNow, 12000);
       })
-      .catch(function(){
+      .catch(function(e){
+        dbg('rds', '❌ EP[' + rdsWorkingIdx + '] err: ' + e);
         // Radeci endpoint je pao, trazi ponovo
         rdsWorkingIdx = -1;
         if (playing) setTimeout(fetchNow, 5000);
@@ -1559,21 +1579,28 @@ function fetchNow() {
     fetch(url)
       .then(function(r){ return r.json(); })
       .then(function(d){
+        dbg('rds', 'EP[' + idx + '] resp: ' + JSON.stringify(d).slice(0,150));
         if (found) return;
         var t = parseRDSResponse(d);
         if (t) {
           found = true;
           rdsWorkingIdx = idx;
+          dbg('rds', '✅ KORISTIM EP[' + idx + '], track=' + t);
           applyTrack(t);
           if (playing) setTimeout(fetchNow, 12000);
+        } else {
+          dbg('rds', 'EP[' + idx + '] → parse null, d=' + JSON.stringify(d).slice(0,100));
         }
       })
-      .catch(function(){});
+      .catch(function(e){
+        dbg('rds', 'EP[' + idx + '] FAIL: ' + e);
+      });
   });
 
   // Ako ni jedan nije odgovorio za 10s, pokusaj ponovo
   setTimeout(function(){
     if (!found && playing && rdsWorkingIdx < 0) {
+      dbg('rds', '⏰ timeout, retry...');
       setTimeout(fetchNow, 5000);
     }
   }, 10000);
@@ -1590,10 +1617,11 @@ function fetchStreamLinks(artist, title) {
 
 var lastArtworkTitle = '';
 function fetchArtwork(artist, title) {
-  if (!artist || !title) return;
+  if (!artist || !title) { dbg('art', '⚠️ artist/title prazno: ' + artist + ' / ' + title); return; }
   var key = artist + ' - ' + title;
-  if (key === lastArtworkTitle) return;
+  if (key === lastArtworkTitle) { dbg('art', '⏭ isti key, skip'); return; }
   lastArtworkTitle = key;
+  dbg('art', '🔍 iTunes: ' + key);
 
   // iTunes Search API — HTTPS, CORS OK, bez API kljuca
   var q = encodeURIComponent(artist + ' ' + title);
@@ -1602,16 +1630,19 @@ function fetchArtwork(artist, title) {
     .then(function(d){
       if (d.results && d.results.length > 0) {
         var art = d.results[0].artworkUrl100;
+        dbg('art', '✅ result, artworkUrl100=' + art);
         if (art) {
           // 100x100 -> 512x512 (pouzdano dostupna velicina)
           art = art.replace('100x100bb', '512x512bb');
+          dbg('art', '🖼 setAlbumArt: ' + art);
           setAlbumArt(art);
           return;
         }
       }
+      dbg('art', '❌ nema result, d.resultCount=' + d.resultCount);
       clearAlbumArt();
     })
-    .catch(function(){ clearAlbumArt(); });
+    .catch(function(e){ dbg('art', '❌ fetch err: ' + e); clearAlbumArt(); });
 }
 
 function setAlbumArt(url) {

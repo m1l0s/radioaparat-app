@@ -1776,39 +1776,49 @@ function fetchPlayedHistory(callback) {
     'https://api.allorigins.win/get?url=' + encodeURIComponent(RCAST_STATS),
   ];
 
+  function decodeHtmlText(s) {
+    return s.replace(/<[^>]+>/g,'')
+      .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&#39;/g,"'")
+      .replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+      .replace(/\s+/g,' ').trim();
+  }
+
+  // Returns true if string looks like a real song (Artist - Title format, no server junk)
+  function isValidSong(s) {
+    if (!s || s.length < 3) return false;
+    // Reject server/navigation/HTML content
+    if (/shoutcast|icecast|server|status|history|admin|stream|listener|source|bitrate|version|posix|linux|windows|genre|url:|&nbsp;/i.test(s)) return false;
+    if (/^\d+$/.test(s)) return false; // just a number
+    return true;
+  }
+
   function parseHtml(html) {
     var rows = [];
-    // Format 1: <tr><td> table
+    // Format 1: <tr><td> table — rcast played.html has time in col0, "Artist - Title" in col1
     var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi, trM;
     while ((trM = trRe.exec(html)) !== null) {
       var cells = [], tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi, tdM;
       while ((tdM = tdRe.exec(trM[1])) !== null)
-        cells.push(tdM[1].replace(/<[^>]+>/g,'').trim());
-      var trackStr = (cells[1] || cells[0] || '').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim();
-      if (trackStr && trackStr.length > 1 && !/artist|pesma|title|song/i.test(trackStr)) {
-        var parts = trackStr.split(' - ');
-        rows.push({ artist: parts.length>1?parts[0].trim():'', title: parts.length>1?parts.slice(1).join(' - ').trim():trackStr });
-      }
+        cells.push(decodeHtmlText(tdM[1]));
+      // Try col1 first (time|track format), then col0
+      var trackStr = (cells.length >= 2 ? cells[1] : cells[0] || '');
+      if (!isValidSong(trackStr) && cells[0]) trackStr = cells[0];
+      if (!isValidSong(trackStr)) continue;
+      var parts = trackStr.indexOf(' - ') > 0 ? trackStr.split(' - ') : (trackStr.indexOf(' – ') > 0 ? trackStr.split(' – ') : null);
+      rows.push(parts
+        ? { artist: parts[0].trim(), title: parts.slice(1).join(' - ').trim(), time: new Date() }
+        : { artist: '', title: trackStr, time: new Date() }
+      );
     }
     if (rows.length) return rows;
 
-    // Format 2: <li> or <p> lines
-    var lineRe = /<(?:li|p|div)[^>]*>([\s\S]*?)<\/(?:li|p|div)>/gi, lM;
-    while ((lM = lineRe.exec(html)) !== null) {
-      var txt = lM[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim();
-      if (txt && txt.length > 2 && txt.indexOf(' - ') > 0 && !/script|style/i.test(txt)) {
-        var parts = txt.split(' - ');
-        rows.push({ artist: parts[0].trim(), title: parts.slice(1).join(' - ').trim() });
-      }
-    }
-    if (rows.length) return rows;
-
-    // Format 3: plain text lines "Artist - Title"
-    html.replace(/<[^>]+>/g,'').split(/\n|\r/).forEach(function(line){
-      line = line.replace(/&amp;/g,'&').replace(/&#39;/g,"'").trim();
-      if (line.length > 2 && line.indexOf(' - ') > 0) {
-        var parts = line.split(' - ');
-        rows.push({ artist: parts[0].trim(), title: parts.slice(1).join(' - ').trim() });
+    // Format 2: plain text lines "Artist - Title"
+    decodeHtmlText(html).split(/\n|\r/).forEach(function(line){
+      line = line.trim();
+      if (!isValidSong(line)) return;
+      var idx = line.indexOf(' - ');
+      if (idx > 0) {
+        rows.push({ artist: line.slice(0, idx).trim(), title: line.slice(idx+3).trim(), time: new Date() });
       }
     });
     return rows;
@@ -1915,8 +1925,8 @@ function renderHistory() {
   }
   el.innerHTML = trackHistory.slice(0, 3).map(function(t, i) {
     var isFav = favorites.some(function(f){ return f.title === t.title; });
-    var mins = Math.floor((new Date() - t.time) / 60000);
-    var timeStr = mins < 1 ? 'upravo' : mins < 60 ? mins + ' min' : Math.floor(mins/60) + 'h';
+    var mins = t.time instanceof Date && !isNaN(t.time) ? Math.floor((new Date() - t.time) / 60000) : NaN;
+    var timeStr = isNaN(mins) ? '' : mins < 1 ? 'upravo' : mins < 60 ? mins + ' min' : Math.floor(mins/60) + 'h';
     var rawQ = t.artist + ' ' + t.title;
     var safeArtist = esc(t.artist).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var safeTitle  = esc(t.title).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -1925,7 +1935,7 @@ function renderHistory() {
       '<div class="history-num">' + (i+1) + '</div>' +
       '<div class="history-info">' +
         '<div class="history-title">' + esc(t.title) + '</div>' +
-        '<div class="history-artist">' + esc(t.artist) + ' · ' + timeStr + '</div>' +
+        '<div class="history-artist">' + (t.artist ? esc(t.artist) : '') + (t.artist && timeStr ? ' · ' : '') + timeStr + '</div>' +
       '</div>' +
       '<button class="history-fav' + (isFav ? ' active' : '') + '" onclick="event.stopPropagation();toggleHistFav(' + i + ')">' +
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="' + (isFav ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +

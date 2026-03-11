@@ -2375,7 +2375,7 @@ function renderRasporedDay(idx){
 var smInited=false, smAllTracks=[];
 var _smData={
   "date":"SUPER MENI – 28. FEBRUAR 2026.",
-  "preslušaj":"https://radioaparat.rs/shows/super-meni/",
+  "preslušaj":"",
   "tracks":[
     {"pos":"01","pn":"04","naj":"1","artist":"ARCTIC MONKEYS","song":"Opening Night","ned":"6"},
     {"pos":"02","pn":"05","naj":"2","artist":"LU","song":"Gde đavo spava","ned":"6"},
@@ -2686,55 +2686,56 @@ function renderShows(){
 function fetchShowImages(cb){
   if(showImgFetched){cb();return;}
 
-  // Strategija: povuci /shows/ stranicu -> parsuj sve slike odjednom -> Mixcloud fallback
-  var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://radioaparat.rs/shows/');
-  fetch(proxyUrl)
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var html = d.contents || '';
-      // WordPress: article elementi sa id="post-NNN" i slug u klasi "slug"
-      // Traži sve <article> ili <div> koji sadrže link na /shows/SLUG/ i sliku
-      // Pattern 1: href="/shows/slug/" praćen sa <img src="...">
-      var cardRe = /<a[^>]+href=["']https?:\/\/radioaparat\.rs\/shows\/([^/"']+)\/?["'][^>]*>[\s\S]{0,2000}?<img[^>]+src=["'](https?:\/\/[^"']+)["']/gi;
-      var m;
-      var found = 0;
-      while ((m = cardRe.exec(html)) !== null) {
-        var slug = m[1];
-        var imgUrl = m[2];
-        // Normalizuj slug: dijakritika -> ascii (ista logika kao u ID)
-        var normSlug = slug.toLowerCase()
-          .replace(/[šś]/g,'s').replace(/đ/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z');
-        // Direktno poklapanje
-        if (!showImgCache[slug]) showImgCache[slug] = imgUrl;
-        if (slug !== normSlug && !showImgCache[normSlug]) showImgCache[normSlug] = imgUrl;
-        found++;
-      }
+  var SHOWS_PAGE = 'https://radioaparat.rs/shows/';
+  var proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(SHOWS_PAGE),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(SHOWS_PAGE),
+  ];
 
-      // Pattern 2: pronađi sve slike sa -150x150, -300x300 u URL-u pored show linkova
-      if (!found) {
-        var re2 = /href=["']https?:\/\/radioaparat\.rs\/shows\/([^/"']+)\/?["']/gi;
-        var positions = [];
-        while ((m = re2.exec(html)) !== null) {
-          positions.push({ slug: m[1], pos: m.index });
+  function parseShowsPage(html) {
+    var found = 0;
+    // Pattern 1: href="/shows/slug/" + <img src="...">
+    var cardRe = /<a[^>]+href=["']https?:\/\/radioaparat\.rs\/shows\/([^/"']+)\/?["'][^>]*>[\s\S]{0,2000}?<img[^>]+src=["'](https?:\/\/[^"']+)["']/gi;
+    var m;
+    while ((m = cardRe.exec(html)) !== null) {
+      var slug = m[1], imgUrl = m[2];
+      var normSlug = slug.toLowerCase().replace(/[šś]/g,'s').replace(/đ/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z');
+      if (!showImgCache[slug]) showImgCache[slug] = imgUrl;
+      if (slug !== normSlug && !showImgCache[normSlug]) showImgCache[normSlug] = imgUrl;
+      found++;
+    }
+    // Pattern 2: pozicija linka + closest slika
+    if (!found) {
+      var re2 = /href=["']https?:\/\/radioaparat\.rs\/shows\/([^/"']+)\/?["']/gi;
+      var positions = [];
+      while ((m = re2.exec(html)) !== null) positions.push({ slug: m[1], pos: m.index });
+      positions.forEach(function(p){
+        var near = html.slice(p.pos, p.pos + 3000);
+        var imgM = near.match(/src=["'](https?:\/\/radioaparat\.rs\/wp-content\/uploads\/[^"']+\.(?:jpg|png|webp))["']/i)
+                || near.match(/src=["'](https?:\/\/[^"']+\.(?:jpg|png|webp))[^"']*["']/i);
+        if (imgM) {
+          var normSlug = p.slug.toLowerCase().replace(/[šś]/g,'s').replace(/đ/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z');
+          if (!showImgCache[p.slug]) showImgCache[p.slug] = imgM[1];
+          if (p.slug !== normSlug && !showImgCache[normSlug]) showImgCache[normSlug] = imgM[1];
+          found++;
         }
-        positions.forEach(function(p){
-          var near = html.slice(p.pos, p.pos + 3000);
-          var imgM = near.match(/src=["'](https?:\/\/radioaparat\.rs\/wp-content\/uploads\/[^"']+\.(?:jpg|png|webp))["']/i);
-          if (!imgM) imgM = near.match(/src=["'](https?:\/\/[^"']+\.(?:jpg|png|webp))[^"']*["']/i);
-          if (imgM) {
-            var slug = p.slug;
-            var normSlug = slug.toLowerCase()
-              .replace(/[šś]/g,'s').replace(/đ/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z');
-            if (!showImgCache[slug]) showImgCache[slug] = imgM[1];
-            if (slug !== normSlug && !showImgCache[normSlug]) showImgCache[normSlug] = imgM[1];
-          }
-        });
-      }
+      });
+    }
+    return found;
+  }
 
-      console.log('Shows page: pronađene slike za', Object.keys(showImgCache).length, 'emisija');
-      tryMixcloudFallback();
-    })
-    .catch(function(){ tryMixcloudFallback(); });
+  function tryListingProxy(i) {
+    if (i >= proxies.length) { tryMixcloudFallback(); return; }
+    fetch(proxies[i])
+      .then(function(r){ return r.text(); })
+      .then(function(text){
+        var html = text.trim().startsWith('{') ? (JSON.parse(text).contents || '') : text;
+        var found = parseShowsPage(html);
+        console.log('Shows listing [proxy '+i+']: slike za', found, 'emisija');
+        tryMixcloudFallback();
+      })
+      .catch(function(){ tryListingProxy(i + 1); });
+  }
 
   function tryMixcloudFallback(){
     fetch('https://api.mixcloud.com/RADIO_APARAT/cloudcasts/?limit=100')
@@ -2772,7 +2773,9 @@ function fetchShowImages(cb){
       .catch(function(){ showImgFetched=true; cb(); });
   }
 
-  // Timeout: ako /shows/ ne odgovori za 6s, idi na Mixcloud
+  tryListingProxy(0);
+
+  // Timeout: ako /shows/ listing ne odgovori za 6s, idi direktno na Mixcloud
   setTimeout(function(){
     if(!showImgFetched) tryMixcloudFallback();
   }, 6000);
@@ -2888,41 +2891,40 @@ function closeDetail(){
 var _epCache = {};
 function fetchShowEpisodes(showId, cb) {
   if (_epCache[showId]) { cb(_epCache[showId]); return; }
-  var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://radioaparat.rs/shows/' + showId + '/');
-  fetch(proxyUrl)
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var html = d.contents || '';
-      var eps = [];
-      // Traži EPIZODE sekciju
-      var epIdx = html.indexOf('EPIZODE');
-      if (epIdx < 0) epIdx = html.indexOf('epizode');
-      if (epIdx < 0) epIdx = 0;
-      var chunk = html.slice(epIdx);
-      // Pronađi sve Mixcloud linkove
-      var linkRe = /<a[^>]+href=["']([^"']*mixcloud[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-      var m;
-      while ((m = linkRe.exec(chunk)) !== null && eps.length < 20) {
-        var url = m[1];
-        var title = m[2].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim();
-        if (!title || title.length < 3) continue;
-        var mcM = url.match(/mixcloud\.com(\/[A-Za-z0-9_]+\/[^/?#\s"']+\/?)/);
-        eps.push({ url: url, title: title, mcKey: mcM ? mcM[1] : null });
-      }
-      // Fallback: linkovi sa brojevima epizoda
-      if (!eps.length) {
-        var re2 = /<a[^>]+href=["']([^"']+)["'][^>]*>([^<]*#\d+[^<]*)<\/a>/gi;
-        while ((m = re2.exec(chunk)) !== null && eps.length < 20) {
-          var url2 = m[1], title2 = m[2].replace(/&amp;/g,'&').trim();
-          if (!title2) continue;
-          var mcM2 = url2.match(/mixcloud\.com(\/[A-Za-z0-9_]+\/[^/?#\s"']+\/?)/);
-          eps.push({ url: url2, title: title2, mcKey: mcM2 ? mcM2[1] : null });
+  var showUrl = 'https://radioaparat.rs/shows/' + showId + '/';
+  var proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(showUrl),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(showUrl),
+  ];
+  function tryProxy(i) {
+    if (i >= proxies.length) { cb([]); return; }
+    fetch(proxies[i])
+      .then(function(r){ return r.text(); })
+      .then(function(text){
+        var html = text.trim().startsWith('{') ? (JSON.parse(text).contents || '') : text;
+        var eps = [];
+        var epIdx = html.search(/EPIZODE|epizode/);
+        var chunk = epIdx >= 0 ? html.slice(epIdx) : html;
+        // Pronađi sve Mixcloud linkove u EPIZODE sekciji
+        var linkRe = /<a[^>]+href=["']([^"']*mixcloud[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+        var m;
+        while ((m = linkRe.exec(chunk)) !== null && eps.length < 20) {
+          var url = m[1];
+          var title = m[2].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&nbsp;/g,' ').trim();
+          if (!title || title.length < 3) continue;
+          var mcM = url.match(/mixcloud\.com(\/[A-Za-z0-9_]+\/[^/?#\s"']+\/?)/);
+          eps.push({ url: url, title: title, mcKey: mcM ? mcM[1] : null });
         }
-      }
-      _epCache[showId] = eps;
-      cb(eps);
-    })
-    .catch(function(){ cb([]); });
+        if (eps.length) {
+          _epCache[showId] = eps;
+          cb(eps);
+        } else {
+          tryProxy(i + 1);
+        }
+      })
+      .catch(function(){ tryProxy(i + 1); });
+  }
+  tryProxy(0);
 }
 
 /* ═══ REPLAY ═══ */
@@ -3437,7 +3439,7 @@ function addCalendarEvent(title, dateStr, timeStr) {
 renderFavs();
 
 /* ═══ EXCEL SHOWS ═══ */
-var SHOWS_XLSX_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/radioAPARAT_linkovi.xlsx';
+var SHOWS_XLSX_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/radioaparat_linkovi.xlsx';
 
 function _doLoadExcel() {
   fetch(SHOWS_XLSX_URL, {cache: 'no-store'})

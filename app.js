@@ -1395,8 +1395,9 @@ function closeMapsSheet() {
 }
 
 /* ═══ EMISIJE ═══ */
-// SHOWS se učitava iz radioaparat_linkovi.xlsx (via loadShowsFromExcel)
+// SHOWS se učitava iz shows.json (generisan GitHub Actions iz Excel-a)
 var SHOWS = [];
+var SHOWS_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/shows.json';
 
 function filterShows(cat,el){
   document.querySelectorAll('.cat-pill').forEach(function(p){p.classList.remove('active');});
@@ -2284,86 +2285,23 @@ function addCalendarEvent(title, dateStr, timeStr) {
 renderFavs();
 
 /* ═══ EXCEL SHOWS ═══ */
-var SHOWS_XLSX_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/radioaparat_linkovi.xlsx';
-
-function _doLoadExcel() {
-  fetch(SHOWS_XLSX_URL, {cache: 'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.arrayBuffer(); })
-    .then(function(buf){
-      var wb = XLSX.read(new Uint8Array(buf), {type:'array'});
-      // Pokušaj sheet EMISIJE, pa prvi sheet
-      var ws = wb.Sheets['EMISIJE'] || wb.Sheets[wb.SheetNames[0]];
-      if (!ws) { console.warn('Excel: sheet EMISIJE nije pronađen. Dostupni:', wb.SheetNames); return; }
-      var rows = XLSX.utils.sheet_to_json(ws, {defval:''});
-      console.log('Excel: učitano', rows.length, 'redova. Prva kolone:', Object.keys(rows[0]||{}));
-      var catMap = {'muzika':'muzika','kultura':'kultura','društvo':'drustvo','drustvo':'drustvo','zabava':'zabava'};
-      var updated = rows.map(function(r){
-        var links = {};
-        // Podrška za oba formata kolona: "Link: Web" i samo "linkovi" JSON
-        if(r['Link: Web'])        links.web        = r['Link: Web'];
-        if(r['Link: Mixcloud'])   links.mixcloud   = r['Link: Mixcloud'];
-        if(r['Link: SoundCloud']) links.soundcloud = r['Link: SoundCloud'];
-        if(r['Link: Instagram'])  links.instagram  = r['Link: Instagram'];
-        if(r['Link: Facebook'])   links.facebook   = r['Link: Facebook'];
-        if(r['Link: YouTube'])    links.youtube    = r['Link: YouTube'];
-        if(r['Link: Patreon'])    links.patreon    = r['Link: Patreon'];
-        // Ako postoji kolona "linkovi" kao JSON string ili URL
-        if(r['linkovi'] && !Object.keys(links).length) {
-          var lv = String(r['linkovi']).trim();
-          if(lv.startsWith('{')) {
-            try { var lj = JSON.parse(lv); Object.assign(links, lj); } catch(e){}
-          } else if(lv.startsWith('http')) {
-            if(/mixcloud/i.test(lv)) links.mixcloud = lv;
-            else links.web = lv;
-          }
-        }
-        var rawId = String(r['ID']||r['id']||r['Naziv']||'').toLowerCase()
-          .replace(/[šś]/g,'s').replace(/[đ]/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z')
-          .replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
-        var cat = catMap[(String(r['Kategorija']||'')).toLowerCase().trim()] || 'muzika';
-        return {
-          id: rawId,
-          name: String(r['Naziv']||'').trim(),
-          cat: cat,
-          schedule: String(r['Termin']||'').trim(),
-          desc: String(r['Opis']||'').trim(),
-          img: String(r['URL slike']||'').trim() || null,
-          links: Object.keys(links).length ? links : null,
-          color: '#0a0a1a',
-          grad: 'linear-gradient(135deg,#1a1a2e 0%,#0d0d1a 100%)'
-        };
-      }).filter(function(s){ return s.name && s.id; });
-
-      if (updated.length) {
-        SHOWS.length = 0;
-        updated.forEach(function(s){ SHOWS.push(s); });
-        showImgFetched = false; // Reset da se slike ponovo povuku za nove emisije
-        _epCache = {}; // Invalidate episode cache — linkovi se možda promenili
-        renderShows();
-        console.log('Excel: ažurirano', updated.length, 'emisija');
-      } else {
-        console.warn('Excel: nema validnih redova');
-      }
-    })
-    .catch(function(e){ console.warn('Excel fetch failed:', e); });
-}
-
 function loadShowsFromExcel() {
-  if (typeof XLSX !== 'undefined') {
-    _doLoadExcel();
-  } else {
-    // SheetJS još nije učitan — čekaj
-    var tries = 0;
-    var iv = setInterval(function(){
-      tries++;
-      if (typeof XLSX !== 'undefined') {
-        clearInterval(iv);
-        _doLoadExcel();
-      } else if (tries > 20) {
-        clearInterval(iv);
-        console.warn('SheetJS nije dostupan');
-      }
-    }, 200);
-  }
+  // Sada učitavamo shows.json (GitHub Actions konvertuje Excel → JSON automatski)
+  var url = SHOWS_JSON_URL + '?t=' + Math.floor(Date.now() / (1000 * 60 * 30));
+  fetch(url)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data) {
+      var list = data.shows || data; // podrška za oba formata
+      if (!Array.isArray(list) || !list.length) throw new Error('Prazan shows.json');
+      SHOWS.length = 0;
+      list.forEach(function(s) { SHOWS.push(s); });
+      showImgFetched = false;
+      _epCache = {};
+      renderShows();
+      console.log('shows.json: učitano', SHOWS.length, 'emisija');
+    })
+    .catch(function(e) {
+      console.warn('shows.json fetch failed:', e);
+    });
 }
 loadShowsFromExcel();

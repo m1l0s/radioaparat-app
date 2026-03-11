@@ -1608,60 +1608,86 @@ function applyTrack(t) {
   checkFav();
 }
 
+// ── Artwork cache: pamti URL po "artist - title" ──
+var _artworkCache = {};
+
 function fetchNow() {
   if (!playing) return;
   dbg('rds', '⏳ fetchNow start, idx=' + rdsWorkingIdx);
 
-  // Ako vec znamo koji endpoint radi, koristi samo njega
+  function scheduleNext() {
+    if (playing) setTimeout(fetchNow, 8000); // skraćeno sa 12s na 8s
+  }
+
+  function tryWithRace(endpoints) {
+    // Promise.race — pobedi koji prvi odgovori sa validnim tracksom
+    var racePromises = endpoints.map(function(url, idx) {
+      return fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var t = parseRDSResponse(d);
+          if (!t) throw new Error('parse null');
+          return { track: t, idx: idx };
+        });
+    });
+
+    // Koristimo allSettled-like pattern: uzimamo prvi koji USPE
+    var resolved = false;
+    var remaining = racePromises.length;
+    return new Promise(function(resolve, reject) {
+      racePromises.forEach(function(p) {
+        p.then(function(result) {
+          if (!resolved) { resolved = true; resolve(result); }
+        }).catch(function() {
+          remaining--;
+          if (remaining === 0 && !resolved) reject(new Error('svi endpointi pali'));
+        });
+      });
+    });
+  }
+
+  // Ako znamo koji endpoint radi, probaj njega direktno (brže)
+  // ali paralelno pošalji i race kao osiguranje ako poznati padne
   if (rdsWorkingIdx >= 0) {
     fetch(RDS_ENDPOINTS[rdsWorkingIdx])
-      .then(function(r){ return r.json(); })
-      .then(function(d){
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
         var t = parseRDSResponse(d);
-        dbg('rds', '✅ EP[' + rdsWorkingIdx + '] → t=' + JSON.stringify(t) + ' raw=' + JSON.stringify(d).slice(0,120));
-        if (t) { applyTrack(t); }
-        if (playing) setTimeout(fetchNow, 12000);
+        dbg('rds', '✅ EP[' + rdsWorkingIdx + '] → ' + JSON.stringify(t));
+        if (t) applyTrack(t);
+        scheduleNext();
       })
-      .catch(function(e){
-        dbg('rds', '❌ EP[' + rdsWorkingIdx + '] err: ' + e);
-        // Radeci endpoint je pao, trazi ponovo
+      .catch(function(e) {
+        dbg('rds', '❌ EP[' + rdsWorkingIdx + '] pao: ' + e);
         rdsWorkingIdx = -1;
-        if (playing) setTimeout(fetchNow, 5000);
+        // Odmah race na svim endpointima bez čekanja
+        tryWithRace(RDS_ENDPOINTS)
+          .then(function(result) {
+            rdsWorkingIdx = result.idx;
+            dbg('rds', '✅ Race recovery EP[' + result.idx + ']');
+            applyTrack(result.track);
+            scheduleNext();
+          })
+          .catch(function() {
+            dbg('rds', '❌ Svi endpointi pali');
+            if (playing) setTimeout(fetchNow, 5000);
+          });
       });
     return;
   }
 
-  // Trazi koji endpoint radi — probaj sve paralelno
-  var found = false;
-  RDS_ENDPOINTS.forEach(function(url, idx) {
-    fetch(url)
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        dbg('rds', 'EP[' + idx + '] resp: ' + JSON.stringify(d).slice(0,150));
-        if (found) return;
-        var t = parseRDSResponse(d);
-        if (t) {
-          found = true;
-          rdsWorkingIdx = idx;
-          dbg('rds', '✅ KORISTIM EP[' + idx + '], track=' + t);
-          applyTrack(t);
-          if (playing) setTimeout(fetchNow, 12000);
-        } else {
-          dbg('rds', 'EP[' + idx + '] → parse null, d=' + JSON.stringify(d).slice(0,100));
-        }
-      })
-      .catch(function(e){
-        dbg('rds', 'EP[' + idx + '] FAIL: ' + e);
-      });
-  });
-
-  // Ako ni jedan nije odgovorio za 10s, pokusaj ponovo
-  setTimeout(function(){
-    if (!found && playing && rdsWorkingIdx < 0) {
-      dbg('rds', '⏰ timeout, retry...');
-      setTimeout(fetchNow, 5000);
-    }
-  }, 10000);
+  // Prva pretraga — race sve endpointe paralelno
+  tryWithRace(RDS_ENDPOINTS)
+    .then(function(result) {
+      rdsWorkingIdx = result.idx;
+      dbg('rds', '✅ KORISTIM EP[' + result.idx + ']');
+      applyTrack(result.track);
+      scheduleNext();
+    })
+    .catch(function() {
+      dbg('rds', '❌ Svi endpointi pali pri startu');
+      if (playing) setTimeout(fetchNow, 5000);
+    });
 }
 
 function fetchStreamLinks(artist, title) {
@@ -1675,29 +1701,34 @@ function fetchStreamLinks(artist, title) {
 
 var lastArtworkTitle = '';
 function fetchArtwork(artist, title) {
-  if (!artist || !title) { dbg('art', '⚠️ artist/title prazno: ' + artist + ' / ' + title); return; }
+  if (!artist || !title) { dbg('art', '⚠️ artist/title prazno'); return; }
   var key = artist + ' - ' + title;
   if (key === lastArtworkTitle) { dbg('art', '⏭ isti key, skip'); return; }
   lastArtworkTitle = key;
-  dbg('art', '🔍 iTunes: ' + key);
 
-  // iTunes Search API — HTTPS, CORS OK, bez API kljuca
+  // Keš — ako smo već tražili ovu pesmu, prikaži odmah
+  if (_artworkCache[key]) {
+    dbg('art', '⚡ keš hit: ' + key);
+    setAlbumArt(_artworkCache[key]);
+    return;
+  }
+
+  dbg('art', '🔍 iTunes: ' + key);
   var q = encodeURIComponent(artist + ' ' + title);
   fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1&country=US')
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.results && d.results.length > 0) {
         var art = d.results[0].artworkUrl100;
-        dbg('art', '✅ result, artworkUrl100=' + art);
         if (art) {
-          // 100x100 -> 512x512 (pouzdano dostupna velicina)
           art = art.replace('100x100bb', '512x512bb');
-          dbg('art', '🖼 setAlbumArt: ' + art);
+          _artworkCache[key] = art; // sačuvaj u keš
+          dbg('art', '✅ setAlbumArt + keš: ' + art);
           setAlbumArt(art);
           return;
         }
       }
-      dbg('art', '❌ nema result, d.resultCount=' + d.resultCount);
+      dbg('art', '❌ nema result');
       clearAlbumArt();
     })
     .catch(function(e){ dbg('art', '❌ fetch err: ' + e); clearAlbumArt(); });

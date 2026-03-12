@@ -9,6 +9,8 @@ function updateRing(progress) {
   var offset = RING_CIRC * (1 - Math.max(0, Math.min(1, progress)));
   var ring = document.getElementById('play-ring');
   if (ring) ring.style.strokeDashoffset = offset;
+  var mini = document.querySelector('.mini-ring-fg');
+  if (mini) mini.style.strokeDashoffset = offset;
 }
 
 function clearRing() {

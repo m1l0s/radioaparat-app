@@ -1907,7 +1907,7 @@ function playEp(key, title){
   document.getElementById('mc-mini-iframe-wrap').style.display = 'none';
   document.getElementById('mc-mini-play-wrap').style.display = 'block';
   document.getElementById('mc-mini-play-btn').textContent = '';
-  document.getElementById('mc-mini-play-btn').innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="6,3 20,12 6,21"/></svg> Pusti emisiju';
+  document.getElementById('mc-mini-play-btn').innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="6,3 20,12 6,21"/></svg> Učitaj emisiju';
   document.getElementById('mc-iframe').src = ''; // očisti prethodni
   mcp.style.display = 'block';
   mixcloudActive = true;

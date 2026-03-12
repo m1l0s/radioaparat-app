@@ -1893,6 +1893,7 @@ function playEp(key, title){
   mixcloudActive = true;
   filterEpisodes();
   updateMiniPlayer();
+  _mcResetInterceptor(); // resetuj overlay za novi ep
 }
 
 /* ═══ PROGRESS RING ═══ */
@@ -2347,6 +2348,29 @@ function loadShowsFromExcel() {
 loadShowsFromExcel();
 
 /* ═══ MIXCLOUD WIDGET API — postMessage listener ═══ */
+// mcInterceptPlay: providni overlay hvata prvi klik na Mixcloud iframe.
+// Kada korisnik klikne play, gasimo radio i sklanjamo overlay da iframe
+// normalno radi dalje (pauza, seek, itd. idu direktno u iframe).
+function mcInterceptPlay() {
+  var overlay = document.getElementById('mc-play-interceptor');
+  if (overlay) overlay.style.display = 'none'; // skloni se, dalje klikovi idu u iframe
+  if (playing) {
+    playing = false;
+    audio.pause();
+    audio.onerror = null;
+    clearRing();
+    setPlayUI(false);
+    updateMiniPlayer();
+  }
+}
+
+// Kada se novi ep učita, resetuj overlay da bude spreman za sledeći play
+function _mcResetInterceptor() {
+  var overlay = document.getElementById('mc-play-interceptor');
+  if (overlay) overlay.style.display = 'block';
+}
+
+
 // Kada korisnik pritisne play u Mixcloud iframeu, Mixcloud šalje poruku
 // preko postMessage. Hvatamo taj event i gasimo radio strim.
 window.addEventListener('message', function(e) {

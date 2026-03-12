@@ -60,23 +60,25 @@ jobs:
             if pos < 1 or pos > 100:
               continue
 
-            # Format: pos, pn (prošla nedelja), naj (najbolji), artist, song, ned (nedelja)
-            # Različite kombinacije kolona
-            if len(cells) >= 6:
-              track = {'pos': cells[0].zfill(2), 'pn': cells[1].zfill(2) if cells[1].isdigit() else '00',
-                       'naj': cells[2].zfill(2) if cells[2].isdigit() else cells[0].zfill(2),
-                       'artist': cells[3], 'song': cells[4],
-                       'ned': cells[5] if len(cells) > 5 else '1'}
-            elif len(cells) >= 4:
-              # Može biti artist – song u jednoj koloni
-              parts = cells[2].split(' – ', 1) if ' – ' in cells[2] else cells[2].split(' - ', 1)
-              if len(parts) == 2:
-                track = {'pos': cells[0].zfill(2), 'pn': cells[1].zfill(2) if cells[1].isdigit() else '00',
-                         'naj': cells[0].zfill(2), 'artist': parts[0].strip(), 'song': parts[1].strip(), 'ned': '1'}
-              else:
-                continue
-            else:
+            # Stvarna struktura tabele na radioaparat.rs:
+            # cells[0] = pos, cells[1] = pn, cells[2] = "ARTIST – song",
+            # cells[3] = ned (broj nedelja), cells[4] = naj (najveći plasman)
+            raw = cells[2] if len(cells) > 2 else ''
+            sep = ' \u2013 ' if ' \u2013 ' in raw else (' \u2014 ' if ' \u2014 ' in raw else ' - ')
+            parts = raw.split(sep, 1)
+            if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
               continue
+            pn_raw  = cells[1].strip() if len(cells) > 1 else ''
+            ned_raw = cells[3].strip() if len(cells) > 3 else '1'
+            naj_raw = cells[4].strip() if len(cells) > 4 else cells[0].strip()
+            track = {
+              'pos':    cells[0].strip().zfill(2),
+              'pn':     pn_raw.zfill(2)  if pn_raw.isdigit()  else '00',
+              'artist': parts[0].strip(),
+              'song':   parts[1].strip(),
+              'ned':    ned_raw if ned_raw.isdigit() else '1',
+              'naj':    naj_raw.zfill(2) if naj_raw.isdigit() else cells[0].strip().zfill(2),
+            }
 
             if track['artist'] and track['song']:
               tracks.append(track)
@@ -85,7 +87,7 @@ jobs:
           if not tracks:
             for line in html.split('\n'):
               cols = [c.strip() for c in line.split('|') if c.strip()]
-              if len(cols) < 4:
+              if len(cols) < 3:
                 continue
               try:
                 pos = int(cols[0])
@@ -93,11 +95,24 @@ jobs:
                 continue
               if pos < 1 or pos > 100:
                 continue
-              if ' – ' in cols[2] or ' - ' in cols[2]:
-                sep = ' – ' if ' – ' in cols[2] else ' - '
-                parts = cols[2].split(sep, 1)
-                tracks.append({'pos': cols[0].zfill(2), 'pn': cols[1].zfill(2) if cols[1].isdigit() else '00',
-                               'naj': cols[0].zfill(2), 'artist': parts[0].strip(), 'song': parts[1].strip(), 'ned': '1'})
+              raw = cols[2] if len(cols) > 2 else ''
+              sep = ' \u2013 ' if ' \u2013 ' in raw else (' \u2014 ' if ' \u2014 ' in raw else ' - ')
+              if sep not in raw:
+                continue
+              parts = raw.split(sep, 1)
+              if len(parts) != 2 or not parts[0].strip():
+                continue
+              pn_raw  = cols[1].strip() if len(cols) > 1 else ''
+              ned_raw = cols[3].strip() if len(cols) > 3 else '1'
+              naj_raw = cols[4].strip() if len(cols) > 4 else cols[0].strip()
+              tracks.append({
+                'pos':    cols[0].strip().zfill(2),
+                'pn':     pn_raw.zfill(2)  if pn_raw.isdigit()  else '00',
+                'artist': parts[0].strip(),
+                'song':   parts[1].strip(),
+                'ned':    ned_raw if ned_raw.isdigit() else '1',
+                'naj':    naj_raw.zfill(2) if naj_raw.isdigit() else cols[0].strip().zfill(2),
+              })
 
           if not tracks:
             print('ERROR: 0 pesama parsiranih')

@@ -336,7 +336,7 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .play-ring-bg {
   fill:none; stroke:var(--ring-track); stroke-width:2; opacity:0; transition:opacity .3s;
 }
-.play-ring-wrap.is-playing .play-ring-bg { opacity:0; }
+.play-ring-wrap.is-playing .play-ring-bg { opacity:1; }
 .play-ring-fg {
   fill:none; stroke:var(--ring-fg, #fff); stroke-width:3;
   stroke-linecap:round;

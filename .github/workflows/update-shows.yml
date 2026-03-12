@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'radioaparat_linkovi.xlsx'
+      - 'radioaparat-shows_data.xlsx'
   workflow_dispatch:
 
 env:

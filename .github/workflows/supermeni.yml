@@ -2,7 +2,9 @@ name: Update Super Meni JSON
 
 on:
   schedule:
-    # Ponedeljak 08:00 UTC (09:00 CET / 10:00 CEST) — Super Meni izlazi ponedeljkom
+    # Subota 08:00 UTC = 09:00 CET (10:00 CEST) — Super Meni izlazi subotom
+    - cron: '0 8 * * 6'
+    # Ponedeljak 08:00 UTC = 09:00 CET (10:00 CEST) — drugi pokušaj ako subota nije bila ažurirana
     - cron: '0 8 * * 1'
   workflow_dispatch: # Ručno pokretanje
 

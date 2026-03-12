@@ -1,36 +1,6 @@
 {
-  "updated": "2026-03-11T21:22:27.834Z",
+  "updated": "2026-03-12T01:00:08.283Z",
   "days": [
-    {
-      "date": "11.03.2026.",
-      "items": [
-        {
-          "time": "11:00",
-          "title": "DJ SATARAŠ - Uncool",
-          "host": "Ceca"
-        },
-        {
-          "time": "14:00",
-          "title": "POP DEPRESIJA",
-          "host": "Ivan Lončarević"
-        },
-        {
-          "time": "18:00",
-          "title": "KAMILICA",
-          "host": "Milica Joksimović"
-        },
-        {
-          "time": "20:00",
-          "title": "VEČE SA TEGLINIM POPODNEVOM",
-          "host": "tegla.rs"
-        },
-        {
-          "time": "22:00",
-          "title": "MONO",
-          "host": "Horhe Akimov"
-        }
-      ]
-    },
     {
       "date": "12.03.2026.",
       "items": [
@@ -163,6 +133,36 @@
           "time": "20:00",
           "title": "ŠIZOANALIZA",
           "host": "Anđelija Rudnjanin"
+        }
+      ]
+    },
+    {
+      "date": "18.03.2026.",
+      "items": [
+        {
+          "time": "11:00",
+          "title": "DJ SATARAŠ - Uncool",
+          "host": "Ceca"
+        },
+        {
+          "time": "14:00",
+          "title": "POP DEPRESIJA",
+          "host": "Ivan Lončarević"
+        },
+        {
+          "time": "17:00",
+          "title": "REGGAE FEVER",
+          "host": "Nenad Pekez"
+        },
+        {
+          "time": "18:00",
+          "title": "KAMILICA",
+          "host": "Milica Joksimović"
+        },
+        {
+          "time": "20:00",
+          "title": "VEČE SA TEGLINIM POPODNEVOM",
+          "host": "tegla.rs"
         }
       ]
     }

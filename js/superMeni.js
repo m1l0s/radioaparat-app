@@ -273,8 +273,10 @@ var TREND_ICONS={
 };
 
 function smRowHTML(t){
-  var ned = t.ned || '1';
+  var ned = parseInt(t.ned) || 1;
   var naj = (t.naj && t.naj !== '00') ? t.naj : t.pos;
+  // NED:1 znači nova pesma na listi — prikazujemo "NEW" trend umesto "NED: 1"
+  var nedLabel = ned > 1 ? '<div class="sm-ned">NED: '+ned+'</div>' : '';
   return '<div class="sm-row" data-q="'+esc(t.artist+' '+t.song)+'" onclick="smRowClick(this)">'+
     '<div class="sm-pos'+(t.posNum<=3?' top3':'')+'">'+esc(t.pos)+'</div>'+
     '<div class="sm-trend '+t.trend+'">'+(TREND_ICONS[t.trend]||'')+'</div>'+
@@ -282,7 +284,7 @@ function smRowHTML(t){
       (t.artist?'<div class="sm-artist">'+esc(t.artist)+'</div>':'')+
       '<div class="sm-song">'+esc(t.song)+'</div>'+
     '</div>'+
-    '<div class="sm-stats"><div class="sm-ned">NED: '+esc(ned)+'</div><div class="sm-naj">NAJ: '+esc(naj)+'</div></div>'+
+    '<div class="sm-stats">'+nedLabel+'<div class="sm-naj">NAJ: '+esc(naj)+'</div></div>'+
   '</div>';
 }
 

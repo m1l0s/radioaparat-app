@@ -277,37 +277,67 @@ function fetchShowEpisodes(showId, mixcloudLink, soundcloudLink, cb) {
 
   trySoundcloud();
 
-  // Pokušaj 2: SoundCloud API (public, bez auth za resolve)
+  // Pokušaj 2: SoundCloud
   function trySoundcloud() {
     if (!soundcloudLink) { fetchFromRadioAparat(); return; }
-    // Izvuci username i playlist/tracks iz URL-a
-    // Podrzani formati: soundcloud.com/user, soundcloud.com/user/sets/playlist
-    var scMatch = soundcloudLink.match(/soundcloud\.com\/([^\/?\s]+)/i);
-    if (!scMatch) { fetchFromRadioAparat(); return; }
-    var scUser = scMatch[1];
-    // SoundCloud nema javni API bez client_id — koristimo rss feed kao fallback
-    var rssUrl = 'https://feeds.soundcloud.com/users/soundcloud:users:' + scUser + '/sounds.rss';
-    // Probamo kroz proxy jer CORS
-    var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://soundcloud.com/' + scUser + '/tracks');
-    fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl))
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        var xml = d.contents || '';
-        if (!xml || xml.length < 100) throw new Error('empty');
-        // Parse RSS items
-        var eps = [];
-        var itemRe = /<item>([\s\S]*?)<\/item>/gi, m;
-        while ((m = itemRe.exec(xml)) !== null && eps.length < 20) {
-          var titleM = m[1].match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/i);
-          var linkM  = m[1].match(/<link>(.*?)<\/link>|<enclosure[^>]+url="([^"]+)"/i);
-          var title = titleM ? (titleM[1] || titleM[2] || '').trim() : '';
-          var url   = linkM  ? (linkM[1]  || linkM[2]  || '').trim() : '';
-          if (title && url) eps.push({ url: url, title: title, mcKey: null, date: '' });
-        }
-        if (eps.length) { done(eps); return; }
-        fetchFromRadioAparat();
-      })
-      .catch(fetchFromRadioAparat);
+
+    var isSet = /soundcloud\.com\/[^\/]+\/sets\//i.test(soundcloudLink);
+
+    if (isSet) {
+      // Za /sets/ URL: scrape page i parsiraj __sc_hydration
+      fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(soundcloudLink))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var html = d.contents || '';
+          if (!html || html.length < 100) throw new Error('empty');
+          // Traži __sc_hydration JSON blok
+          var hydMatch = html.match(/window\.__sc_hydration\s*=\s*(\[[\s\S]*?\]);\s*<\/script>/);
+          if (!hydMatch) throw new Error('no hydration');
+          var hydration = JSON.parse(hydMatch[1]);
+          var eps = [];
+          hydration.forEach(function(h) {
+            if (h.hydratable === 'playlist' && h.data && h.data.tracks) {
+              h.data.tracks.forEach(function(t) {
+                if (t.title && t.permalink_url) {
+                  eps.push({
+                    url: t.permalink_url,
+                    title: t.title,
+                    mcKey: null,
+                    date: (t.created_at || '').slice(0,10)
+                  });
+                }
+              });
+            }
+          });
+          if (eps.length) { done(eps); return; }
+          fetchFromRadioAparat();
+        })
+        .catch(fetchFromRadioAparat);
+    } else {
+      // Za /user URL: RSS feed
+      var scMatch = soundcloudLink.match(/soundcloud\.com\/([^\/?\s]+)/i);
+      if (!scMatch) { fetchFromRadioAparat(); return; }
+      var scUser = scMatch[1];
+      var rssUrl = 'https://feeds.soundcloud.com/users/soundcloud:users:' + scUser + '/sounds.rss';
+      fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var xml = d.contents || '';
+          if (!xml || xml.length < 100) throw new Error('empty');
+          var eps = [];
+          var itemRe = /<item>([\s\S]*?)<\/item>/gi, m;
+          while ((m = itemRe.exec(xml)) !== null && eps.length < 20) {
+            var titleM = m[1].match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/i);
+            var linkM  = m[1].match(/<link>(.*?)<\/link>|<enclosure[^>]+url="([^"]+)"/i);
+            var title = titleM ? (titleM[1] || titleM[2] || '').trim() : '';
+            var url   = linkM  ? (linkM[1]  || linkM[2]  || '').trim() : '';
+            if (title && url) eps.push({ url: url, title: title, mcKey: null, date: '' });
+          }
+          if (eps.length) { done(eps); return; }
+          fetchFromRadioAparat();
+        })
+        .catch(fetchFromRadioAparat);
+    }
   }
 
   // Pokušaj 3: RADIO_APARAT Mixcloud archive

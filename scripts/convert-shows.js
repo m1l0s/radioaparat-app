@@ -1,5 +1,5 @@
 // convert-shows.js
-// Čita radioaparat_linkovi.xlsx iz root repozitorijuma
+// Čita radioaparat-shows_data.xlsx iz root repozitorijuma
 // i upisuje shows.json — pokreće se automatski via GitHub Actions
 // pri svakom pushu koji menja xlsx fajl.
 
@@ -7,7 +7,7 @@ const XLSX = require('xlsx');
 const fs   = require('fs');
 const path = require('path');
 
-const XLSX_FILE   = path.join(__dirname, '..', 'radioaparat_linkovi.xlsx');
+const XLSX_FILE   = path.join(__dirname, '..', 'radioaparat-shows_data.xlsx');
 const OUTPUT_FILE = path.join(__dirname, '..', 'shows.json');
 
 function slugify(str) {

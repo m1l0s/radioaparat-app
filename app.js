@@ -1888,7 +1888,7 @@ function playEp(key, title){
   var mcp = document.getElementById('mc-mini-player');
   document.getElementById('mc-mini-title').textContent = title || key.split('/').filter(Boolean).pop() || 'Emisija';
   document.getElementById('mc-mini-ext').href = 'https://www.mixcloud.com' + key;
-  document.getElementById('mc-iframe').src = 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&feed='+encodeURIComponent(key)+'&dark=1';
+  document.getElementById('mc-iframe').src = 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&callback=1&feed='+encodeURIComponent(key)+'&dark=1';
   mcp.style.display = 'block';
   mixcloudActive = true;
   filterEpisodes();
@@ -2345,3 +2345,25 @@ function loadShowsFromExcel() {
     });
 }
 loadShowsFromExcel();
+
+/* ═══ MIXCLOUD WIDGET API — postMessage listener ═══ */
+// Kada korisnik pritisne play u Mixcloud iframeu, Mixcloud šalje poruku
+// preko postMessage. Hvatamo taj event i gasimo radio strim.
+window.addEventListener('message', function(e) {
+  if (!e.origin || e.origin.indexOf('mixcloud.com') < 0) return;
+  var data;
+  try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; }
+  catch(err) { return; }
+  // Mixcloud Widget API šalje event tipa "play" kada korisnik pokrene audio
+  var evType = data && (data.type || (data.event && data.event.type) || '');
+  if (evType === 'play' || evType === 'buffering') {
+    if (playing) {
+      playing = false;
+      audio.pause();
+      audio.onerror = null;
+      clearRing();
+      setPlayUI(false);
+      updateMiniPlayer();
+    }
+  }
+});

@@ -1105,21 +1105,33 @@ var _smData={
 };
 
 function initSuperMeni(){
-  // Uvek prikaži keširane podatke odmah
-  applySMData(_smData);
-  // Ne radi refresh ako je već u toku ili ako je pre manje od 60s
   var now = Date.now();
+  var hasTracks = _smData.tracks && _smData.tracks.length > 0;
+
+  if (hasTracks) {
+    applySMData(_smData);
+  } else {
+    document.getElementById('sm-sub').textContent = 'Učitavam...';
+    document.getElementById('sm-list').innerHTML =
+      '<div class="ep-loading"><div class="ep-spinner"></div>Učitavam Super Meni listu...</div>';
+  }
+
   if (window._smRefreshing) return;
-  if (window._smLastRefresh && (now - window._smLastRefresh) < 60000) {
-    // Podaci su sveži — samo prikaži datum
+  if (hasTracks && window._smLastRefresh && (now - window._smLastRefresh) < 60000) {
     document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
     return;
   }
   window._smRefreshing = true;
-  document.getElementById('sm-sub').textContent = 'Ažuriram...';
+  if (hasTracks) document.getElementById('sm-sub').textContent = 'Ažuriram...';
   var timer = setTimeout(function(){
     window._smRefreshing = false;
-    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+    if (!_smData.tracks || !_smData.tracks.length) {
+      document.getElementById('sm-sub').textContent = 'Lista nije dostupna';
+      document.getElementById('sm-list').innerHTML =
+        '<div class="ep-loading" style="color:var(--text3)">Lista trenutno nije dostupna.<br>Pokušaj ponovo za koji minut.</div>';
+    } else {
+      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+    }
   }, 15000);
   _autoRefreshSuperMeni(function(){
     window._smRefreshing = false;
@@ -1293,30 +1305,51 @@ function _smApplyFetched(tracks, dateStr) {
   });
 }
 
+function _smFetchFromJSON(cb) {
+  var url = SUPERMENI_JSON_URL + '?t=' + Math.floor(Date.now() / (1000*60*60));
+  fetch(url)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(d) {
+      if (!d.tracks || !d.tracks.length) throw new Error('Prazan supermeni.json');
+      cb(d);
+    })
+    .catch(function(e) { console.log('SM JSON fetch failed:', e.message); cb(null); });
+}
+
 function _autoRefreshSuperMeni(doneCb){
   doneCb = doneCb || function(){};
-  _smFetchPage(function(html){
-    if (!html) { doneCb(); return; }
-    var tracks = _smParse(html);
-    if (!tracks.length) { console.warn('SM: parse vratio 0 pesama'); doneCb(); return; }
-    var dateStr = _smExtractDate(html);
-    _smApplyFetched(tracks, dateStr);
-    doneCb();
+  _smFetchFromJSON(function(data) {
+    if (data) { _smApplyFetched(data.tracks, data.date || ''); doneCb(); return; }
+    _smFetchPage(function(html){
+      if (!html) { doneCb(); return; }
+      var tracks = _smParse(html);
+      if (!tracks.length) { console.warn('SM: parse vratio 0 pesama'); doneCb(); return; }
+      _smApplyFetched(tracks, _smExtractDate(html));
+      doneCb();
+    });
   });
 }
 
 function refreshSuperMeni(){
   var btn = document.getElementById('sm-refresh-btn');
+  var sub = document.getElementById('sm-sub');
   btn.classList.add('spinning'); btn.disabled = true;
-  document.getElementById('sm-sub').textContent = 'Osvežavam...';
-  _smFetchPage(function(html){
-    btn.classList.remove('spinning'); btn.disabled = false;
-    if (!html) { showToast('Greška: ne mogu da dohvatim stranicu'); document.getElementById('sm-sub').textContent = (_smData.date||''); return; }
-    var tracks = _smParse(html);
-    if (!tracks.length) { showToast('Greška: stranica se promenila'); document.getElementById('sm-sub').textContent = (_smData.date||''); return; }
-    var dateStr = _smExtractDate(html);
-    _smApplyFetched(tracks, dateStr);
-    showToast('Lista osvežena ✓');
+  sub.textContent = 'Osvežavam...';
+  _smFetchFromJSON(function(data) {
+    if (data) {
+      btn.classList.remove('spinning'); btn.disabled = false;
+      _smApplyFetched(data.tracks, data.date || '');
+      showToast('Lista osvežena ✓');
+      return;
+    }
+    _smFetchPage(function(html){
+      btn.classList.remove('spinning'); btn.disabled = false;
+      if (!html) { showToast('Greška: ne mogu da dohvatim listu'); sub.textContent = (_smData.date||'Nije dostupno'); return; }
+      var tracks = _smParse(html);
+      if (!tracks.length) { showToast('Greška: stranica se promenila'); sub.textContent = (_smData.date||'Nije dostupno'); return; }
+      _smApplyFetched(tracks, _smExtractDate(html));
+      showToast('Lista osvežena ✓');
+    });
   });
 }
 
@@ -1413,6 +1446,7 @@ function closeMapsSheet() {
 // SHOWS se učitava iz shows.json (generisan GitHub Actions iz Excel-a)
 var SHOWS = [];
 var showsReady = false; // true kada loadShowsFromExcel završi
+var SUPERMENI_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/supermeni.json';
 var SHOWS_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/shows.json';
 
 function filterShows(cat,el){

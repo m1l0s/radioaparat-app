@@ -16,7 +16,6 @@ audio.volume = 0.7;
 var ANTHROPIC_API_KEY = '';
 // GitHub raw URL za schedule.json — PROMENI u svoj username/repo
 var SCHEDULE_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/schedule.json';
-var SUPERMENI_JSON_URL = 'https://raw.githubusercontent.com/m1l0s/radioaparat-app/main/supermeni.json';
 
 var playing      = false;
 var favorites    = JSON.parse(localStorage.getItem('ra_favorites') || '[]');
@@ -1059,56 +1058,74 @@ function renderRasporedDay(idx){
 /* ═══ SUPER MENI ═══ */
 var smInited=false, smAllTracks=[];
 var _smData={
-  "date": "",
-  "preslušaj": "",
-  "tracks": []
+  "date":"SUPER MENI – 28. FEBRUAR 2026.",
+  "preslušaj":"",
+  "tracks":[
+    {"pos":"01","pn":"04","naj":"1","artist":"ARCTIC MONKEYS","song":"Opening Night","ned":"6"},
+    {"pos":"02","pn":"05","naj":"2","artist":"LU","song":"Gde đavo spava","ned":"6"},
+    {"pos":"03","pn":"06","naj":"3","artist":"JAMES BLAKE","song":"Death of Love","ned":"6"},
+    {"pos":"04","pn":"07","naj":"4","artist":"ROBBIE WILLIAMS","song":"Selfish Disco","ned":"5"},
+    {"pos":"05","pn":"12","naj":"5","artist":"DJU DJU","song":"Natural","ned":"5"},
+    {"pos":"06","pn":"14","naj":"6","artist":"ERIC CANTONA","song":"On se love","ned":"5"},
+    {"pos":"07","pn":"01","naj":"1","artist":"ALEN SINKAUZ, NENAD SINKAUZ, A. STOJKOVIĆ","song":"Nešto se promenilo","ned":"7"},
+    {"pos":"08","pn":"13","naj":"8","artist":"IGRALOM x ORKESTAR B. NIKOLIĆ DONJA","song":"Lešinari (Nisville Live 2025)","ned":"5"},
+    {"pos":"09","pn":"15","naj":"9","artist":"FRIKO","song":"Seven Degrees","ned":"4"},
+    {"pos":"10","pn":"19","naj":"10","artist":"BROWN HORSE","song":"Twisters","ned":"4"},
+    {"pos":"11","pn":"18","naj":"11","artist":"SOMBR","song":"Homewrecker","ned":"3"},
+    {"pos":"12","pn":"20","naj":"12","artist":"RIP MAGIC","song":"5words","ned":"4"},
+    {"pos":"13","pn":"17","naj":"13","artist":"SHORT REPORTS","song":"Da li se sećaš","ned":"5"},
+    {"pos":"14","pn":"21","naj":"14","artist":"ANGINE DE POITRINE","song":"Fabienk","ned":"3"},
+    {"pos":"15","pn":"24","naj":"15","artist":"HEMLOCKE SPRINGS","song":"Be the Girl!","ned":"3"},
+    {"pos":"16","pn":"23","naj":"16","artist":"ROLLING BLACKOUTS COASTAL FEVER","song":"Sunburned in London","ned":"4"},
+    {"pos":"17","pn":"25","naj":"17","artist":"DUA SALEH feat. BON IVER","song":"Flood","ned":"4"},
+    {"pos":"18","pn":"22","naj":"18","artist":"MARKUS PAVLOV","song":"Usne","ned":"4"},
+    {"pos":"19","pn":"26","naj":"19","artist":"LOLA MIKOVIĆ","song":"Nobody Without","ned":"3"},
+    {"pos":"20","pn":"31","naj":"20","artist":"HEN OGLEDD","song":"End of the Rhythm","ned":"2"},
+    {"pos":"21","pn":"27","naj":"21","artist":"KENDI","song":"9. februar","ned":"4"},
+    {"pos":"22","pn":"33","naj":"22","artist":"SARA RENAR","song":"Smile & Wave","ned":"2"},
+    {"pos":"23","pn":"28","naj":"23","artist":"GOLEMATA VODA","song":"Stoj podaleku / Mrtov","ned":"3"},
+    {"pos":"24","pn":"34","naj":"24","artist":"CARDINALS","song":"I Like You","ned":"2"},
+    {"pos":"25","pn":"30","naj":"25","artist":"ZHIVA","song":"Atom","ned":"3"},
+    {"pos":"26","pn":"35","naj":"26","artist":"NAST.ROJE","song":"Obrisana devojka","ned":"2"},
+    {"pos":"27","pn":"02","naj":"2","artist":"IKA","song":"Sram, strah i ja","ned":"7"},
+    {"pos":"28","pn":"32","naj":"28","artist":"MATE PONJEVIĆ","song":"Ljetne kiše","ned":"3"},
+    {"pos":"29","pn":"03","naj":"3","artist":"THE SOPHS","song":"Goldstar","ned":"7"},
+    {"pos":"30","pn":"36","naj":"30","artist":"BORIS VLASTELICA","song":"Sa tobom imam više","ned":"2"},
+    {"pos":"31","pn":"00","naj":"31","artist":"FEVER RAY","song":"The Lake","ned":"1"},
+    {"pos":"32","pn":"37","naj":"32","artist":"ANTOAN DE MILO","song":"Plava fontana mladosti","ned":"2"},
+    {"pos":"33","pn":"38","naj":"33","artist":"OXAJO","song":"Čekam ih","ned":"2"},
+    {"pos":"34","pn":"00","naj":"34","artist":"VOJKO V","song":"Vlaga","ned":"1"},
+    {"pos":"35","pn":"00","naj":"35","artist":"MY NEW BAND BELIEVE","song":"Numerology","ned":"1"},
+    {"pos":"36","pn":"00","naj":"36","artist":"JILL SCOTT feat. TROMBONE SHORTY","song":"Be Great","ned":"1"},
+    {"pos":"37","pn":"00","naj":"37","artist":"DRAM","song":"Ada Bojana","ned":"1"},
+    {"pos":"38","pn":"00","naj":"38","artist":"BABY KEEM feat. KENDRICK LAMAR","song":"Good Flirts","ned":"1"},
+    {"pos":"39","pn":"10","naj":"10","artist":"HARRY STYLES","song":"Aperture","ned":"6"},
+    {"pos":"40","pn":"11","naj":"11","artist":"SNAIL MAIL","song":"Dead End","ned":"6"}
+  ]
 };
+
 function initSuperMeni(){
+  // Uvek prikaži keširane podatke odmah
+  applySMData(_smData);
+  // Ne radi refresh ako je već u toku ili ako je pre manje od 60s
   var now = Date.now();
-  var hasTracks = _smData.tracks && _smData.tracks.length > 0;
-
-  if (hasTracks) {
-    applySMData(_smData);
-  } else {
-    document.getElementById('sm-sub').textContent = 'Učitavam...';
-    document.getElementById('sm-list').innerHTML =
-      '<div class="ep-loading"><div class="ep-spinner"></div>Učitavam Super Meni listu...</div>';
-  }
-
   if (window._smRefreshing) return;
-  if (hasTracks && window._smLastRefresh && (now - window._smLastRefresh) < 60000) {
+  if (window._smLastRefresh && (now - window._smLastRefresh) < 60000) {
+    // Podaci su sveži — samo prikaži datum
     document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
     return;
   }
-
   window._smRefreshing = true;
-  if (hasTracks) document.getElementById('sm-sub').textContent = 'Ažuriram...';
+  document.getElementById('sm-sub').textContent = 'Ažuriram...';
   var timer = setTimeout(function(){
     window._smRefreshing = false;
-    if (!_smData.tracks || !_smData.tracks.length) {
-      document.getElementById('sm-sub').textContent = 'Lista nije dostupna';
-      document.getElementById('sm-list').innerHTML =
-        '<div class="ep-loading" style="color:var(--text3)">Lista trenutno nije dostupna.<br>Pokušaj ponovo za koji minut.</div>';
-    } else {
-      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
-    }
+    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
   }, 15000);
   _autoRefreshSuperMeni(function(){
     window._smRefreshing = false;
     window._smLastRefresh = Date.now();
     clearTimeout(timer);
   });
-}
-
-function _smFetchFromJSON(cb) {
-  var url = SUPERMENI_JSON_URL + '?t=' + Math.floor(Date.now() / (1000*60*60));
-  fetch(url)
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(d) {
-      if (!d.tracks || !d.tracks.length) throw new Error('Prazan supermeni.json');
-      cb(d);
-    })
-    .catch(function(e) { console.log('SM JSON fetch failed:', e.message); cb(null); });
 }
 
 function _smFetchPage(cb) {
@@ -1278,38 +1295,28 @@ function _smApplyFetched(tracks, dateStr) {
 
 function _autoRefreshSuperMeni(doneCb){
   doneCb = doneCb || function(){};
-  _smFetchFromJSON(function(data) {
-    if (data) { _smApplyFetched(data.tracks, data.date || ''); doneCb(); return; }
-    _smFetchPage(function(html){
-      if (!html) { doneCb(); return; }
-      var tracks = _smParse(html);
-      if (!tracks.length) { console.warn('SM: parse vratio 0 pesama'); doneCb(); return; }
-      _smApplyFetched(tracks, _smExtractDate(html));
-      doneCb();
-    });
+  _smFetchPage(function(html){
+    if (!html) { doneCb(); return; }
+    var tracks = _smParse(html);
+    if (!tracks.length) { console.warn('SM: parse vratio 0 pesama'); doneCb(); return; }
+    var dateStr = _smExtractDate(html);
+    _smApplyFetched(tracks, dateStr);
+    doneCb();
   });
 }
 
 function refreshSuperMeni(){
   var btn = document.getElementById('sm-refresh-btn');
-  var sub = document.getElementById('sm-sub');
   btn.classList.add('spinning'); btn.disabled = true;
-  sub.textContent = 'Osvežavam...';
-  _smFetchFromJSON(function(data) {
-    if (data) {
-      btn.classList.remove('spinning'); btn.disabled = false;
-      _smApplyFetched(data.tracks, data.date || '');
-      showToast('Lista osvežena ✓');
-      return;
-    }
-    _smFetchPage(function(html){
-      btn.classList.remove('spinning'); btn.disabled = false;
-      if (!html) { showToast('Greška: ne mogu da dohvatim listu'); sub.textContent = (_smData.date||'Nije dostupno'); return; }
-      var tracks = _smParse(html);
-      if (!tracks.length) { showToast('Greška: stranica se promenila'); sub.textContent = (_smData.date||'Nije dostupno'); return; }
-      _smApplyFetched(tracks, _smExtractDate(html));
-      showToast('Lista osvežena ✓');
-    });
+  document.getElementById('sm-sub').textContent = 'Osvežavam...';
+  _smFetchPage(function(html){
+    btn.classList.remove('spinning'); btn.disabled = false;
+    if (!html) { showToast('Greška: ne mogu da dohvatim stranicu'); document.getElementById('sm-sub').textContent = (_smData.date||''); return; }
+    var tracks = _smParse(html);
+    if (!tracks.length) { showToast('Greška: stranica se promenila'); document.getElementById('sm-sub').textContent = (_smData.date||''); return; }
+    var dateStr = _smExtractDate(html);
+    _smApplyFetched(tracks, dateStr);
+    showToast('Lista osvežena ✓');
   });
 }
 
@@ -1860,12 +1867,30 @@ function filterEpisodes(){
   }).join('');
 }
 
+function mcStartPlayback() {
+  // Korisnik je kliknuo Pusti — sad gasimo stream i učitavamo iframe
+  if (playing) {
+    playing = false;
+    audio.pause();
+    audio.onerror = null;
+    clearRing();
+    setPlayUI(false);
+    updateMiniPlayer();
+  }
+  // Sakrij dugme, prikaži iframe
+  document.getElementById('mc-mini-play-wrap').style.display = 'none';
+  document.getElementById('mc-mini-iframe-wrap').style.display = 'block';
+  document.getElementById('mc-iframe').src = 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&feed='+encodeURIComponent(playingKey)+'&dark=1';
+}
+
 function stopEp() {
   if (!playingKey) return;
   playingKey = null;
   mixcloudActive = false;
   document.getElementById('mc-mini-player').style.display = 'none';
   document.getElementById('mc-iframe').src = '';
+  document.getElementById('mc-mini-iframe-wrap').style.display = 'none';
+  document.getElementById('mc-mini-play-wrap').style.display = 'block';
   filterEpisodes();
   updateMiniPlayer();
   setTimeout(updateMiniPlayer, 100); // safety net after DOM re-render
@@ -1874,25 +1899,16 @@ function stopEp() {
 function playEp(key, title){
   if(playingKey===key){ stopEp(); return; }
   playingKey=key;
-  // Ako stream svira, dajemo mu 2s da Mixcloud autoplay preuzme audio,
-  // pa tek onda gasimo stream — korisnik ne ostaje u tišini.
-  if (playing) {
-    setTimeout(function(){
-      if (mixcloudActive && playing) {
-        playing = false;
-        audio.pause();
-        audio.onerror = null;
-        clearRing();
-        setPlayUI(false);
-        updateMiniPlayer();
-      }
-    }, 2000);
-  }
-  // Show Mixcloud mini player
+  // Prikaži Mini Player sa dugmetom — iframe se učitava tek kada korisnik klikne Pusti
   var mcp = document.getElementById('mc-mini-player');
   document.getElementById('mc-mini-title').textContent = title || key.split('/').filter(Boolean).pop() || 'Emisija';
   document.getElementById('mc-mini-ext').href = 'https://www.mixcloud.com' + key;
-  document.getElementById('mc-iframe').src = 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=1&feed='+encodeURIComponent(key)+'&dark=1';
+  // Sakrij iframe, prikaži play dugme
+  document.getElementById('mc-mini-iframe-wrap').style.display = 'none';
+  document.getElementById('mc-mini-play-wrap').style.display = 'block';
+  document.getElementById('mc-mini-play-btn').textContent = '';
+  document.getElementById('mc-mini-play-btn').innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="6,3 20,12 6,21"/></svg> Pusti emisiju';
+  document.getElementById('mc-iframe').src = ''; // očisti prethodni
   mcp.style.display = 'block';
   mixcloudActive = true;
   filterEpisodes();

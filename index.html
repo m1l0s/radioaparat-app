@@ -255,7 +255,13 @@
         </button>
       </div>
     </div>
-    <div class="mc-mini-iframe-wrap">
+    <div id="mc-mini-play-wrap" style="padding:0 14px 12px;">
+      <button class="mc-mini-play-btn" id="mc-mini-play-btn" onclick="mcStartPlayback()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="6,3 20,12 6,21"/></svg>
+        Pusti emisiju
+      </button>
+    </div>
+    <div class="mc-mini-iframe-wrap" id="mc-mini-iframe-wrap" style="display:none;">
       <iframe id="mc-iframe" height="60" allow="autoplay" style="width:100%;border:none;display:block;"></iframe>
     </div>
   </div>
@@ -492,9 +498,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Drinčićeva 20, Beograd
       </div>
-      <a class="onama-contact-row" href="/cdn-cgi/l/email-protection#344655505d5b554455465540745359555d581a575b59">
+      <a class="onama-contact-row" href="/cdn-cgi/l/email-protection#ed9f8c8984828c9d8c9f8c99ad8a808c8481c38e8280">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-        <span><span class="__cf_email__" data-cfemail="bac8dbded3d5dbcadbc8dbcefaddd7dbd3d694d9d5d7">[email&#160;protected]</span></span>
+        <span><span class="__cf_email__" data-cfemail="fc8e9d9895939d8c9d8e9d88bc9b919d9590d29f9391">[email&#160;protected]</span></span>
       </a>
 
       <div class="onama-section-title">Pratite nas</div>
@@ -586,18 +592,5 @@
           <button class="onama-copy-btn" onclick="copyText('RS35340000001002825215',this)">Kopiraj</button>
         </div>
       </div>
-      <div style="height:60px"></div>
-    </div><!-- /screen-onama -->
 
-  </div><!-- /phone-content -->
-
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
-
-  <audio id="audio" preload="none"></audio>
-
-</div><!-- /phone -->
-
-<script src="app.js"></script>
-</body>
-</html>
+      <div style="height:

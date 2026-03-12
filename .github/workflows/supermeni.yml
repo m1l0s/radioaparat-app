@@ -1,0 +1,134 @@
+name: Update Super Meni JSON
+
+on:
+  schedule:
+    # Ponedeljak 08:00 UTC (09:00 CET / 10:00 CEST) — Super Meni izlazi ponedeljkom
+    - cron: '0 8 * * 1'
+  workflow_dispatch: # Ručno pokretanje
+
+jobs:
+  update-supermeni:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch Super Meni page and parse
+        run: |
+          python3 - << 'PYEOF'
+          import urllib.request
+          import json
+          import re
+          import sys
+          from datetime import datetime
+
+          URL = 'https://radioaparat.rs/super-meni/'
+
+          headers = {
+            'User-Agent': 'Mozilla/5.0 (compatible; radioAPARAT-bot/1.0)',
+            'Accept': 'text/html,application/xhtml+xml',
+          }
+
+          try:
+            req = urllib.request.Request(URL, headers=headers)
+            with urllib.request.urlopen(req, timeout=30) as resp:
+              html = resp.read().decode('utf-8', errors='replace')
+            print(f'Fetched {len(html)} bytes')
+          except Exception as e:
+            print(f'ERROR fetching page: {e}')
+            sys.exit(1)
+
+          tracks = []
+
+          # Strategija 1: HTML tabela <tr><td>
+          tr_matches = re.findall(r'<tr[^>]*>([\s\S]*?)<\/tr>', html, re.IGNORECASE)
+          for tr in tr_matches:
+            tds = re.findall(r'<td[^>]*>([\s\S]*?)<\/td>', tr, re.IGNORECASE)
+            cells = [re.sub(r'<[^>]+>', ' ', td).replace('&amp;', '&').replace('&#39;', "'").replace('&nbsp;', ' ').strip() for td in tds]
+            cells = [re.sub(r'\s+', ' ', c).strip() for c in cells]
+            if len(cells) < 3:
+              continue
+            try:
+              pos = int(cells[0])
+            except:
+              continue
+            if pos < 1 or pos > 100:
+              continue
+
+            # Format: pos, pn (prošla nedelja), naj (najbolji), artist, song, ned (nedelja)
+            # Različite kombinacije kolona
+            if len(cells) >= 6:
+              track = {'pos': cells[0].zfill(2), 'pn': cells[1].zfill(2) if cells[1].isdigit() else '00',
+                       'naj': cells[2].zfill(2) if cells[2].isdigit() else cells[0].zfill(2),
+                       'artist': cells[3], 'song': cells[4],
+                       'ned': cells[5] if len(cells) > 5 else '1'}
+            elif len(cells) >= 4:
+              # Može biti artist – song u jednoj koloni
+              parts = cells[2].split(' – ', 1) if ' – ' in cells[2] else cells[2].split(' - ', 1)
+              if len(parts) == 2:
+                track = {'pos': cells[0].zfill(2), 'pn': cells[1].zfill(2) if cells[1].isdigit() else '00',
+                         'naj': cells[0].zfill(2), 'artist': parts[0].strip(), 'song': parts[1].strip(), 'ned': '1'}
+              else:
+                continue
+            else:
+              continue
+
+            if track['artist'] and track['song']:
+              tracks.append(track)
+
+          # Strategija 2: text tabela "| 01 | ... |"
+          if not tracks:
+            for line in html.split('\n'):
+              cols = [c.strip() for c in line.split('|') if c.strip()]
+              if len(cols) < 4:
+                continue
+              try:
+                pos = int(cols[0])
+              except:
+                continue
+              if pos < 1 or pos > 100:
+                continue
+              if ' – ' in cols[2] or ' - ' in cols[2]:
+                sep = ' – ' if ' – ' in cols[2] else ' - '
+                parts = cols[2].split(sep, 1)
+                tracks.append({'pos': cols[0].zfill(2), 'pn': cols[1].zfill(2) if cols[1].isdigit() else '00',
+                               'naj': cols[0].zfill(2), 'artist': parts[0].strip(), 'song': parts[1].strip(), 'ned': '1'})
+
+          if not tracks:
+            print('ERROR: 0 pesama parsiranih')
+            sys.exit(1)
+
+          print(f'Parsed {len(tracks)} tracks')
+
+          # Izvuci datum iz stranice
+          date_str = ''
+          dm = re.search(r'SUPER\s+MENI\s*[–\-]\s*([^<\n"]{4,40})', html, re.IGNORECASE)
+          if dm:
+            date_str = 'SUPER MENI – ' + dm.group(1).strip().rstrip('.')
+
+          result = {
+            'updated': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'date': date_str,
+            'tracks': tracks
+          }
+
+          with open('supermeni.json', 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
+
+          print(f'supermeni.json written, date="{date_str}"')
+          PYEOF
+
+      - name: Commit supermeni.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add supermeni.json
+          if git diff --staged --quiet; then
+            echo "No changes to supermeni.json"
+          else
+            git commit -m "chore: update supermeni.json [$(date -u '+%Y-%m-%d')]"
+            git push
+          fi

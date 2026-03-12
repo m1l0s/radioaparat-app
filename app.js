@@ -1881,14 +1881,9 @@ function stopEp() {
 function playEp(key, title){
   if(playingKey===key){ stopEp(); return; }
   playingKey=key;
-  // Zaustavi live strim ako svira
-  if(playing){
-    playing = false;
-    audio.pause(); audio.src='';
-    audio.onerror = null;
-    clearRing();
-    setPlayUI(false);
-  }
+  // Ne gasimo stream ovde — Mixcloud iframe sa autoplay=1 preuzima audio
+  // čim počne da svira (iOS AudioSession i browser to rešavaju automatski).
+  // Stream ostaje aktivan dok Mixcloud ne počne, korisnik ne ostaje u tišini.
   // Show Mixcloud mini player
   var mcp = document.getElementById('mc-mini-player');
   document.getElementById('mc-mini-title').textContent = title || key.split('/').filter(Boolean).pop() || 'Emisija';

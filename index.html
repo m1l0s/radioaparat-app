@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>radioAPARAT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23000'/><text y='72' x='50' text-anchor='middle' font-size='62' font-family='system-ui,sans-serif' fill='%23fff'>📻</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -303,8 +304,8 @@
       </div>
 
       <div class="track-info">
-        <div class="track-title" id="track-title" onclick="openCurrentTrackStreamSheet()" style="cursor:pointer;"></div>
-        <div class="track-artist" id="track-artist" style="visibility:hidden;cursor:pointer;" onclick="openCurrentTrackStreamSheet()"></div>
+        <div class="track-title" id="track-title"></div>
+        <div class="track-artist" id="track-artist" style="visibility:hidden"></div>
       </div>
       <!-- DEBUG PANEL — privremeno, obrisati pre produkcije -->
       <div id="debug-panel" style="background:rgba(0,0,0,0.7);color:#0f0;font-size:10px;font-family:monospace;padding:6px 8px;border-radius:8px;margin:4px 8px;word-break:break-all;max-height:120px;overflow-y:auto;display:none;">
@@ -498,9 +499,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Drinčićeva 20, Beograd
       </div>
-      <a class="onama-contact-row" href="/cdn-cgi/l/email-protection#ed9f8c8984828c9d8c9f8c99ad8a808c8481c38e8280">
+      <a class="onama-contact-row" href="mailto:radioaparat@gmail.com">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-        <span><span class="__cf_email__" data-cfemail="fc8e9d9895939d8c9d8e9d88bc9b919d9590d29f9391">[email&#160;protected]</span></span>
+        <span>radioaparat@gmail.com</span>
       </a>
 
       <div class="onama-section-title">Pratite nas</div>
@@ -604,19 +605,6 @@
 
 </div><!-- /phone -->
 
-<script src="js/config.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/player.js"></script>
-<script src="js/favoriti.js"></script>
-<script src="js/raspored.js"></script>
-<script src="js/superMeni.js"></script>
-<script src="js/emisije.js"></script>
-<script src="js/replay.js"></script>
-<script src="js/ring.js"></script>
-<script src="js/miniPlayer.js"></script>
-<script src="js/sleepTimer.js"></script>
-<script src="js/airplay.js"></script>
-<script src="js/boot.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

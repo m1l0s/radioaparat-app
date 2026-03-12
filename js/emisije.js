@@ -185,7 +185,7 @@ function _openDetailById(id){
     .replace(/[šś]/g,'s').replace(/[đ]/g,'dj').replace(/[čć]/g,'c').replace(/[žź]/g,'z')
     .replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
 
-  fetchShowEpisodes(showSlug, (s.links && s.links.mixcloud) || null, function(eps){
+  fetchShowEpisodes(showSlug, (s.links && s.links.mixcloud) || null, (s.links && s.links.soundcloud) || null, function(eps){
     if (!eps || !eps.length) {
       epList.innerHTML = '<div style="padding:12px 0;color:var(--text3);font-size:13px;">Nema dostupnih epizoda.</div>';
       return;
@@ -243,7 +243,9 @@ function getMixcloudCasts(cb) {
 
 /* ── Epizode po emisiji ── */
 var _epCache = {};
-function fetchShowEpisodes(showId, mixcloudLink, cb) {
+function fetchShowEpisodes(showId, mixcloudLink, soundcloudLink, cb) {
+  // Podrška za poziv bez soundcloudLink (backwards compat)
+  if (typeof soundcloudLink === 'function') { cb = soundcloudLink; soundcloudLink = null; }
   if (_epCache[showId]) { cb(_epCache[showId]); return; }
 
   function norm(s) {
@@ -254,6 +256,7 @@ function fetchShowEpisodes(showId, mixcloudLink, cb) {
 
   function done(eps) { _epCache[showId] = eps; cb(eps); }
 
+  // Pokušaj 1: Sopstveni Mixcloud nalog (ne RADIO_APARAT)
   if (mixcloudLink) {
     var mcUserMatch = mixcloudLink.match(/mixcloud\.com\/([^\/]+)\/?$/i);
     if (mcUserMatch && mcUserMatch[1].toUpperCase() !== 'RADIO_APARAT') {
@@ -265,15 +268,49 @@ function fetchShowEpisodes(showId, mixcloudLink, cb) {
             return { url: 'https://www.mixcloud.com'+c.key, title: c.name, mcKey: c.key, date: (c.created_time||'').slice(0,10) };
           });
           if (eps.length) { done(eps); return; }
-          fetchFromRadioAparat();
+          trySoundcloud();
         })
-        .catch(fetchFromRadioAparat);
+        .catch(trySoundcloud);
       return;
     }
   }
 
-  fetchFromRadioAparat();
+  trySoundcloud();
 
+  // Pokušaj 2: SoundCloud API (public, bez auth za resolve)
+  function trySoundcloud() {
+    if (!soundcloudLink) { fetchFromRadioAparat(); return; }
+    // Izvuci username i playlist/tracks iz URL-a
+    // Podrzani formati: soundcloud.com/user, soundcloud.com/user/sets/playlist
+    var scMatch = soundcloudLink.match(/soundcloud\.com\/([^\/?\s]+)/i);
+    if (!scMatch) { fetchFromRadioAparat(); return; }
+    var scUser = scMatch[1];
+    // SoundCloud nema javni API bez client_id — koristimo rss feed kao fallback
+    var rssUrl = 'https://feeds.soundcloud.com/users/soundcloud:users:' + scUser + '/sounds.rss';
+    // Probamo kroz proxy jer CORS
+    var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://soundcloud.com/' + scUser + '/tracks');
+    fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var xml = d.contents || '';
+        if (!xml || xml.length < 100) throw new Error('empty');
+        // Parse RSS items
+        var eps = [];
+        var itemRe = /<item>([\s\S]*?)<\/item>/gi, m;
+        while ((m = itemRe.exec(xml)) !== null && eps.length < 20) {
+          var titleM = m[1].match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/i);
+          var linkM  = m[1].match(/<link>(.*?)<\/link>|<enclosure[^>]+url="([^"]+)"/i);
+          var title = titleM ? (titleM[1] || titleM[2] || '').trim() : '';
+          var url   = linkM  ? (linkM[1]  || linkM[2]  || '').trim() : '';
+          if (title && url) eps.push({ url: url, title: title, mcKey: null, date: '' });
+        }
+        if (eps.length) { done(eps); return; }
+        fetchFromRadioAparat();
+      })
+      .catch(fetchFromRadioAparat);
+  }
+
+  // Pokušaj 3: RADIO_APARAT Mixcloud archive
   function fetchFromRadioAparat() {
     getMixcloudCasts(function(casts) {
       var showWords = norm(showId.replace(/-/g,' ')).split(/\s+/).filter(function(w){ return w.length > 1; });

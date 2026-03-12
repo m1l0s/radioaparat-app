@@ -114,8 +114,19 @@ function _smMakeTrack(cells) {
     .replace(/&#8212;/g, '\u2014')
     .replace(/&amp;/g, '&')
     .replace(/&#039;/g, "'");
-  var ned = (cells[3]||'').replace(/\D/g,'').trim() || '1';
-  var naj = (cells[4]||'').replace(/\D/g,'').trim() || String(posNum);
+  // Kolone ned i naj — sajt ih prikazuje kao brojeve > 0
+  // Neki parsovi mogu imati drugačiji broj kolona, pa tražimo sve preostale
+  var ned = '', naj = '';
+  // Pokupi sve brojeve iz kolona [3] i [4] i dalje
+  var extraNums = [];
+  for (var ci = 3; ci < cells.length; ci++) {
+    var n = (cells[ci]||'').replace(/\D/g,'').trim();
+    if (n && parseInt(n) > 0) extraNums.push(n);
+  }
+  // Sajt format: ned je pre naj (Ned. = koliko nedelja na listi, Naj. = najbolja pozicija)
+  ned = extraNums[0] || '1';
+  naj = extraNums[1] || String(posNum);
+
   var artist = '', song = raw;
   var sepIdx = raw.indexOf(' \u2013 ');
   if (sepIdx < 0) sepIdx = raw.indexOf(' \u2014 ');

@@ -29,9 +29,10 @@ function updateMiniPlayer() {
   var el = document.getElementById('mini-title');
   var elArtist = document.getElementById('mini-artist');
   var prevTitle = el.textContent;
+  var prevArtist = elArtist.textContent;
   el.textContent = liveTitle;
   elArtist.textContent = liveArtist;
-  // Marquee samo ako se naslov promenio
+  // Marquee za naslov — samo ako se promenio
   if (prevTitle !== liveTitle) {
     el.classList.remove('marquee');
     requestAnimationFrame(function() {
@@ -42,6 +43,20 @@ function updateMiniPlayer() {
         el.style.setProperty('--marquee-dur', dur + 's');
         el.style.setProperty('--marquee-dist', dist + 'px');
         el.classList.add('marquee');
+      }
+    });
+  }
+  // Marquee za naziv benda — samo ako se promenio
+  if (prevArtist !== liveArtist) {
+    elArtist.classList.remove('marquee');
+    requestAnimationFrame(function() {
+      var wrap = elArtist.parentElement;
+      if (wrap && elArtist.scrollWidth > wrap.clientWidth) {
+        var dur = Math.max(5, elArtist.scrollWidth / 40);
+        var dist = -(elArtist.scrollWidth + 40);
+        elArtist.style.setProperty('--marquee-dur-artist', dur + 's');
+        elArtist.style.setProperty('--marquee-dist', dist + 'px');
+        elArtist.classList.add('marquee');
       }
     });
   }

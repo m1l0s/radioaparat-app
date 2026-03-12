@@ -10,7 +10,7 @@
   --nav-tab-active:#fff;
   --nav-active-pill:rgba(255,255,255,0.12);
   --nav-active-pill-shadow:none;
-  --play-btn-bg:#fff; --play-btn-fg:#000; --ring-track:rgba(255,255,255,0.15); --ring-fg:#fff;
+  --play-btn-bg:#fff; --play-btn-fg:#000; --ring-track:rgba(255,255,255,0.18); --ring-fg:#fff;
   --album-bg:#000;
   --body-bg:#0a0a0a;
   --phone-border:#333;
@@ -47,7 +47,7 @@
     --nav-tab-active:#000;
     --nav-active-pill:rgba(0,0,0,0.08);
     --nav-active-pill-shadow:none;
-    --play-btn-bg:#000; --play-btn-fg:#fff; --ring-track:rgba(255,255,255,0.12); --ring-fg:#fff;
+    --play-btn-bg:#000; --play-btn-fg:#fff; --ring-track:rgba(0,0,0,0.12); --ring-fg:#000;
     --album-bg:#fff;
     --body-bg:#f0f0f0;
     --phone-border:#ccc;
@@ -85,7 +85,7 @@
   --nav-tab-active:#000;
   --nav-active-pill:rgba(0,0,0,0.08);
   --nav-active-pill-shadow:none;
-  --play-btn-bg:#000; --play-btn-fg:#fff; --ring-track:rgba(255,255,255,0.12); --ring-fg:#fff;
+  --play-btn-bg:#000; --play-btn-fg:#fff; --ring-track:rgba(0,0,0,0.12); --ring-fg:#000;
   --album-bg:#fff;
   --body-bg:#f0f0f0;
   --phone-border:#ccc;
@@ -503,16 +503,16 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .search-bar:focus { border-color:#555; }
 .episodes-list { flex:1; overflow-y:auto; padding:0 20px 20px; }
 .episodes-list::-webkit-scrollbar { width:0; }
-.ep-item { background:var(--surface); border-radius:14px; padding:14px; display:flex; gap:12px; border:1px solid var(--border); margin-bottom:10px; cursor:pointer; transition:border-color .15s; height:96px; box-sizing:border-box; align-items:center; overflow:hidden; }
+.ep-item { background:var(--surface); border-radius:14px; padding:14px; display:flex; gap:12px; border:1px solid var(--border); margin-bottom:10px; cursor:pointer; transition:border-color .15s; }
 .ep-item:hover { border-color:#555; }
 .ep-item.playing { border-color:#fff; }
-.ep-thumb { width:68px; height:68px; border-radius:10px; background:#222; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.ep-thumb { width:56px; height:56px; border-radius:10px; background:#222; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
 .ep-thumb img { width:100%; height:100%; object-fit:cover; }
 .ep-thumb-ph { width:100%; height:100%; background:#1a1a1a; display:flex; align-items:center; justify-content:center; }
 .ep-info { flex:1; min-width:0; }
-.ep-show { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ep-show { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
 .ep-title { font-size:14px; font-weight:700; line-height:1.3; margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.ep-meta { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ep-meta { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text3); }
 .ep-play-btn { flex-shrink:0; width:32px; height:32px; background:#fff; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; align-self:center; }
 .mc-player-wrap { padding:0 20px 12px; flex-shrink:0; }
 .mc-player-wrap iframe { width:100%; border-radius:12px; border:none; display:block; }
@@ -598,7 +598,8 @@ body.light-mode .mode-btn.active { background:#000; color:#fff; border-color:#00
 .mini-title-wrap { overflow:hidden; width:100%; }
 .mini-title { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
 .mini-title.marquee { text-overflow:clip; overflow:visible; display:inline-block; padding-right:40px; animation:marqueeScroll linear infinite; animation-duration:var(--marquee-dur,8s); }
-.mini-artist { font-size:11px; color:var(--text2); margin-top:1px; font-weight:500; }
+.mini-artist { font-size:11px; color:var(--text2); margin-top:1px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+.mini-artist.marquee { text-overflow:clip; overflow:visible; display:inline-block; padding-right:40px; animation:marqueeScroll linear infinite; animation-duration:var(--marquee-dur-artist,8s); }
 @keyframes marqueeScroll {
   0%   { transform: translateX(0); }
   15%  { transform: translateX(0); }

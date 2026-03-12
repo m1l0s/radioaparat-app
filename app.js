@@ -144,6 +144,11 @@ function openMore(tabName) {
 }
 
 /* ═══ PLAYER ═══ */
+// Praćenje uzastopnih grešaka streama
+var _streamRetryTimes = []; // timestamp svakog neuspelog pokušaja
+var STREAM_RETRY_WINDOW = 30000; // 30 sekundi
+var STREAM_RETRY_LIMIT  = 3;    // posle 3 greške → "pokušaj kasnije"
+
 function tryStream() {
   audio.onerror = null;
   var src = STREAMS[streamIndex];
@@ -156,7 +161,24 @@ function tryStream() {
       showToast('Probavam rezervni stream...');
       tryStream();
     } else {
-      showToast('Problem sa streamom — pokušaj ponovo');
+      // Svi streamovi neuspešni — auto-pauziraj
+      playing = false;
+      audio.pause();
+      audio.onerror = null;
+      clearRing();
+      setPlayUI(false);
+      updateMiniPlayer();
+
+      // Proveravamo koliko puta smo imali grešku u poslednih 30s
+      var now = Date.now();
+      _streamRetryTimes = _streamRetryTimes.filter(function(t){ return now - t < STREAM_RETRY_WINDOW; });
+      _streamRetryTimes.push(now);
+
+      if (_streamRetryTimes.length > STREAM_RETRY_LIMIT) {
+        showToast('Problem sa streamom — pokušaj kasnije');
+      } else {
+        showToast('Problem sa streamom — pokušaj ponovo');
+      }
     }
   };
   audio.play().catch(function(){});
@@ -1057,51 +1079,12 @@ function renderRasporedDay(idx){
 
 /* ═══ SUPER MENI ═══ */
 var smInited=false, smAllTracks=[];
+// Fallback structure — tracks su namerno prazni da ne bi prikazivali zastarele podatke.
+// Sveži podaci dolaze uvek iz supermeni.json (GitHub Actions) ili scrape-a.
 var _smData={
-  "date":"SUPER MENI – 28. FEBRUAR 2026.",
+  "date":"",
   "preslušaj":"",
-  "tracks":[
-    {"pos":"01","pn":"04","naj":"1","artist":"ARCTIC MONKEYS","song":"Opening Night","ned":"6"},
-    {"pos":"02","pn":"05","naj":"2","artist":"LU","song":"Gde đavo spava","ned":"6"},
-    {"pos":"03","pn":"06","naj":"3","artist":"JAMES BLAKE","song":"Death of Love","ned":"6"},
-    {"pos":"04","pn":"07","naj":"4","artist":"ROBBIE WILLIAMS","song":"Selfish Disco","ned":"5"},
-    {"pos":"05","pn":"12","naj":"5","artist":"DJU DJU","song":"Natural","ned":"5"},
-    {"pos":"06","pn":"14","naj":"6","artist":"ERIC CANTONA","song":"On se love","ned":"5"},
-    {"pos":"07","pn":"01","naj":"1","artist":"ALEN SINKAUZ, NENAD SINKAUZ, A. STOJKOVIĆ","song":"Nešto se promenilo","ned":"7"},
-    {"pos":"08","pn":"13","naj":"8","artist":"IGRALOM x ORKESTAR B. NIKOLIĆ DONJA","song":"Lešinari (Nisville Live 2025)","ned":"5"},
-    {"pos":"09","pn":"15","naj":"9","artist":"FRIKO","song":"Seven Degrees","ned":"4"},
-    {"pos":"10","pn":"19","naj":"10","artist":"BROWN HORSE","song":"Twisters","ned":"4"},
-    {"pos":"11","pn":"18","naj":"11","artist":"SOMBR","song":"Homewrecker","ned":"3"},
-    {"pos":"12","pn":"20","naj":"12","artist":"RIP MAGIC","song":"5words","ned":"4"},
-    {"pos":"13","pn":"17","naj":"13","artist":"SHORT REPORTS","song":"Da li se sećaš","ned":"5"},
-    {"pos":"14","pn":"21","naj":"14","artist":"ANGINE DE POITRINE","song":"Fabienk","ned":"3"},
-    {"pos":"15","pn":"24","naj":"15","artist":"HEMLOCKE SPRINGS","song":"Be the Girl!","ned":"3"},
-    {"pos":"16","pn":"23","naj":"16","artist":"ROLLING BLACKOUTS COASTAL FEVER","song":"Sunburned in London","ned":"4"},
-    {"pos":"17","pn":"25","naj":"17","artist":"DUA SALEH feat. BON IVER","song":"Flood","ned":"4"},
-    {"pos":"18","pn":"22","naj":"18","artist":"MARKUS PAVLOV","song":"Usne","ned":"4"},
-    {"pos":"19","pn":"26","naj":"19","artist":"LOLA MIKOVIĆ","song":"Nobody Without","ned":"3"},
-    {"pos":"20","pn":"31","naj":"20","artist":"HEN OGLEDD","song":"End of the Rhythm","ned":"2"},
-    {"pos":"21","pn":"27","naj":"21","artist":"KENDI","song":"9. februar","ned":"4"},
-    {"pos":"22","pn":"33","naj":"22","artist":"SARA RENAR","song":"Smile & Wave","ned":"2"},
-    {"pos":"23","pn":"28","naj":"23","artist":"GOLEMATA VODA","song":"Stoj podaleku / Mrtov","ned":"3"},
-    {"pos":"24","pn":"34","naj":"24","artist":"CARDINALS","song":"I Like You","ned":"2"},
-    {"pos":"25","pn":"30","naj":"25","artist":"ZHIVA","song":"Atom","ned":"3"},
-    {"pos":"26","pn":"35","naj":"26","artist":"NAST.ROJE","song":"Obrisana devojka","ned":"2"},
-    {"pos":"27","pn":"02","naj":"2","artist":"IKA","song":"Sram, strah i ja","ned":"7"},
-    {"pos":"28","pn":"32","naj":"28","artist":"MATE PONJEVIĆ","song":"Ljetne kiše","ned":"3"},
-    {"pos":"29","pn":"03","naj":"3","artist":"THE SOPHS","song":"Goldstar","ned":"7"},
-    {"pos":"30","pn":"36","naj":"30","artist":"BORIS VLASTELICA","song":"Sa tobom imam više","ned":"2"},
-    {"pos":"31","pn":"00","naj":"31","artist":"FEVER RAY","song":"The Lake","ned":"1"},
-    {"pos":"32","pn":"37","naj":"32","artist":"ANTOAN DE MILO","song":"Plava fontana mladosti","ned":"2"},
-    {"pos":"33","pn":"38","naj":"33","artist":"OXAJO","song":"Čekam ih","ned":"2"},
-    {"pos":"34","pn":"00","naj":"34","artist":"VOJKO V","song":"Vlaga","ned":"1"},
-    {"pos":"35","pn":"00","naj":"35","artist":"MY NEW BAND BELIEVE","song":"Numerology","ned":"1"},
-    {"pos":"36","pn":"00","naj":"36","artist":"JILL SCOTT feat. TROMBONE SHORTY","song":"Be Great","ned":"1"},
-    {"pos":"37","pn":"00","naj":"37","artist":"DRAM","song":"Ada Bojana","ned":"1"},
-    {"pos":"38","pn":"00","naj":"38","artist":"BABY KEEM feat. KENDRICK LAMAR","song":"Good Flirts","ned":"1"},
-    {"pos":"39","pn":"10","naj":"10","artist":"HARRY STYLES","song":"Aperture","ned":"6"},
-    {"pos":"40","pn":"11","naj":"11","artist":"SNAIL MAIL","song":"Dead End","ned":"6"}
-  ]
+  "tracks":[]
 };
 
 function initSuperMeni(){
@@ -1429,6 +1412,15 @@ function openStreamSheet(artist, song, rawQ) {
 function closeStreamSheet() {
   document.getElementById('stream-backdrop').classList.remove('open');
   document.getElementById('stream-sheet').classList.remove('open');
+}
+
+// Otvara stream sheet za trenutno aktivnu RDS pesmu
+function openCurrentTrackStreamSheet() {
+  if (!current.title || current.title === '') return;
+  var rawQ = current.artist && current.artist !== 'radioAPARAT'
+    ? current.artist + ' ' + current.title
+    : current.title;
+  openStreamSheet(current.artist || '', current.title, rawQ);
 }
 
 /* ═══ MAPS SHEET ═══ */
@@ -1931,7 +1923,17 @@ function stopEp() {
 }
 
 function playEp(key, title){
-  if(playingKey===key){ stopEp(); return; }
+  // Ako je ista emisija već izabrana — samo se uveri da je "Učitaj emisiju" vidljivo
+  // (ne toggle-uj u krug, ne pozivaj stopEp)
+  if(playingKey===key){
+    var mcp = document.getElementById('mc-mini-player');
+    document.getElementById('mc-mini-iframe-wrap').style.display = 'none';
+    document.getElementById('mc-mini-play-wrap').style.display = 'block';
+    mcp.style.display = 'block';
+    mixcloudActive = true;
+    updateMiniPlayer();
+    return;
+  }
   playingKey=key;
   // Prikaži Mini Player sa dugmetom — iframe se učitava tek kada korisnik klikne Pusti
   var mcp = document.getElementById('mc-mini-player');

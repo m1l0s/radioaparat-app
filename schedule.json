@@ -1,26 +1,6 @@
 {
-  "updated": "2026-03-12T21:22:54.186Z",
+  "updated": "2026-03-13T01:05:43.730Z",
   "days": [
-    {
-      "date": "12.03.2026.",
-      "items": [
-        {
-          "time": "14:00",
-          "title": "NOBOYWHAT MIX SERIES",
-          "host": "Nebojša Marković Intruder"
-        },
-        {
-          "time": "16:00",
-          "title": "ARCADIA",
-          "host": "Gordan Paunović, Slobodan Brkić"
-        },
-        {
-          "time": "20:00",
-          "title": "LANČANI SUDAR",
-          "host": "Bojan Marjanović"
-        }
-      ]
-    },
     {
       "date": "13.03.2026.",
       "items": [
@@ -163,6 +143,21 @@
           "time": "20:00",
           "title": "VEČE SA TEGLINIM POPODNEVOM",
           "host": "tegla.rs"
+        }
+      ]
+    },
+    {
+      "date": "19.03.2026.",
+      "items": [
+        {
+          "time": "16:00",
+          "title": "ARCADIA",
+          "host": "Gordan Paunović, Slobodan Brkić"
+        },
+        {
+          "time": "20:00",
+          "title": "LANČANI SUDAR",
+          "host": "Bojan Marjanović"
         }
       ]
     }

@@ -23,7 +23,7 @@ function initSuperMeni(){
 
   if (window._smRefreshing) return;
   if (hasTracks && window._smLastRefresh && (now - window._smLastRefresh) < 60000) {
-    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'');
     return;
   }
   window._smRefreshing = true;
@@ -35,7 +35,7 @@ function initSuperMeni(){
       document.getElementById('sm-list').innerHTML =
         '<div class="ep-loading" style="color:var(--text3)">Lista trenutno nije dostupna.<br>Pokušaj ponovo za koji minut.</div>';
     } else {
-      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[–-]\s*/i,'');
+      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'');
     }
   }, 15000);
   _autoRefreshSuperMeni(function(){
@@ -227,12 +227,15 @@ function _autoRefreshSuperMeni(doneCb){
         if (html) {
           var htmlTracks = _smParse(html);
           if (htmlTracks.length) {
-            // Napravi mapu pos -> ned iz HTML-a
-            var nedMap = {};
-            htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; });
+            // Napravi mapu pos -> ned+naj iz HTML-a
+            var nedMap = {}, najMap = {};
+            htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; najMap[t.pos] = t.naj; });
             data.tracks.forEach(function(t){
-              var htmlNed = nedMap[t.pos] || nedMap[parseInt(t.pos) < 10 ? '0'+parseInt(t.pos) : t.pos];
+              var key = t.pos;
+              var htmlNed = nedMap[key] || nedMap[parseInt(key) < 10 ? '0'+parseInt(key) : key];
+              var htmlNaj = najMap[key] || najMap[parseInt(key) < 10 ? '0'+parseInt(key) : key];
               if (htmlNed && parseInt(htmlNed) > 0) t.ned = htmlNed;
+              if (htmlNaj && parseInt(htmlNaj) > 0) t.naj = htmlNaj;
             });
           }
         }
@@ -263,11 +266,14 @@ function refreshSuperMeni(){
         if (html) {
           var htmlTracks = _smParse(html);
           if (htmlTracks.length) {
-            var nedMap = {};
-            htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; });
+            var nedMap = {}, najMap = {};
+            htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; najMap[t.pos] = t.naj; });
             data.tracks.forEach(function(t){
-              var htmlNed = nedMap[t.pos] || nedMap[parseInt(t.pos) < 10 ? '0'+parseInt(t.pos) : t.pos];
+              var key = t.pos;
+              var htmlNed = nedMap[key] || nedMap[parseInt(key) < 10 ? '0'+parseInt(key) : key];
+              var htmlNaj = najMap[key] || najMap[parseInt(key) < 10 ? '0'+parseInt(key) : key];
               if (htmlNed && parseInt(htmlNed) > 0) t.ned = htmlNed;
+              if (htmlNaj && parseInt(htmlNaj) > 0) t.naj = htmlNaj;
             });
           }
         }
@@ -288,7 +294,7 @@ function refreshSuperMeni(){
 }
 
 function applySMData(data){
-  if(data.date) document.getElementById('sm-sub').textContent=data.date.replace(/^SUPER MENI\s*[–-]\s*/i,'');
+  if(data.date) document.getElementById('sm-sub').textContent=data.date.replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'');
   if(data['preslušaj']) _smData['preslušaj']=data['preslušaj'];
   var tracks=(data.tracks||[]).map(function(t){
     var p=parseInt(t.pos)||0,pn=parseInt(t.pn)||0;
@@ -309,7 +315,7 @@ function smRowHTML(t){
   var naj = (t.naj && t.naj !== '00') ? t.naj : t.pos;
   var nedStr = ned < 10 ? '0'+ned : ''+ned;
   var najStr = parseInt(naj) < 10 ? '0'+parseInt(naj) : ''+parseInt(naj);
-  var nedLabel = ned > 1 ? '<div class="sm-ned">NED: '+nedStr+'</div>' : '';
+  var nedLabel = '<div class="sm-ned">NED: '+nedStr+'</div>';
   return '<div class="sm-row" data-q="'+esc(t.artist+' '+t.song)+'" onclick="smRowClick(this)">'+
     '<div class="sm-pos'+(t.posNum<=3?' top3':'')+'">'+esc(t.pos)+'</div>'+
     '<div class="sm-trend '+t.trend+'">'+(TREND_ICONS[t.trend]||'')+'</div>'+

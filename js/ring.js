@@ -22,7 +22,13 @@ function startRingForCurrentShow() {
   clearRing();
   if (!playing) return;
 
-  /* Pronađi današnji dan u rasporedData */
+  /* Ako raspored nije učitan — pokušaj ponovo za 2s */
+  if (!rasporedData || !rasporedData.length) {
+    setTimeout(function() { if (playing) startRingForCurrentShow(); }, 2000);
+    return;
+  }
+
+  /* Pronađi današnji dan po datumu */
   var todayStr = (function() {
     var d = new Date();
     return d.getFullYear() + '-' +
@@ -33,17 +39,16 @@ function startRingForCurrentShow() {
   var day = null;
   for (var i = 0; i < rasporedData.length; i++) {
     if (rasporedData[i] && rasporedData[i].date === todayStr) {
-      day = rasporedData[i];
-      break;
+      day = rasporedData[i]; break;
     }
   }
-  if (!day) day = rasporedData[0]; // fallback na prvi dostupan
+  if (!day) day = rasporedData[0]; // fallback
   if (!day) return;
 
   var now = new Date();
   var curMins = now.getHours() * 60 + now.getMinutes();
-
   var currentShow = null;
+
   for (var j = 0; j < day.items.length; j++) {
     var item = day.items[j];
     if (!item.time) continue;
@@ -51,11 +56,10 @@ function startRingForCurrentShow() {
     var startMins = parseInt(tp[0]) * 60 + parseInt(tp[1]);
     var nxt = day.items[j + 1];
     var endMins = nxt && nxt.time
-      ? (function(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); })(nxt.time)
+      ? (function(t){ var p=t.split(':'); return parseInt(p[0])*60+parseInt(p[1]); })(nxt.time)
       : startMins + 60;
     if (curMins >= startMins && curMins < endMins) {
-      currentShow = { start: startMins, end: endMins };
-      break;
+      currentShow = { start: startMins, end: endMins }; break;
     }
   }
 

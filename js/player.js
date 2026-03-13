@@ -524,7 +524,11 @@ function renderHistory() {
     el.innerHTML = '<div style="padding:16px 0;color:var(--text2);font-size:14px;text-align:center;">Još nema prethodnih pesama.</div>';
     return;
   }
-  el.innerHTML = trackHistory.slice(0, 3).map(function(t, i) {
+  var currentTitle = (current && current.title) ? current.title.toLowerCase() : '';
+  var displayHistory = trackHistory.filter(function(t){
+    return !currentTitle || t.title.toLowerCase() !== currentTitle;
+  }).slice(0, 3);
+  el.innerHTML = displayHistory.map(function(t, i) {
     var isFav = favorites.some(function(f){ return f.title === t.title; });
     var rawQ = t.artist + ' ' + t.title;
     var safeArtist = esc(t.artist).replace(/\\/g,'\\\\').replace(/'/g,"\\'");

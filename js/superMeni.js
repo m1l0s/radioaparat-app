@@ -23,7 +23,7 @@ function initSuperMeni(){
 
   if (window._smRefreshing) return;
   if (hasTracks && window._smLastRefresh && (now - window._smLastRefresh) < 60000) {
-    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'');
+    document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'').replace(/\.?\s*$/,'.');
     return;
   }
   window._smRefreshing = true;
@@ -35,7 +35,7 @@ function initSuperMeni(){
       document.getElementById('sm-list').innerHTML =
         '<div class="ep-loading" style="color:var(--text3)">Lista trenutno nije dostupna.<br>Pokušaj ponovo za koji minut.</div>';
     } else {
-      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'');
+      document.getElementById('sm-sub').textContent = (_smData.date||'').replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'').replace(/\.?\s*$/,'.');
     }
   }, 15000);
   _autoRefreshSuperMeni(function(){
@@ -167,7 +167,7 @@ function smPreslusaj() {
     var mcMatch = mcUrl && mcUrl.match(/mixcloud\.com(\/[^?#]+\/?)/i);
     if (mcMatch) {
       var key = mcMatch[1].replace(/\/$/, '') + '/';
-      var title = (_smData.date || 'Super Meni').replace(/^SUPER MENI\s*[–-]\s*/i, 'Super Meni ');
+      var title = (_smData.date || 'SUPER MENI').replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i, 'SUPER MENI ');
       if (mixcloudActive && playingKey === key) { openMore('replay'); return; }
       openMore('replay');
       setTimeout(function(){ playEp(key, title); }, 250);
@@ -189,7 +189,7 @@ function smPreslusaj() {
 
 function _smApplyFetched(tracks, dateStr) {
   _smData.tracks = tracks;
-  if (dateStr) { _smData.date = dateStr; document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[–—-]\s*/i,'').replace(/\.\s*$/,''); }
+  if (dateStr) { _smData.date = dateStr; document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'').replace(/\.?\s*$/,'.'); }
   smAllTracks = tracks;
   renderSMList(tracks);
   var done = false;
@@ -222,25 +222,26 @@ function _autoRefreshSuperMeni(doneCb){
   doneCb = doneCb || function(){};
   _smFetchFromJSON(function(data) {
     if (data) {
-      // JSON ima sve osim pouzdanog ned — enrichuj sa HTML stranicom
+      // Renderuj ODMAH iz JSON-a — korisnik vidi listu bez čekanja
+      _smApplyFetched(data.tracks, data.date || '');
+      doneCb();
+      // Potom u pozadini enrichuj NED+NAJ iz HTML stranice
       _smFetchPage(function(html){
-        if (html) {
-          var htmlTracks = _smParse(html);
-          if (htmlTracks.length) {
-            // Napravi mapu pos -> ned+naj iz HTML-a
-            var nedMap = {}, najMap = {};
-            htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; najMap[t.pos] = t.naj; });
-            data.tracks.forEach(function(t){
-              var key = t.pos;
-              var htmlNed = nedMap[key] || nedMap[parseInt(key) < 10 ? '0'+parseInt(key) : key];
-              var htmlNaj = najMap[key] || najMap[parseInt(key) < 10 ? '0'+parseInt(key) : key];
-              if (htmlNed && parseInt(htmlNed) > 0) t.ned = htmlNed;
-              if (htmlNaj && parseInt(htmlNaj) > 0) t.naj = htmlNaj;
-            });
-          }
-        }
-        _smApplyFetched(data.tracks, data.date || '');
-        doneCb();
+        if (!html) return;
+        var htmlTracks = _smParse(html);
+        if (!htmlTracks.length) return;
+        var nedMap = {}, najMap = {};
+        htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; najMap[t.pos] = t.naj; });
+        var changed = false;
+        (_smData.tracks||[]).forEach(function(t){
+          var key = t.pos;
+          var k2 = parseInt(key) < 10 ? '0'+parseInt(key) : key;
+          var htmlNed = nedMap[key] || nedMap[k2];
+          var htmlNaj = najMap[key] || najMap[k2];
+          if (htmlNed && parseInt(htmlNed) > 0 && t.ned !== htmlNed) { t.ned = htmlNed; changed = true; }
+          if (htmlNaj && parseInt(htmlNaj) > 0 && t.naj !== htmlNaj) { t.naj = htmlNaj; changed = true; }
+        });
+        if (changed) renderSMList(_smData.tracks);
       });
       return;
     }
@@ -294,7 +295,7 @@ function refreshSuperMeni(){
 }
 
 function applySMData(data){
-  if(data.date) document.getElementById('sm-sub').textContent=data.date.replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'');
+  if(data.date) document.getElementById('sm-sub').textContent=data.date.replace(/^SUPER MENI\s*[\u2013\u2014-]\s*/i,'').replace(/\.?\s*$/,'.');
   if(data['preslušaj']) _smData['preslušaj']=data['preslušaj'];
   var tracks=(data.tracks||[]).map(function(t){
     var p=parseInt(t.pos)||0,pn=parseInt(t.pn)||0;

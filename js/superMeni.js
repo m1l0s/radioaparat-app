@@ -189,7 +189,7 @@ function smPreslusaj() {
 
 function _smApplyFetched(tracks, dateStr) {
   _smData.tracks = tracks;
-  if (dateStr) { _smData.date = dateStr; document.getElementById('sm-sub').textContent = dateStr; }
+  if (dateStr) { _smData.date = dateStr; document.getElementById('sm-sub').textContent = dateStr.replace(/^SUPER MENI\s*[–—-]\s*/i,'').replace(/\.\s*$/,''); }
   smAllTracks = tracks;
   renderSMList(tracks);
   var done = false;

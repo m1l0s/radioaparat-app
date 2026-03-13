@@ -221,7 +221,26 @@ function _smFetchFromJSON(cb) {
 function _autoRefreshSuperMeni(doneCb){
   doneCb = doneCb || function(){};
   _smFetchFromJSON(function(data) {
-    if (data) { _smApplyFetched(data.tracks, data.date || ''); doneCb(); return; }
+    if (data) {
+      // JSON ima sve osim pouzdanog ned — enrichuj sa HTML stranicom
+      _smFetchPage(function(html){
+        if (html) {
+          var htmlTracks = _smParse(html);
+          if (htmlTracks.length) {
+            // Napravi mapu pos -> ned iz HTML-a
+            var nedMap = {};
+            htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; });
+            data.tracks.forEach(function(t){
+              var htmlNed = nedMap[t.pos] || nedMap[parseInt(t.pos) < 10 ? '0'+parseInt(t.pos) : t.pos];
+              if (htmlNed && parseInt(htmlNed) > 0) t.ned = htmlNed;
+            });
+          }
+        }
+        _smApplyFetched(data.tracks, data.date || '');
+        doneCb();
+      });
+      return;
+    }
     _smFetchPage(function(html){
       if (!html) { doneCb(); return; }
       var tracks = _smParse(html);
@@ -239,9 +258,22 @@ function refreshSuperMeni(){
   sub.textContent = 'Osvežavam...';
   _smFetchFromJSON(function(data) {
     if (data) {
-      btn.classList.remove('spinning'); btn.disabled = false;
-      _smApplyFetched(data.tracks, data.date || '');
-      showToast('Lista osvežena ✓');
+      _smFetchPage(function(html){
+        btn.classList.remove('spinning'); btn.disabled = false;
+        if (html) {
+          var htmlTracks = _smParse(html);
+          if (htmlTracks.length) {
+            var nedMap = {};
+            htmlTracks.forEach(function(t){ nedMap[t.pos] = t.ned; });
+            data.tracks.forEach(function(t){
+              var htmlNed = nedMap[t.pos] || nedMap[parseInt(t.pos) < 10 ? '0'+parseInt(t.pos) : t.pos];
+              if (htmlNed && parseInt(htmlNed) > 0) t.ned = htmlNed;
+            });
+          }
+        }
+        _smApplyFetched(data.tracks, data.date || '');
+        showToast('Lista osvežena ✓');
+      });
       return;
     }
     _smFetchPage(function(html){
@@ -275,8 +307,9 @@ var TREND_ICONS={
 function smRowHTML(t){
   var ned = parseInt(t.ned) || 1;
   var naj = (t.naj && t.naj !== '00') ? t.naj : t.pos;
-  // NED:1 znači nova pesma na listi — prikazujemo "NEW" trend umesto "NED: 1"
-  var nedLabel = ned > 1 ? '<div class="sm-ned">NED: '+ned+'</div>' : '';
+  var nedStr = ned < 10 ? '0'+ned : ''+ned;
+  var najStr = parseInt(naj) < 10 ? '0'+parseInt(naj) : ''+parseInt(naj);
+  var nedLabel = ned > 1 ? '<div class="sm-ned">NED: '+nedStr+'</div>' : '';
   return '<div class="sm-row" data-q="'+esc(t.artist+' '+t.song)+'" onclick="smRowClick(this)">'+
     '<div class="sm-pos'+(t.posNum<=3?' top3':'')+'">'+esc(t.pos)+'</div>'+
     '<div class="sm-trend '+t.trend+'">'+(TREND_ICONS[t.trend]||'')+'</div>'+
@@ -284,7 +317,7 @@ function smRowHTML(t){
       (t.artist?'<div class="sm-artist">'+esc(t.artist)+'</div>':'')+
       '<div class="sm-song">'+esc(t.song)+'</div>'+
     '</div>'+
-    '<div class="sm-stats">'+nedLabel+'<div class="sm-naj">NAJ: '+esc(naj)+'</div></div>'+
+    '<div class="sm-stats">'+nedLabel+'<div class="sm-naj">NAJ: '+najStr+'</div></div>'+
   '</div>';
 }
 

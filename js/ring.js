@@ -22,19 +22,34 @@ function startRingForCurrentShow() {
   clearRing();
   if (!playing) return;
 
-  var day = rasporedData[0];
+  /* Pronađi današnji dan u rasporedData */
+  var todayStr = (function() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  })();
+
+  var day = null;
+  for (var i = 0; i < rasporedData.length; i++) {
+    if (rasporedData[i] && rasporedData[i].date === todayStr) {
+      day = rasporedData[i];
+      break;
+    }
+  }
+  if (!day) day = rasporedData[0]; // fallback na prvi dostupan
   if (!day) return;
 
   var now = new Date();
   var curMins = now.getHours() * 60 + now.getMinutes();
 
   var currentShow = null;
-  for (var i = 0; i < day.items.length; i++) {
-    var item = day.items[i];
+  for (var j = 0; j < day.items.length; j++) {
+    var item = day.items[j];
     if (!item.time) continue;
     var tp = item.time.split(':');
     var startMins = parseInt(tp[0]) * 60 + parseInt(tp[1]);
-    var nxt = day.items[i + 1];
+    var nxt = day.items[j + 1];
     var endMins = nxt && nxt.time
       ? (function(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); })(nxt.time)
       : startMins + 60;

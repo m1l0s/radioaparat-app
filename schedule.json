@@ -1,31 +1,6 @@
 {
-  "updated": "2026-03-13T21:23:43.355Z",
+  "updated": "2026-03-14T01:04:51.813Z",
   "days": [
-    {
-      "date": "13.03.2026.",
-      "items": [
-        {
-          "time": "10:30",
-          "title": "DJ SATARAŠ - Soundtrack time!",
-          "host": "Ceca"
-        },
-        {
-          "time": "14:00",
-          "title": "GRAD U PROLAZU",
-          "host": "Snežana Ristić i Radonja Leposavić"
-        },
-        {
-          "time": "15:00",
-          "title": "REALITY CHECK",
-          "host": "Dubravko Jagatić"
-        },
-        {
-          "time": "19:00",
-          "title": "PIRATSKI SATELIT",
-          "host": "Marko Blažić"
-        }
-      ]
-    },
     {
       "date": "14.03.2026.",
       "items": [
@@ -158,6 +133,26 @@
           "time": "20:00",
           "title": "LANČANI SUDAR",
           "host": "Bojan Marjanović"
+        }
+      ]
+    },
+    {
+      "date": "20.03.2026.",
+      "items": [
+        {
+          "time": "10:30",
+          "title": "DJ SATARAŠ - Soundtrack time!",
+          "host": "Ceca"
+        },
+        {
+          "time": "15:00",
+          "title": "REALITY CHECK",
+          "host": "Dubravko Jagatić"
+        },
+        {
+          "time": "19:00",
+          "title": "PIRATSKI SATELIT",
+          "host": "Marko Blažić"
         }
       ]
     }

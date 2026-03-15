@@ -68,19 +68,19 @@ function normalizeEnd(start, end) {
 
 function getTodaySchedule() {
 
-  if (!rasporedData || !rasporedData.length) return null;
+  if (!rasporedData || !rasporedData.days) return null;
 
   var d = new Date();
 
   var today =
-    d.getFullYear() + '-' +
-    String(d.getMonth() + 1).padStart(2, '0') + '-' +
-    String(d.getDate()).padStart(2, '0');
+    String(d.getDate()).padStart(2,'0') + '.' +
+    String(d.getMonth()+1).padStart(2,'0') + '.' +
+    d.getFullYear() + '.';
 
-  for (var i = 0; i < rasporedData.length; i++) {
+  for (var i = 0; i < rasporedData.days.length; i++) {
 
-    if (rasporedData[i] && rasporedData[i].date === today) {
-      return rasporedData[i];
+    if (rasporedData.days[i].date === today) {
+      return rasporedData.days[i];
     }
 
   }

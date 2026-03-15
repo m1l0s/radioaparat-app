@@ -1,83 +1,210 @@
 /* ═══════════════════════════════════════
-   ring.js — Progress ring (trenutna emisija)
+   ring.js — robust progress ring
+   - koristi realno end vreme emisije
+   - podrška za emisije preko ponoći
+   - ring se gasi kad nema emisije
+   - tolerancija na varijacije JSON rasporeda
    ═══════════════════════════════════════ */
 
 var ringTimer = null;
-var RING_CIRC = 188.5; // 2 * PI * 30
+var RING_CIRC = 188.5;
 
 function updateRing(progress) {
+
   var offset = RING_CIRC * (1 - Math.max(0, Math.min(1, progress)));
+
   var ring = document.getElementById('play-ring');
   if (ring) ring.style.strokeDashoffset = offset;
+
   var mini = document.querySelector('.mini-ring-fg');
   if (mini) mini.style.strokeDashoffset = offset;
+
 }
 
 function clearRing() {
-  if (ringTimer) { clearInterval(ringTimer); ringTimer = null; }
+
+  if (ringTimer) {
+    clearInterval(ringTimer);
+    ringTimer = null;
+  }
+
   updateRing(0);
+
+}
+
+function timeToMinutes(t) {
+
+  if (!t) return null;
+
+  var p = t.split(':');
+
+  return parseInt(p[0]) * 60 + parseInt(p[1]);
+
+}
+
+function nowMinutes() {
+
+  var n = new Date();
+
+  return (
+    n.getHours() * 60 +
+    n.getMinutes() +
+    n.getSeconds() / 60
+  );
+
+}
+
+function normalizeEnd(start, end) {
+
+  if (end === null) return null;
+
+  if (end < start) {
+    end += 1440;
+  }
+
+  return end;
+
+}
+
+function getTodaySchedule() {
+
+  if (!rasporedData || !rasporedData.length) return null;
+
+  var d = new Date();
+
+  var today =
+    d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+
+  for (var i = 0; i < rasporedData.length; i++) {
+
+    if (rasporedData[i] && rasporedData[i].date === today) {
+      return rasporedData[i];
+    }
+
+  }
+
+  return null;
+
+}
+
+function findCurrentShow(day) {
+
+  if (!day || !day.items) return null;
+
+  var now = nowMinutes();
+
+  for (var i = 0; i < day.items.length; i++) {
+
+    var item = day.items[i];
+
+    if (!item || !item.time) continue;
+
+    var start = timeToMinutes(item.time);
+
+    var end = null;
+
+    if (item.end) {
+      end = timeToMinutes(item.end);
+    }
+
+    if (end === null) {
+
+      var next = day.items[i + 1];
+
+      if (next && next.time) {
+        end = timeToMinutes(next.time);
+      }
+
+    }
+
+    if (end === null) continue;
+
+    end = normalizeEnd(start, end);
+
+    var checkNow = now;
+
+    if (end > 1440 && now < start) {
+      checkNow += 1440;
+    }
+
+    if (checkNow >= start && checkNow < end) {
+
+      return {
+        start: start,
+        end: end
+      };
+
+    }
+
+  }
+
+  return null;
+
 }
 
 function startRingForCurrentShow() {
+
   clearRing();
+
   if (!playing) return;
 
-  /* Ako raspored nije učitan — pokušaj ponovo za 2s */
   if (!rasporedData || !rasporedData.length) {
-    setTimeout(function() { if (playing) startRingForCurrentShow(); }, 2000);
+
+    setTimeout(function () {
+      if (playing) startRingForCurrentShow();
+    }, 2000);
+
     return;
+
   }
 
-  /* Pronađi današnji dan po datumu */
-  var todayStr = (function() {
-    var d = new Date();
-    return d.getFullYear() + '-' +
-      String(d.getMonth() + 1).padStart(2, '0') + '-' +
-      String(d.getDate()).padStart(2, '0');
-  })();
+  var day = getTodaySchedule();
 
-  var day = null;
-  for (var i = 0; i < rasporedData.length; i++) {
-    if (rasporedData[i] && rasporedData[i].date === todayStr) {
-      day = rasporedData[i]; break;
-    }
+  var show = findCurrentShow(day);
+
+  if (!show) {
+
+    updateRing(0);
+
+    setTimeout(startRingForCurrentShow, 60000);
+
+    return;
+
   }
-  if (!day) day = rasporedData[0]; // fallback
-  if (!day) return;
-
-  var now = new Date();
-  var curMins = now.getHours() * 60 + now.getMinutes();
-  var currentShow = null;
-
-  for (var j = 0; j < day.items.length; j++) {
-    var item = day.items[j];
-    if (!item.time) continue;
-    var tp = item.time.split(':');
-    var startMins = parseInt(tp[0]) * 60 + parseInt(tp[1]);
-    var nxt = day.items[j + 1];
-    var endMins = nxt && nxt.time
-      ? (function(t){ var p=t.split(':'); return parseInt(p[0])*60+parseInt(p[1]); })(nxt.time)
-      : startMins + 60;
-    if (curMins >= startMins && curMins < endMins) {
-      currentShow = { start: startMins, end: endMins }; break;
-    }
-  }
-
-  if (!currentShow) { updateRing(0); return; }
 
   function tick() {
-    var n = new Date();
-    var mins = n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60;
-    var duration = currentShow.end - currentShow.start;
-    var elapsed  = mins - currentShow.start;
-    var progress = duration > 0 ? elapsed / duration : 0;
-    updateRing(progress);
-    if (progress >= 1) {
-      clearInterval(ringTimer); ringTimer = null;
-      setTimeout(startRingForCurrentShow, 5000);
+
+    var now = nowMinutes();
+
+    var start = show.start;
+    var end = show.end;
+
+    if (end > 1440 && now < start) {
+      now += 1440;
     }
+
+    var duration = end - start;
+
+    var elapsed = now - start;
+
+    var progress = duration > 0 ? elapsed / duration : 0;
+
+    updateRing(progress);
+
+    if (progress >= 1) {
+
+      clearRing();
+
+      setTimeout(startRingForCurrentShow, 2000);
+
+    }
+
   }
 
   tick();
-  ringTimer = setInterval(tick, 10000);
+
+  ringTimer = setInterval(tick, 1000);
+
 }
